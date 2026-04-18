@@ -1,44 +1,35 @@
-#[cfg(feature = "custom-features")]
-pub mod agent_create_cmd;
-#[cfg(feature = "custom-features")]
-pub mod ask_cmd;
-#[cfg(feature = "custom-features")]
-pub mod chrome_cmd;
-pub mod debug_sandbox;
-#[cfg(feature = "custom-features")]
-pub mod delegate_cmd;
+pub(crate) mod debug_sandbox;
 mod exit_status;
-pub mod git_commands;
-#[cfg(feature = "cuda")]
-pub mod git_cuda;
-#[cfg(feature = "custom-features")]
-pub mod lock_cmd;
-pub mod login;
-pub mod mcp_cmd;
-pub mod pair_program_cmd;
-#[cfg(feature = "custom-features")]
-pub mod parallel_delegate_cmd;
-#[cfg(feature = "custom-features")]
-pub mod plan_commands;
-#[cfg(feature = "custom-features")]
-pub mod qc_cmd;
-#[cfg(feature = "custom-features")]
-pub mod research_cmd;
-#[cfg(feature = "custom-features")]
-pub mod webhook_cmd;
+pub(crate) mod login;
 
 use clap::Parser;
+use codex_utils_absolute_path::AbsolutePathBuf;
 use codex_utils_cli::CliConfigOverrides;
 
-// --- Fork custom additions ---
-use codex_core::config::Config;
-// --- End fork additions ---
+pub use debug_sandbox::run_command_under_landlock;
+pub use debug_sandbox::run_command_under_seatbelt;
+pub use debug_sandbox::run_command_under_windows;
+pub use login::read_api_key_from_stdin;
+pub use login::run_login_status;
+pub use login::run_login_with_api_key;
+pub use login::run_login_with_chatgpt;
+pub use login::run_login_with_device_code;
+pub use login::run_login_with_device_code_fallback_to_browser;
+pub use login::run_logout;
 
 #[derive(Debug, Parser)]
 pub struct SeatbeltCommand {
     /// Convenience alias for low-friction sandboxed automatic execution (network-disabled sandbox that can write to cwd and TMPDIR)
     #[arg(long = "full-auto", default_value_t = false)]
     pub full_auto: bool,
+
+    /// Allow the sandboxed command to bind/connect AF_UNIX sockets rooted at this path. Relative paths are resolved against the current directory. Repeat to allow multiple paths.
+    #[arg(long = "allow-unix-socket", value_parser = parse_allow_unix_socket_path)]
+    pub allow_unix_sockets: Vec<AbsolutePathBuf>,
+
+    /// While the command runs, capture macOS sandbox denials via `log stream` and print them after exit
+    #[arg(long = "log-denials", default_value_t = false)]
+    pub log_denials: bool,
 
     #[clap(skip)]
     pub config_overrides: CliConfigOverrides,
@@ -48,18 +39,9 @@ pub struct SeatbeltCommand {
     pub command: Vec<String>,
 }
 
-/// Resolve the runtime token budget for sub-agent execution.
-///
-/// The budget value in the config is stored as `Option<i64>` to mirror the
-/// server-side representation. We clamp the value to a non-negative range and
-/// downcast safely to `usize` so it can be consumed by the runtime.
-pub fn resolve_runtime_budget(config: &Config, default_budget: i64) -> usize {
-    let raw_budget = config.model_context_window.unwrap_or(default_budget).max(0);
-
-    let as_u64 = u64::try_from(raw_budget).unwrap_or(u64::MAX);
-    let capped = as_u64.min(usize::MAX as u64);
-
-    usize::try_from(capped).unwrap_or(usize::MAX)
+fn parse_allow_unix_socket_path(raw: &str) -> Result<AbsolutePathBuf, String> {
+    AbsolutePathBuf::relative_to_current_dir(raw)
+        .map_err(|err| format!("invalid path {raw}: {err}"))
 }
 
 #[derive(Debug, Parser)]

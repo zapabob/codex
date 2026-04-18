@@ -1,16 +1,17 @@
 use crate::types::CodeTaskDetailsResponse;
 use crate::types::ConfigFileResponse;
 use crate::types::PaginatedListTaskListItem;
-// use crate::types::RateLimitStatusDetails;
 use crate::types::RateLimitStatusPayload;
 use crate::types::TurnAttemptsSiblingTurnsResponse;
 use anyhow::Result;
-use codex_core::auth::CodexAuth;
-use codex_core::default_client::get_codex_user_agent;
+use codex_client::build_reqwest_client_with_custom_ca;
+use codex_login::CodexAuth;
+use codex_login::default_client::get_codex_user_agent;
 use codex_protocol::account::PlanType as AccountPlanType;
 use codex_protocol::protocol::CreditsSnapshot;
 use codex_protocol::protocol::RateLimitSnapshot;
 use codex_protocol::protocol::RateLimitWindow;
+use reqwest::StatusCode;
 use reqwest::header::AUTHORIZATION;
 use reqwest::header::CONTENT_TYPE;
 use reqwest::header::HeaderMap;
@@ -18,6 +19,65 @@ use reqwest::header::HeaderName;
 use reqwest::header::HeaderValue;
 use reqwest::header::USER_AGENT;
 use serde::de::DeserializeOwned;
+use std::fmt;
+
+#[derive(Debug)]
+pub enum RequestError {
+    UnexpectedStatus {
+        method: String,
+        url: String,
+        status: StatusCode,
+        content_type: String,
+        body: String,
+    },
+    Other(anyhow::Error),
+}
+
+impl RequestError {
+    pub fn status(&self) -> Option<StatusCode> {
+        match self {
+            Self::UnexpectedStatus { status, .. } => Some(*status),
+            Self::Other(_) => None,
+        }
+    }
+
+    pub fn is_unauthorized(&self) -> bool {
+        self.status() == Some(StatusCode::UNAUTHORIZED)
+    }
+}
+
+impl fmt::Display for RequestError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::UnexpectedStatus {
+                method,
+                url,
+                status,
+                content_type,
+                body,
+            } => write!(
+                f,
+                "{method} {url} failed: {status}; content-type={content_type}; body={body}"
+            ),
+            Self::Other(err) => write!(f, "{err}"),
+        }
+    }
+}
+
+impl std::error::Error for RequestError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::UnexpectedStatus { .. } => None,
+            Self::Other(err) => Some(err.as_ref()),
+        }
+    }
+}
+
+impl From<anyhow::Error> for RequestError {
+    fn from(err: anyhow::Error) -> Self {
+        Self::Other(err)
+    }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PathStyle {
@@ -44,6 +104,7 @@ pub struct Client {
     bearer_token: Option<String>,
     user_agent: Option<HeaderValue>,
     chatgpt_account_id: Option<String>,
+    chatgpt_account_is_fedramp: bool,
     path_style: PathStyle,
 }
 
@@ -61,7 +122,7 @@ impl Client {
         {
             base_url = format!("{base_url}/backend-api");
         }
-        let http = reqwest::Client::builder().build()?;
+        let http = build_reqwest_client_with_custom_ca(reqwest::Client::builder())?;
         let path_style = PathStyle::from_base_url(&base_url);
         Ok(Self {
             base_url,
@@ -69,6 +130,7 @@ impl Client {
             bearer_token: None,
             user_agent: None,
             chatgpt_account_id: None,
+            chatgpt_account_is_fedramp: false,
             path_style,
         })
     }
@@ -80,6 +142,9 @@ impl Client {
             .with_bearer_token(token);
         if let Some(account_id) = auth.get_account_id() {
             client = client.with_chatgpt_account_id(account_id);
+        }
+        if auth.is_fedramp_account() {
+            client = client.with_fedramp_routing_header();
         }
         Ok(client)
     }
@@ -98,6 +163,11 @@ impl Client {
 
     pub fn with_chatgpt_account_id(mut self, account_id: impl Into<String>) -> Self {
         self.chatgpt_account_id = Some(account_id.into());
+        self
+    }
+
+    pub fn with_fedramp_routing_header(mut self) -> Self {
+        self.chatgpt_account_is_fedramp = true;
         self
     }
 
@@ -125,6 +195,11 @@ impl Client {
         {
             h.insert(name, hv);
         }
+        if self.chatgpt_account_is_fedramp
+            && let Ok(name) = HeaderName::from_bytes(b"X-OpenAI-Fedramp")
+        {
+            h.insert(name, HeaderValue::from_static("true"));
+        }
         h
     }
 
@@ -147,6 +222,33 @@ impl Client {
             anyhow::bail!("{method} {url} failed: {status}; content-type={ct}; body={body}");
         }
         Ok((body, ct))
+    }
+
+    async fn exec_request_detailed(
+        &self,
+        req: reqwest::RequestBuilder,
+        method: &str,
+        url: &str,
+    ) -> std::result::Result<(String, String), RequestError> {
+        let res = req.send().await.map_err(anyhow::Error::from)?;
+        let status = res.status();
+        let content_type = res
+            .headers()
+            .get(CONTENT_TYPE)
+            .and_then(|v| v.to_str().ok())
+            .unwrap_or("")
+            .to_string();
+        let body = res.text().await.unwrap_or_default();
+        if !status.is_success() {
+            return Err(RequestError::UnexpectedStatus {
+                method: method.to_string(),
+                url: url.to_string(),
+                status,
+                content_type,
+                body,
+            });
+        }
+        Ok((body, content_type))
     }
 
     fn decode_json<T: DeserializeOwned>(&self, url: &str, ct: &str, body: &str) -> Result<T> {
@@ -257,14 +359,17 @@ impl Client {
     ///
     /// `GET /api/codex/config/requirements` (Codex API style) or
     /// `GET /wham/config/requirements` (ChatGPT backend-api style).
-    pub async fn get_config_requirements_file(&self) -> Result<ConfigFileResponse> {
+    pub async fn get_config_requirements_file(
+        &self,
+    ) -> std::result::Result<ConfigFileResponse, RequestError> {
         let url = match self.path_style {
             PathStyle::CodexApi => format!("{}/api/codex/config/requirements", self.base_url),
             PathStyle::ChatGptApi => format!("{}/wham/config/requirements", self.base_url),
         };
         let req = self.http.get(&url).headers(self.headers());
-        let (body, ct) = self.exec_request(req, "GET", &url).await?;
+        let (body, ct) = self.exec_request_detailed(req, "GET", &url).await?;
         self.decode_json::<ConfigFileResponse>(&url, &ct, &body)
+            .map_err(RequestError::from)
     }
 
     /// Create a new task (user turn) by POSTing to the appropriate backend path
@@ -309,15 +414,9 @@ impl Client {
         let plan_type = Some(Self::map_plan_type(payload.plan_type));
         let mut snapshots = vec![Self::make_rate_limit_snapshot(
             Some("codex".to_string()),
-            None,
-            payload
-                .rate_limit
-                .as_ref()
-                .and_then(|details| details.as_ref().map(|d| (**d).clone())),
-            payload
-                .credits
-                .as_ref()
-                .and_then(|details| details.as_ref().map(|d| (**d).clone())),
+            /*limit_name*/ None,
+            payload.rate_limit.flatten().map(|details| *details),
+            payload.credits.flatten().map(|details| *details),
             plan_type,
         )];
         if let Some(additional) = payload.additional_rate_limits.flatten() {
@@ -325,11 +424,8 @@ impl Client {
                 Self::make_rate_limit_snapshot(
                     Some(details.metered_feature),
                     Some(details.limit_name),
-                    details
-                        .rate_limit
-                        .as_ref()
-                        .and_then(|rl| rl.as_ref().map(|d| (**d).clone())),
-                    None,
+                    details.rate_limit.flatten().map(|rate_limit| *rate_limit),
+                    /*credits*/ None,
                     plan_type,
                 )
             }));
@@ -382,7 +478,7 @@ impl Client {
         Some(CreditsSnapshot {
             has_credits: details.has_credits,
             unlimited: details.unlimited,
-            balance: details.balance.clone().flatten(),
+            balance: details.balance.flatten(),
         })
     }
 
@@ -392,11 +488,22 @@ impl Client {
             crate::types::PlanType::Go => AccountPlanType::Go,
             crate::types::PlanType::Plus => AccountPlanType::Plus,
             crate::types::PlanType::Pro => AccountPlanType::Pro,
+            crate::types::PlanType::ProLite => AccountPlanType::ProLite,
             crate::types::PlanType::Team => AccountPlanType::Team,
+            crate::types::PlanType::SelfServeBusinessUsageBased => {
+                AccountPlanType::SelfServeBusinessUsageBased
+            }
             crate::types::PlanType::Business => AccountPlanType::Business,
+            crate::types::PlanType::EnterpriseCbpUsageBased => {
+                AccountPlanType::EnterpriseCbpUsageBased
+            }
             crate::types::PlanType::Enterprise => AccountPlanType::Enterprise,
             crate::types::PlanType::Edu | crate::types::PlanType::Education => AccountPlanType::Edu,
-            crate::types::PlanType::Quorum => AccountPlanType::Unknown,
+            crate::types::PlanType::Guest
+            | crate::types::PlanType::FreeWorkspace
+            | crate::types::PlanType::Quorum
+            | crate::types::PlanType::K12
+            | crate::types::PlanType::Unknown => AccountPlanType::Unknown,
         }
     }
 
@@ -413,7 +520,20 @@ impl Client {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use codex_backend_openapi_models::models::AdditionalRateLimitDetails;
     use pretty_assertions::assert_eq;
+
+    #[test]
+    fn map_plan_type_supports_usage_based_business_variants() {
+        assert_eq!(
+            Client::map_plan_type(crate::types::PlanType::SelfServeBusinessUsageBased),
+            AccountPlanType::SelfServeBusinessUsageBased
+        );
+        assert_eq!(
+            Client::map_plan_type(crate::types::PlanType::EnterpriseCbpUsageBased),
+            AccountPlanType::EnterpriseCbpUsageBased
+        );
+    }
 
     #[test]
     fn usage_payload_maps_primary_and_additional_rate_limits() {
@@ -434,7 +554,7 @@ mod tests {
                 }))),
                 ..Default::default()
             }))),
-            additional_rate_limits: Some(Some(vec![crate::types::AdditionalRateLimitDetails {
+            additional_rate_limits: Some(Some(vec![AdditionalRateLimitDetails {
                 limit_name: "codex_other".to_string(),
                 metered_feature: "codex_other".to_string(),
                 rate_limit: Some(Some(Box::new(crate::types::RateLimitStatusDetails {
@@ -494,7 +614,7 @@ mod tests {
         let payload = RateLimitStatusPayload {
             plan_type: crate::types::PlanType::Plus,
             rate_limit: None,
-            additional_rate_limits: Some(Some(vec![crate::types::AdditionalRateLimitDetails {
+            additional_rate_limits: Some(Some(vec![AdditionalRateLimitDetails {
                 limit_name: "codex_other".to_string(),
                 metered_feature: "codex_other".to_string(),
                 rate_limit: None,

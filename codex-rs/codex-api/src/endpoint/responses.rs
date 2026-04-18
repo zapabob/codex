@@ -1,14 +1,14 @@
-use crate::auth::AuthProvider;
+use crate::auth::SharedAuthProvider;
 use crate::common::ResponseStream;
 use crate::common::ResponsesApiRequest;
 use crate::endpoint::session::EndpointSession;
 use crate::error::ApiError;
 use crate::provider::Provider;
+use crate::requests::Compression;
+use crate::requests::attach_item_ids;
 use crate::requests::headers::build_conversation_headers;
 use crate::requests::headers::insert_header;
 use crate::requests::headers::subagent_header;
-use crate::requests::responses::Compression;
-use crate::requests::responses::attach_item_ids;
 use crate::sse::spawn_response_stream;
 use crate::telemetry::SseTelemetry;
 use codex_client::HttpTransport;
@@ -23,8 +23,8 @@ use std::sync::Arc;
 use std::sync::OnceLock;
 use tracing::instrument;
 
-pub struct ResponsesClient<T: HttpTransport, A: AuthProvider> {
-    session: EndpointSession<T, A>,
+pub struct ResponsesClient<T: HttpTransport> {
+    session: EndpointSession<T>,
     sse_telemetry: Option<Arc<dyn SseTelemetry>>,
 }
 
@@ -37,8 +37,8 @@ pub struct ResponsesOptions {
     pub turn_state: Option<Arc<OnceLock<String>>>,
 }
 
-impl<T: HttpTransport, A: AuthProvider> ResponsesClient<T, A> {
-    pub fn new(transport: T, provider: Provider, auth: A) -> Self {
+impl<T: HttpTransport> ResponsesClient<T> {
+    pub fn new(transport: T, provider: Provider, auth: SharedAuthProvider) -> Self {
         Self {
             session: EndpointSession::new(transport, provider, auth),
             sse_telemetry: None,

@@ -1,4 +1,3 @@
-use std::path::PathBuf;
 use std::pin::Pin;
 use std::sync::Arc;
 
@@ -11,24 +10,56 @@ use tokio_util::sync::CancellationToken;
 
 use crate::codex::Session;
 use crate::codex::TurnContext;
-use crate::error::CodexErr;
-use crate::error::Result;
 use crate::function_tool::FunctionCallError;
 use crate::memories::citations::get_thread_id_from_citations;
 use crate::memories::citations::parse_memory_citation;
 use crate::parse_turn_item;
-use crate::state_db;
 use crate::tools::parallel::ToolCallRuntime;
 use crate::tools::router::ToolRouter;
+use codex_protocol::error::CodexErr;
+use codex_protocol::error::Result;
 use codex_protocol::models::DeveloperInstructions;
 use codex_protocol::models::FunctionCallOutputBody;
 use codex_protocol::models::FunctionCallOutputPayload;
+use codex_protocol::models::MessagePhase;
 use codex_protocol::models::ResponseInputItem;
 use codex_protocol::models::ResponseItem;
+use codex_rollout::state_db;
+use codex_utils_absolute_path::AbsolutePathBuf;
 use codex_utils_stream_parser::strip_proposed_plan_blocks;
 use futures::Future;
 use tracing::debug;
 use tracing::instrument;
+
+const GENERATED_IMAGE_ARTIFACTS_DIR: &str = "generated_images";
+
+pub(crate) fn image_generation_artifact_path(
+    codex_home: &AbsolutePathBuf,
+    session_id: &str,
+    call_id: &str,
+) -> AbsolutePathBuf {
+    let sanitize = |value: &str| {
+        let mut sanitized: String = value
+            .chars()
+            .map(|ch| {
+                if ch.is_ascii_alphanumeric() || ch == '-' || ch == '_' {
+                    ch
+                } else {
+                    '_'
+                }
+            })
+            .collect();
+        if sanitized.is_empty() {
+            sanitized = "generated_image".to_string();
+        }
+        sanitized
+    };
+
+    codex_home
+        .join(GENERATED_IMAGE_ARTIFACTS_DIR)
+        .join(sanitize(session_id))
+        .join(format!("{}.png", sanitize(call_id)))
+}
 
 fn strip_hidden_assistant_markup(text: &str, plan_mode: bool) -> String {
     let (without_citations, _) = strip_citations(text);
@@ -71,26 +102,21 @@ pub(crate) fn raw_assistant_output_text_from_item(item: &ResponseItem) -> Option
     None
 }
 
-async fn save_image_generation_result(call_id: &str, result: &str) -> Result<PathBuf> {
+async fn save_image_generation_result(
+    codex_home: &AbsolutePathBuf,
+    session_id: &str,
+    call_id: &str,
+    result: &str,
+) -> Result<AbsolutePathBuf> {
     let bytes = BASE64_STANDARD
         .decode(result.trim().as_bytes())
         .map_err(|err| {
             CodexErr::InvalidRequest(format!("invalid image generation payload: {err}"))
         })?;
-    let mut file_stem: String = call_id
-        .chars()
-        .map(|ch| {
-            if ch.is_ascii_alphanumeric() || ch == '-' || ch == '_' {
-                ch
-            } else {
-                '_'
-            }
-        })
-        .collect();
-    if file_stem.is_empty() {
-        file_stem = "generated_image".to_string();
+    let path = image_generation_artifact_path(codex_home, session_id, call_id);
+    if let Some(parent) = path.parent() {
+        tokio::fs::create_dir_all(parent).await?;
     }
-    let path = std::env::temp_dir().join(format!("{file_stem}.png"));
     tokio::fs::write(&path, bytes).await?;
     Ok(path)
 }
@@ -103,11 +129,27 @@ pub(crate) async fn record_completed_response_item(
 ) {
     sess.record_conversation_items(turn_context, std::slice::from_ref(item))
         .await;
-    maybe_mark_thread_memory_mode_polluted_from_web_search(sess, turn_context, item).await;
+    if completed_item_defers_mailbox_delivery_to_next_turn(
+        item,
+        turn_context.collaboration_mode.mode == ModeKind::Plan,
+    ) {
+        sess.defer_mailbox_delivery_to_next_turn(&turn_context.sub_id)
+            .await;
+    }
+    mark_thread_memory_mode_polluted_if_external_context(sess, turn_context, item).await;
     record_stage1_output_usage_for_completed_item(turn_context, item).await;
 }
 
-async fn maybe_mark_thread_memory_mode_polluted_from_web_search(
+fn response_item_may_include_external_context(item: &ResponseItem) -> bool {
+    matches!(
+        item,
+        ResponseItem::ToolSearchCall { .. }
+            | ResponseItem::ToolSearchOutput { .. }
+            | ResponseItem::WebSearchCall { .. }
+    )
+}
+
+pub(crate) async fn mark_thread_memory_mode_polluted_if_external_context(
     sess: &Session,
     turn_context: &TurnContext,
     item: &ResponseItem,
@@ -116,7 +158,7 @@ async fn maybe_mark_thread_memory_mode_polluted_from_web_search(
         .config
         .memories
         .no_memories_if_mcp_or_web_search
-        || !matches!(item, ResponseItem::WebSearchCall { .. })
+        || !response_item_may_include_external_context(item)
     {
         return;
     }
@@ -179,11 +221,15 @@ pub(crate) async fn handle_output_item_done(
     match ToolRouter::build_tool_call(ctx.sess.as_ref(), item.clone()).await {
         // The model emitted a tool call; log it, persist the item immediately, and queue the tool execution.
         Ok(Some(call)) => {
+            ctx.sess
+                .accept_mailbox_delivery_for_current_turn(&ctx.turn_context.sub_id)
+                .await;
+
             let payload_preview = call.payload.log_payload().into_owned();
             tracing::info!(
                 thread_id = %ctx.sess.conversation_id,
                 "ToolCall: {} {}",
-                call.tool_name,
+                call.tool_name.display(),
                 payload_preview
             );
 
@@ -321,24 +367,43 @@ pub(crate) async fn handle_non_tool_response_item(
                 agent_message.memory_citation = memory_citation;
             }
             if let TurnItem::ImageGeneration(image_item) = &mut turn_item {
-                match save_image_generation_result(&image_item.id, &image_item.result).await {
+                let session_id = sess.conversation_id.to_string();
+                match save_image_generation_result(
+                    &turn_context.config.codex_home,
+                    &session_id,
+                    &image_item.id,
+                    &image_item.result,
+                )
+                .await
+                {
                     Ok(path) => {
-                        image_item.saved_path = Some(path.to_string_lossy().into_owned());
-                        let image_output_dir = std::env::temp_dir();
+                        image_item.saved_path = Some(path);
+                        let image_output_path = image_generation_artifact_path(
+                            &turn_context.config.codex_home,
+                            &session_id,
+                            "<image_id>",
+                        );
+                        let image_output_dir = image_output_path
+                            .parent()
+                            .unwrap_or_else(|| turn_context.config.codex_home.clone());
                         let message: ResponseItem = DeveloperInstructions::new(format!(
-                            "Generated images are saved to {} as {} by default.",
+                            "Generated images are saved to {} as {} by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.",
                             image_output_dir.display(),
-                            image_output_dir.join("<image_id>.png").display(),
+                            image_output_path.display(),
                         ))
                         .into();
-                        sess.record_conversation_items(
-                            turn_context,
-                            std::slice::from_ref(&message),
-                        )
-                        .await;
+                        sess.record_conversation_items(turn_context, &[message])
+                            .await;
                     }
                     Err(err) => {
-                        let output_dir = std::env::temp_dir();
+                        let output_path = image_generation_artifact_path(
+                            &turn_context.config.codex_home,
+                            &session_id,
+                            &image_item.id,
+                        );
+                        let output_dir = output_path
+                            .parent()
+                            .unwrap_or_else(|| turn_context.config.codex_home.clone());
                         tracing::warn!(
                             call_id = %image_item.id,
                             output_dir = %output_dir.display(),
@@ -374,6 +439,24 @@ pub(crate) fn last_assistant_message_from_item(
         return Some(stripped);
     }
     None
+}
+
+fn completed_item_defers_mailbox_delivery_to_next_turn(
+    item: &ResponseItem,
+    plan_mode: bool,
+) -> bool {
+    match item {
+        ResponseItem::Message { role, phase, .. } => {
+            if role != "assistant" || matches!(phase, Some(MessagePhase::Commentary)) {
+                return false;
+            }
+            // Treat `None` like final-answer text so untagged providers default
+            // to the safer "defer mailbox mail" behavior.
+            last_assistant_message_from_item(item, plan_mode).is_some()
+        }
+        ResponseItem::ImageGenerationCall { .. } => true,
+        _ => false,
+    }
 }
 
 pub(crate) fn response_input_to_response_item(input: &ResponseInputItem) -> Option<ResponseItem> {

@@ -5,11 +5,15 @@ pub(crate) mod dispatcher;
 pub(crate) mod output_parser;
 pub(crate) mod schema_loader;
 
-use std::path::PathBuf;
-
 use codex_config::ConfigLayerStack;
 use codex_protocol::protocol::HookRunSummary;
+use codex_protocol::protocol::HookSource;
+use codex_utils_absolute_path::AbsolutePathBuf;
 
+use crate::events::post_tool_use::PostToolUseOutcome;
+use crate::events::post_tool_use::PostToolUseRequest;
+use crate::events::pre_tool_use::PreToolUseOutcome;
+use crate::events::pre_tool_use::PreToolUseRequest;
 use crate::events::session_start::SessionStartOutcome;
 use crate::events::session_start::SessionStartRequest;
 use crate::events::stop::StopOutcome;
@@ -30,7 +34,8 @@ pub(crate) struct ConfiguredHandler {
     pub command: String,
     pub timeout_sec: u64,
     pub status_message: Option<String>,
-    pub source_path: PathBuf,
+    pub source_path: AbsolutePathBuf,
+    pub source: HookSource,
     pub display_order: i64,
 }
 
@@ -46,6 +51,8 @@ impl ConfiguredHandler {
 
     fn event_name_label(&self) -> &'static str {
         match self.event_name {
+            codex_protocol::protocol::HookEventName::PreToolUse => "pre-tool-use",
+            codex_protocol::protocol::HookEventName::PostToolUse => "post-tool-use",
             codex_protocol::protocol::HookEventName::SessionStart => "session-start",
             codex_protocol::protocol::HookEventName::UserPromptSubmit => "user-prompt-submit",
             codex_protocol::protocol::HookEventName::Stop => "stop",
@@ -94,12 +101,34 @@ impl ClaudeHooksEngine {
         crate::events::session_start::preview(&self.handlers, request)
     }
 
+    pub(crate) fn preview_pre_tool_use(&self, request: &PreToolUseRequest) -> Vec<HookRunSummary> {
+        crate::events::pre_tool_use::preview(&self.handlers, request)
+    }
+
+    pub(crate) fn preview_post_tool_use(
+        &self,
+        request: &PostToolUseRequest,
+    ) -> Vec<HookRunSummary> {
+        crate::events::post_tool_use::preview(&self.handlers, request)
+    }
+
     pub(crate) async fn run_session_start(
         &self,
         request: SessionStartRequest,
         turn_id: Option<String>,
     ) -> SessionStartOutcome {
         crate::events::session_start::run(&self.handlers, &self.shell, request, turn_id).await
+    }
+
+    pub(crate) async fn run_pre_tool_use(&self, request: PreToolUseRequest) -> PreToolUseOutcome {
+        crate::events::pre_tool_use::run(&self.handlers, &self.shell, request).await
+    }
+
+    pub(crate) async fn run_post_tool_use(
+        &self,
+        request: PostToolUseRequest,
+    ) -> PostToolUseOutcome {
+        crate::events::post_tool_use::run(&self.handlers, &self.shell, request).await
     }
 
     pub(crate) fn preview_user_prompt_submit(

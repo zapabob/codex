@@ -24,6 +24,7 @@ pub const WS_REQUEST_HEADER_TRACESTATE_CLIENT_METADATA_KEY: &str = "ws_request_h
 pub struct CompactionInput<'a> {
     pub model: &'a str,
     pub input: &'a [ResponseItem],
+    #[serde(skip_serializing_if = "str::is_empty")]
     pub instructions: &'a str,
     pub tools: Vec<Value>,
     pub parallel_tool_calls: bool,
@@ -79,6 +80,11 @@ pub enum ResponseEvent {
         token_usage: Option<TokenUsage>,
     },
     OutputTextDelta(String),
+    ToolCallInputDelta {
+        item_id: String,
+        call_id: Option<String>,
+        delta: String,
+    },
     ReasoningSummaryDelta {
         delta: String,
         summary_index: i64,
@@ -153,6 +159,7 @@ impl From<VerbosityConfig> for OpenAiVerbosity {
 #[derive(Debug, Serialize, Clone, PartialEq)]
 pub struct ResponsesApiRequest {
     pub model: String,
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub instructions: String,
     pub input: Vec<ResponseItem>,
     pub tools: Vec<serde_json::Value>,
@@ -168,6 +175,8 @@ pub struct ResponsesApiRequest {
     pub prompt_cache_key: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub text: Option<TextControls>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub client_metadata: Option<HashMap<String, String>>,
 }
 
 impl From<&ResponsesApiRequest> for ResponseCreateWsRequest {
@@ -188,7 +197,7 @@ impl From<&ResponsesApiRequest> for ResponseCreateWsRequest {
             prompt_cache_key: request.prompt_cache_key.clone(),
             text: request.text.clone(),
             generate: None,
-            client_metadata: None,
+            client_metadata: request.client_metadata.clone(),
         }
     }
 }
@@ -196,6 +205,7 @@ impl From<&ResponsesApiRequest> for ResponseCreateWsRequest {
 #[derive(Debug, Serialize)]
 pub struct ResponseCreateWsRequest {
     pub model: String,
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub instructions: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub previous_response_id: Option<String>,

@@ -91,7 +91,6 @@ enum PipeStdinMode {
     Null,
 }
 
-#[allow(clippy::too_many_arguments)]
 async fn spawn_process_with_stdin_mode(
     program: &str,
     args: &[String],

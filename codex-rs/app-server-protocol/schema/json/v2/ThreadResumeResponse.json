@@ -5,6 +5,9 @@
       "description": "A path that is guaranteed to be absolute and normalized (though it is not guaranteed to be canonicalized or exist on the filesystem).\n\nIMPORTANT: When deserializing an `AbsolutePathBuf`, a base path must be set using [AbsolutePathBufGuard::new]. If no base path is set, the deserialization will fail unless the path being deserialized is already absolute.",
       "type": "string"
     },
+    "AgentPath": {
+      "type": "string"
+    },
     "ApprovalsReviewer": {
       "description": "Configures who approval requests are routed to for review. Examples include sandbox escapes, blocked network access, MCP approval prompts, and ARC escalations. Defaults to `user`. `guardian_subagent` uses a carefully prompted subagent to gather relevant context and apply a risk-based decision framework before approving or denying the request.",
       "enum": [
@@ -102,35 +105,6 @@
         {
           "additionalProperties": false,
           "properties": {
-            "modelCap": {
-              "properties": {
-                "model": {
-                  "type": "string"
-                },
-                "resetAfterSeconds": {
-                  "format": "uint64",
-                  "minimum": 0.0,
-                  "type": [
-                    "integer",
-                    "null"
-                  ]
-                }
-              },
-              "required": [
-                "model"
-              ],
-              "type": "object"
-            }
-          },
-          "required": [
-            "modelCap"
-          ],
-          "title": "ModelCapCodexErrorInfo",
-          "type": "object"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
             "httpConnectionFailed": {
               "properties": {
                 "httpStatusCode": {
@@ -222,6 +196,28 @@
           ],
           "title": "ResponseTooManyFailedAttemptsCodexErrorInfo",
           "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Returned when `turn/start` or `turn/steer` is submitted while the current active turn cannot accept same-turn steering, for example `/review` or manual `/compact`.",
+          "properties": {
+            "activeTurnNotSteerable": {
+              "properties": {
+                "turnKind": {
+                  "$ref": "#/definitions/NonSteerableTurnKind"
+                }
+              },
+              "required": [
+                "turnKind"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "activeTurnNotSteerable"
+          ],
+          "title": "ActiveTurnNotSteerableCodexErrorInfo",
+          "type": "object"
         }
       ]
     },
@@ -283,7 +279,7 @@
               "type": "string"
             },
             "path": {
-              "type": "string"
+              "$ref": "#/definitions/AbsolutePathBuf"
             },
             "type": {
               "enum": [
@@ -522,6 +518,7 @@
     },
     "McpToolCallResult": {
       "properties": {
+        "_meta": true,
         "content": {
           "items": true,
           "type": "array"
@@ -612,6 +609,13 @@
       "enum": [
         "restricted",
         "enabled"
+      ],
+      "type": "string"
+    },
+    "NonSteerableTurnKind": {
+      "enum": [
+        "review",
+        "compact"
       ],
       "type": "string"
     },
@@ -929,6 +933,17 @@
                     "null"
                   ]
                 },
+                "agent_path": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/AgentPath"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null
+                },
                 "agent_role": {
                   "default": null,
                   "type": [
@@ -1021,12 +1036,23 @@
           "type": "integer"
         },
         "cwd": {
-          "description": "Working directory captured for the thread.",
-          "type": "string"
+          "allOf": [
+            {
+              "$ref": "#/definitions/AbsolutePathBuf"
+            }
+          ],
+          "description": "Working directory captured for the thread."
         },
         "ephemeral": {
           "description": "Whether the thread is ephemeral and should not be materialized on disk.",
           "type": "boolean"
+        },
+        "forkedFromId": {
+          "description": "Source thread id when this thread was created by forking another thread.",
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "gitInfo": {
           "anyOf": [
@@ -1300,8 +1326,12 @@
               "type": "array"
             },
             "cwd": {
-              "description": "The command's working directory.",
-              "type": "string"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/AbsolutePathBuf"
+                }
+              ],
+              "description": "The command's working directory."
             },
             "durationMs": {
               "description": "The duration of the command execution in milliseconds.",
@@ -1413,6 +1443,12 @@
             },
             "id": {
               "type": "string"
+            },
+            "mcpAppResourceUri": {
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "result": {
               "anyOf": [
@@ -1630,7 +1666,7 @@
               "type": "string"
             },
             "path": {
-              "type": "string"
+              "$ref": "#/definitions/AbsolutePathBuf"
             },
             "type": {
               "enum": [
@@ -1660,6 +1696,16 @@
               "type": [
                 "string",
                 "null"
+              ]
+            },
+            "savedPath": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/AbsolutePathBuf"
+                },
+                {
+                  "type": "null"
+                }
               ]
             },
             "status": {
@@ -1829,6 +1875,22 @@
     },
     "Turn": {
       "properties": {
+        "completedAt": {
+          "description": "Unix timestamp (in seconds) when the turn completed.",
+          "format": "int64",
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "durationMs": {
+          "description": "Duration between turn start and completion in milliseconds, if known.",
+          "format": "int64",
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
         "error": {
           "anyOf": [
             {
@@ -1849,6 +1911,14 @@
             "$ref": "#/definitions/ThreadItem"
           },
           "type": "array"
+        },
+        "startedAt": {
+          "description": "Unix timestamp (in seconds) when the turn started.",
+          "format": "int64",
+          "type": [
+            "integer",
+            "null"
+          ]
         },
         "status": {
           "$ref": "#/definitions/TurnStatus"
@@ -2133,7 +2203,15 @@
       "description": "Reviewer currently used for approval requests on this thread."
     },
     "cwd": {
-      "type": "string"
+      "$ref": "#/definitions/AbsolutePathBuf"
+    },
+    "instructionSources": {
+      "default": [],
+      "description": "Instruction source files currently loaded for this thread.",
+      "items": {
+        "$ref": "#/definitions/AbsolutePathBuf"
+      },
+      "type": "array"
     },
     "model": {
       "type": "string"

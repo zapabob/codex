@@ -16,14 +16,14 @@ pub struct Cli {
 pub enum Command {
     /// Submit a new Codex Cloud task without launching the TUI.
     Exec(ExecCommand),
-    /// Show status for a Codex Cloud task.
+    /// Show the status of a Codex Cloud task.
     Status(StatusCommand),
-    /// Show diff output for a Codex Cloud task.
-    Diff(DiffCommand),
     /// List Codex Cloud tasks.
     List(ListCommand),
-    /// Apply a Codex Cloud task diff.
+    /// Apply the diff for a Codex Cloud task locally.
     Apply(ApplyCommand),
+    /// Show the unified diff for a Codex Cloud task.
+    Diff(DiffCommand),
 }
 
 #[derive(Debug, Args)]
@@ -49,46 +49,6 @@ pub struct ExecCommand {
     pub branch: Option<String>,
 }
 
-#[derive(Debug, Args)]
-pub struct StatusCommand {
-    /// Task id or URL to check.
-    #[arg(value_name = "TASK_ID")]
-    pub task_id: String,
-}
-
-#[derive(Debug, Args)]
-pub struct DiffCommand {
-    /// Task id or URL to diff.
-    #[arg(value_name = "TASK_ID")]
-    pub task_id: String,
-
-    /// Attempt number to show (defaults to 1).
-    #[arg(long = "attempt", value_name = "N")]
-    pub attempt: Option<usize>,
-}
-
-#[derive(Debug, Args)]
-pub struct ApplyCommand {
-    /// Task id or URL to apply.
-    #[arg(value_name = "TASK_ID")]
-    pub task_id: String,
-
-    /// Attempt number to apply (defaults to 1).
-    #[arg(long = "attempt", value_name = "N")]
-    pub attempt: Option<usize>,
-}
-
-#[derive(Debug, Args)]
-pub struct ListCommand {
-    /// Filter by environment identifier.
-    #[arg(long = "env", value_name = "ENV_ID")]
-    pub environment: Option<String>,
-
-    /// Limit the number of tasks to list (default 20).
-    #[arg(long = "limit", default_value_t = 20usize)]
-    pub limit: usize,
-}
-
 fn parse_attempts(input: &str) -> Result<usize, String> {
     let value: usize = input
         .parse()
@@ -98,4 +58,63 @@ fn parse_attempts(input: &str) -> Result<usize, String> {
     } else {
         Err("attempts must be between 1 and 4".to_string())
     }
+}
+
+fn parse_limit(input: &str) -> Result<i64, String> {
+    let value: i64 = input
+        .parse()
+        .map_err(|_| "limit must be an integer between 1 and 20".to_string())?;
+    if (1..=20).contains(&value) {
+        Ok(value)
+    } else {
+        Err("limit must be between 1 and 20".to_string())
+    }
+}
+
+#[derive(Debug, Args)]
+pub struct StatusCommand {
+    /// Codex Cloud task identifier to inspect.
+    #[arg(value_name = "TASK_ID")]
+    pub task_id: String,
+}
+
+#[derive(Debug, Args)]
+pub struct ListCommand {
+    /// Filter tasks by environment identifier.
+    #[arg(long = "env", value_name = "ENV_ID")]
+    pub environment: Option<String>,
+
+    /// Maximum number of tasks to return (1-20).
+    #[arg(long = "limit", default_value_t = 20, value_parser = parse_limit, value_name = "N")]
+    pub limit: i64,
+
+    /// Pagination cursor returned by a previous call.
+    #[arg(long = "cursor", value_name = "CURSOR")]
+    pub cursor: Option<String>,
+
+    /// Emit JSON instead of plain text.
+    #[arg(long = "json", default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct ApplyCommand {
+    /// Codex Cloud task identifier to apply.
+    #[arg(value_name = "TASK_ID")]
+    pub task_id: String,
+
+    /// Attempt number to apply (1-based).
+    #[arg(long = "attempt", value_parser = parse_attempts, value_name = "N")]
+    pub attempt: Option<usize>,
+}
+
+#[derive(Debug, Args)]
+pub struct DiffCommand {
+    /// Codex Cloud task identifier to display.
+    #[arg(value_name = "TASK_ID")]
+    pub task_id: String,
+
+    /// Attempt number to display (1-based).
+    #[arg(long = "attempt", value_parser = parse_attempts, value_name = "N")]
+    pub attempt: Option<usize>,
 }

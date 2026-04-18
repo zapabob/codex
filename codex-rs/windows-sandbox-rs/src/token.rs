@@ -1,18 +1,18 @@
 use crate::winutil::to_wide;
-use anyhow::Result;
 use anyhow::anyhow;
+use anyhow::Result;
 use std::ffi::c_void;
 use windows_sys::Win32::Foundation::CloseHandle;
-use windows_sys::Win32::Foundation::ERROR_SUCCESS;
 use windows_sys::Win32::Foundation::GetLastError;
+use windows_sys::Win32::Foundation::LocalFree;
+use windows_sys::Win32::Foundation::ERROR_SUCCESS;
 use windows_sys::Win32::Foundation::HANDLE;
 use windows_sys::Win32::Foundation::HLOCAL;
 use windows_sys::Win32::Foundation::LUID;
-use windows_sys::Win32::Foundation::LocalFree;
 use windows_sys::Win32::Security::AdjustTokenPrivileges;
+use windows_sys::Win32::Security::Authorization::SetEntriesInAclW;
 use windows_sys::Win32::Security::Authorization::EXPLICIT_ACCESS_W;
 use windows_sys::Win32::Security::Authorization::GRANT_ACCESS;
-use windows_sys::Win32::Security::Authorization::SetEntriesInAclW;
 use windows_sys::Win32::Security::Authorization::TRUSTEE_IS_SID;
 use windows_sys::Win32::Security::Authorization::TRUSTEE_IS_UNKNOWN;
 use windows_sys::Win32::Security::Authorization::TRUSTEE_W;
@@ -24,6 +24,8 @@ use windows_sys::Win32::Security::GetTokenInformation;
 use windows_sys::Win32::Security::LookupPrivilegeValueW;
 use windows_sys::Win32::Security::SetTokenInformation;
 
+use windows_sys::Win32::Security::TokenDefaultDacl;
+use windows_sys::Win32::Security::TokenGroups;
 use windows_sys::Win32::Security::ACL;
 use windows_sys::Win32::Security::SID_AND_ATTRIBUTES;
 use windows_sys::Win32::Security::TOKEN_ADJUST_DEFAULT;
@@ -33,8 +35,6 @@ use windows_sys::Win32::Security::TOKEN_ASSIGN_PRIMARY;
 use windows_sys::Win32::Security::TOKEN_DUPLICATE;
 use windows_sys::Win32::Security::TOKEN_PRIVILEGES;
 use windows_sys::Win32::Security::TOKEN_QUERY;
-use windows_sys::Win32::Security::TokenDefaultDacl;
-use windows_sys::Win32::Security::TokenGroups;
 use windows_sys::Win32::System::Threading::GetCurrentProcess;
 
 const DISABLE_MAX_PRIVILEGE: u32 = 0x01;
@@ -78,7 +78,7 @@ unsafe fn set_default_dacl(h_token: HANDLE, sids: &[*mut c_void]) -> Result<()> 
         &mut p_new_dacl,
     );
     if res != ERROR_SUCCESS {
-        return Err(anyhow!("SetEntriesInAclW failed: {}", res));
+        return Err(anyhow!("SetEntriesInAclW failed: {res}"));
     }
     let mut info = TokenDefaultDaclInfo {
         default_dacl: p_new_dacl,
@@ -95,8 +95,7 @@ unsafe fn set_default_dacl(h_token: HANDLE, sids: &[*mut c_void]) -> Result<()> 
             LocalFree(p_new_dacl as HLOCAL);
         }
         return Err(anyhow!(
-            "SetTokenInformation(TokenDefaultDacl) failed: {}",
-            err
+            "SetTokenInformation(TokenDefaultDacl) failed: {err}",
         ));
     }
     if !p_new_dacl.is_null() {
@@ -135,7 +134,11 @@ pub unsafe fn convert_string_sid_to_sid(s: &str) -> Option<*mut c_void> {
     }
     let mut psid: *mut c_void = std::ptr::null_mut();
     let ok = unsafe { ConvertStringSidToSidW(to_wide(s).as_ptr(), &mut psid) };
-    if ok != 0 { Some(psid) } else { None }
+    if ok != 0 {
+        Some(psid)
+    } else {
+        None
+    }
 }
 
 /// # Safety
@@ -156,7 +159,7 @@ pub unsafe fn get_current_token_for_restriction() -> Result<HANDLE> {
             TokenHandle: *mut HANDLE,
         ) -> i32;
     }
-    let ok = OpenProcessToken(GetCurrentProcess(), desired, &mut h);
+    let ok = unsafe { OpenProcessToken(GetCurrentProcess(), desired, &mut h) };
     if ok == 0 {
         return Err(anyhow!("OpenProcessToken failed: {}", GetLastError()));
     }
@@ -184,7 +187,7 @@ pub unsafe fn get_logon_sid_bytes(h_token: HANDLE) -> Result<Vec<u8>> {
         let group_count = std::ptr::read_unaligned(buf.as_ptr() as *const u32) as usize;
         // TOKEN_GROUPS layout is: DWORD GroupCount; SID_AND_ATTRIBUTES Groups[];
         // On 64-bit, Groups is aligned to pointer alignment after 4-byte GroupCount.
-        let after_count = buf.as_ptr().add(std::mem::size_of::<u32>()) as usize;
+        let after_count = unsafe { buf.as_ptr().add(std::mem::size_of::<u32>()) } as usize;
         let align = std::mem::align_of::<SID_AND_ATTRIBUTES>();
         let aligned = (after_count + (align - 1)) & !(align - 1);
         let groups_ptr = aligned as *const SID_AND_ATTRIBUTES;
@@ -234,7 +237,7 @@ pub unsafe fn get_logon_sid_bytes(h_token: HANDLE) -> Result<Vec<u8>> {
         );
         if ok != 0 {
             let lt: TOKEN_LINKED_TOKEN =
-                unsafe { std::ptr::read_unaligned(ln_buf.as_ptr() as *const TOKEN_LINKED_TOKEN) };
+                std::ptr::read_unaligned(ln_buf.as_ptr() as *const TOKEN_LINKED_TOKEN);
             if lt.linked_token != 0 {
                 let res = scan_token_groups_for_logon(lt.linked_token);
                 CloseHandle(lt.linked_token);
@@ -273,7 +276,7 @@ unsafe fn enable_single_privilege(h_token: HANDLE, name: &str) -> Result<()> {
     }
     let err = GetLastError();
     if err != 0 {
-        return Err(anyhow!("AdjustTokenPrivileges error {}", err));
+        return Err(anyhow!("AdjustTokenPrivileges error {err}"));
     }
     Ok(())
 }

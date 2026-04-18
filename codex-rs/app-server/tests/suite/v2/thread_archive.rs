@@ -48,7 +48,7 @@ async fn thread_archive_requires_materialized_rollout() -> Result<()> {
         mcp.read_stream_until_response_message(RequestId::Integer(start_id)),
     )
     .await??;
-    let ThreadStartResponse { thread } = to_response::<ThreadStartResponse>(start_resp)?;
+    let ThreadStartResponse { thread, .. } = to_response::<ThreadStartResponse>(start_resp)?;
     assert!(!thread.id.is_empty());
 
     let rollout_path = thread.path.clone().expect("thread path");

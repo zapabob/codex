@@ -1,5 +1,8 @@
 use super::*;
-use crate::auth_env_telemetry::AuthEnvTelemetry;
+use codex_feedback::FeedbackRequestTags;
+use codex_feedback::emit_feedback_request_tags;
+use codex_feedback::emit_feedback_request_tags_with_auth_env;
+use codex_login::AuthEnvTelemetry;
 use std::collections::BTreeMap;
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -11,30 +14,6 @@ use tracing_subscriber::layer::Context;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::registry::LookupSpan;
 use tracing_subscriber::util::SubscriberInitExt;
-
-#[test]
-fn test_try_parse_error_message() {
-    let text = r#"{
-  "error": {
-    "message": "Your refresh token has already been used to generate a new access token. Please try signing in again.",
-    "type": "invalid_request_error",
-    "param": null,
-    "code": "refresh_token_reused"
-  }
-}"#;
-    let message = try_parse_error_message(text);
-    assert_eq!(
-        message,
-        "Your refresh token has already been used to generate a new access token. Please try signing in again."
-    );
-}
-
-#[test]
-fn test_try_parse_error_message_no_error() {
-    let text = r#"{"message": "test"}"#;
-    let message = try_parse_error_message(text);
-    assert_eq!(message, r#"{"message": "test"}"#);
-}
 
 #[test]
 fn feedback_tags_macro_compiles() {
@@ -256,9 +235,9 @@ fn emit_feedback_auth_recovery_tags_clears_stale_401_fields() {
         "done",
         "recovery_not_run",
         Some("req-401-b"),
-        None,
-        None,
-        None,
+        /*auth_cf_ray*/ None,
+        /*auth_error*/ None,
+        /*auth_error_code*/ None,
     );
 
     let tags = tags.lock().unwrap().clone();
@@ -464,7 +443,7 @@ fn resume_command_prefers_name_over_id() {
 #[test]
 fn resume_command_with_only_id() {
     let thread_id = ThreadId::from_string("123e4567-e89b-12d3-a456-426614174000").unwrap();
-    let command = resume_command(None, Some(thread_id));
+    let command = resume_command(/*thread_name*/ None, Some(thread_id));
     assert_eq!(
         command,
         Some("codex resume 123e4567-e89b-12d3-a456-426614174000".to_string())
@@ -473,21 +452,21 @@ fn resume_command_with_only_id() {
 
 #[test]
 fn resume_command_with_no_name_or_id() {
-    let command = resume_command(None, None);
+    let command = resume_command(/*thread_name*/ None, /*thread_id*/ None);
     assert_eq!(command, None);
 }
 
 #[test]
 fn resume_command_quotes_thread_name_when_needed() {
-    let command = resume_command(Some("-starts-with-dash"), None);
+    let command = resume_command(Some("-starts-with-dash"), /*thread_id*/ None);
     assert_eq!(
         command,
         Some("codex resume -- -starts-with-dash".to_string())
     );
 
-    let command = resume_command(Some("two words"), None);
+    let command = resume_command(Some("two words"), /*thread_id*/ None);
     assert_eq!(command, Some("codex resume 'two words'".to_string()));
 
-    let command = resume_command(Some("quote'case"), None);
+    let command = resume_command(Some("quote'case"), /*thread_id*/ None);
     assert_eq!(command, Some("codex resume \"quote'case\"".to_string()));
 }

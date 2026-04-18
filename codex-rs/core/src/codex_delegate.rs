@@ -4,6 +4,7 @@ use std::sync::Arc;
 use async_channel::Receiver;
 use async_channel::Sender;
 use codex_async_utils::OrCancelExt;
+use codex_exec_server::EnvironmentManager;
 use codex_protocol::protocol::ApplyPatchApprovalRequestEvent;
 use codex_protocol::protocol::Event;
 use codex_protocol::protocol::EventMsg;
@@ -22,7 +23,6 @@ use codex_protocol::request_permissions::RequestPermissionsResponse;
 use codex_protocol::request_user_input::RequestUserInputArgs;
 use codex_protocol::request_user_input::RequestUserInputResponse;
 use codex_protocol::user_input::UserInput;
-use codex_utils_absolute_path::AbsolutePathBuf;
 use serde_json::Value;
 use std::time::Duration;
 use tokio::sync::Mutex;
@@ -30,16 +30,16 @@ use tokio::sync::oneshot;
 use tokio::time::timeout;
 use tokio_util::sync::CancellationToken;
 
-use crate::AuthManager;
 use crate::codex::Codex;
 use crate::codex::CodexSpawnArgs;
 use crate::codex::CodexSpawnOk;
 use crate::codex::SUBMISSION_CHANNEL_CAPACITY;
 use crate::codex::Session;
 use crate::codex::TurnContext;
+use crate::codex::emit_subagent_session_started;
 use crate::config::Config;
-use crate::error::CodexErr;
 use crate::guardian::GuardianApprovalRequest;
+use crate::guardian::new_guardian_review_id;
 use crate::guardian::review_approval_request_with_cancel;
 use crate::guardian::routes_approval_to_guardian;
 use crate::mcp_tool_call::MCP_TOOL_APPROVAL_ACCEPT;
@@ -48,7 +48,9 @@ use crate::mcp_tool_call::MCP_TOOL_APPROVAL_DECLINE_SYNTHETIC;
 use crate::mcp_tool_call::build_guardian_mcp_tool_review_request;
 use crate::mcp_tool_call::is_mcp_tool_approval_question_id;
 use crate::mcp_tool_call::lookup_mcp_tool_metadata;
-use crate::models_manager::manager::ModelsManager;
+use codex_login::AuthManager;
+use codex_models_manager::manager::ModelsManager;
+use codex_protocol::error::CodexErr;
 use codex_protocol::protocol::InitialHistory;
 
 #[cfg(test)]
@@ -73,16 +75,19 @@ pub(crate) async fn run_codex_thread_interactive(
     let (tx_sub, rx_sub) = async_channel::bounded(SUBMISSION_CHANNEL_CAPACITY);
     let (tx_ops, rx_ops) = async_channel::bounded(SUBMISSION_CHANNEL_CAPACITY);
 
-    let CodexSpawnOk { codex, .. } = Codex::spawn(CodexSpawnArgs {
+    let CodexSpawnOk { codex, .. } = Box::pin(Codex::spawn(CodexSpawnArgs {
         config,
         auth_manager,
         models_manager,
+        environment_manager: Arc::new(EnvironmentManager::from_environment(
+            parent_ctx.environment.as_deref(),
+        )),
         skills_manager: Arc::clone(&parent_session.services.skills_manager),
         plugins_manager: Arc::clone(&parent_session.services.plugins_manager),
         mcp_manager: Arc::clone(&parent_session.services.mcp_manager),
-        file_watcher: Arc::clone(&parent_session.services.file_watcher),
+        skills_watcher: Arc::clone(&parent_session.services.skills_watcher),
         conversation_history: initial_history.unwrap_or(InitialHistory::New),
-        session_source: SessionSource::SubAgent(subagent_source),
+        session_source: SessionSource::SubAgent(subagent_source.clone()),
         agent_control: parent_session.services.agent_control.clone(),
         dynamic_tools: Vec::new(),
         persist_extended_history: false,
@@ -91,8 +96,21 @@ pub(crate) async fn run_codex_thread_interactive(
         user_shell_override: None,
         inherited_exec_policy: Some(Arc::clone(&parent_session.services.exec_policy)),
         parent_trace: None,
-    })
+        analytics_events_client: Some(parent_session.services.analytics_events_client.clone()),
+    }))
     .await?;
+    if parent_session.enabled(codex_features::Feature::GeneralAnalytics) {
+        let thread_config = codex.thread_config_snapshot().await;
+        let client_metadata = parent_session.app_server_client_metadata().await;
+        emit_subagent_session_started(
+            &parent_session.services.analytics_events_client,
+            client_metadata,
+            codex.session.conversation_id,
+            Some(parent_session.conversation_id),
+            thread_config,
+            subagent_source,
+        );
+    }
     let codex = Arc::new(codex);
 
     // Use a child token so parent cancel cascades but we can scope it to this task
@@ -154,7 +172,7 @@ pub(crate) async fn run_codex_thread_one_shot(
     // Use a child token so we can stop the delegate after completion without
     // requiring the caller to cancel the parent token.
     let child_cancel = cancel_token.child_token();
-    let io = run_codex_thread_interactive(
+    let io = Box::pin(run_codex_thread_interactive(
         config,
         auth_manager,
         models_manager,
@@ -163,13 +181,14 @@ pub(crate) async fn run_codex_thread_one_shot(
         child_cancel.clone(),
         subagent_source,
         initial_history,
-    )
+    ))
     .await?;
 
     // Send the initial input to kick off the one-shot turn.
     io.submit(Op::UserInput {
         items: input,
         final_output_json_schema,
+        responsesapi_client_metadata: None,
     })
     .await?;
 
@@ -433,7 +452,6 @@ async fn handle_exec_approval(
         network_approval_context,
         proposed_execpolicy_amendment,
         additional_permissions,
-        skill_metadata,
         available_decisions,
         ..
     } = event;
@@ -442,6 +460,7 @@ async fn handle_exec_approval(
         let review_rx = spawn_guardian_review(
             Arc::clone(parent_session),
             Arc::clone(parent_ctx),
+            new_guardian_review_id(),
             GuardianApprovalRequest::Shell {
                 id: call_id.clone(),
                 command,
@@ -477,7 +496,6 @@ async fn handle_exec_approval(
                 network_approval_context,
                 proposed_execpolicy_amendment,
                 additional_permissions,
-                skill_metadata,
                 available_decisions,
             ),
             parent_session,
@@ -515,66 +533,61 @@ async fn handle_patch_approval(
     } = event;
     let approval_id = call_id.clone();
     let guardian_decision = if routes_approval_to_guardian(parent_ctx) {
-        let change_count = changes.len();
-        let maybe_files = changes
+        let files = changes
             .keys()
-            .map(|path| AbsolutePathBuf::from_absolute_path(parent_ctx.cwd.join(path)).ok())
-            .collect::<Option<Vec<_>>>();
-        if let Some(files) = maybe_files {
-            let review_cancel = cancel_token.child_token();
-            let patch = changes
-                .iter()
-                .map(|(path, change)| match change {
-                    codex_protocol::protocol::FileChange::Add { content } => {
-                        format!("*** Add File: {}\n{}", path.display(), content)
+            .map(|path| parent_ctx.cwd.join(path))
+            .collect::<Vec<_>>();
+        let review_cancel = cancel_token.child_token();
+        let patch = changes
+            .iter()
+            .map(|(path, change)| match change {
+                codex_protocol::protocol::FileChange::Add { content } => {
+                    format!("*** Add File: {}\n{}", path.display(), content)
+                }
+                codex_protocol::protocol::FileChange::Delete { content } => {
+                    format!("*** Delete File: {}\n{}", path.display(), content)
+                }
+                codex_protocol::protocol::FileChange::Update {
+                    unified_diff,
+                    move_path,
+                } => {
+                    if let Some(move_path) = move_path {
+                        format!(
+                            "*** Update File: {}\n*** Move to: {}\n{}",
+                            path.display(),
+                            move_path.display(),
+                            unified_diff
+                        )
+                    } else {
+                        format!("*** Update File: {}\n{}", path.display(), unified_diff)
                     }
-                    codex_protocol::protocol::FileChange::Delete { content } => {
-                        format!("*** Delete File: {}\n{}", path.display(), content)
-                    }
-                    codex_protocol::protocol::FileChange::Update {
-                        unified_diff,
-                        move_path,
-                    } => {
-                        if let Some(move_path) = move_path {
-                            format!(
-                                "*** Update File: {}\n*** Move to: {}\n{}",
-                                path.display(),
-                                move_path.display(),
-                                unified_diff
-                            )
-                        } else {
-                            format!("*** Update File: {}\n{}", path.display(), unified_diff)
-                        }
-                    }
-                })
-                .collect::<Vec<_>>()
-                .join("\n");
-            let review_rx = spawn_guardian_review(
-                Arc::clone(parent_session),
-                Arc::clone(parent_ctx),
-                GuardianApprovalRequest::ApplyPatch {
-                    id: approval_id.clone(),
-                    cwd: parent_ctx.cwd.clone(),
-                    files,
-                    change_count,
-                    patch,
-                },
-                reason.clone(),
-                review_cancel.clone(),
-            );
-            Some(
-                await_approval_with_cancel(
-                    async move { review_rx.await.unwrap_or_default() },
-                    parent_session,
-                    &approval_id,
-                    cancel_token,
-                    Some(&review_cancel),
-                )
-                .await,
+                }
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+        let review_rx = spawn_guardian_review(
+            Arc::clone(parent_session),
+            Arc::clone(parent_ctx),
+            new_guardian_review_id(),
+            GuardianApprovalRequest::ApplyPatch {
+                id: approval_id.clone(),
+                cwd: parent_ctx.cwd.clone(),
+                files,
+                patch,
+            },
+            reason.clone(),
+            review_cancel.clone(),
+        );
+        Some(
+            await_approval_with_cancel(
+                async move { review_rx.await.unwrap_or_default() },
+                parent_session,
+                &approval_id,
+                cancel_token,
+                Some(&review_cancel),
             )
-        } else {
-            None
-        }
+            .await,
+        )
     } else {
         None
     };
@@ -676,6 +689,7 @@ async fn maybe_auto_review_mcp_request_user_input(
     let review_rx = spawn_guardian_review(
         Arc::clone(parent_session),
         Arc::clone(parent_ctx),
+        new_guardian_review_id(),
         build_guardian_mcp_tool_review_request(&event.call_id, &invocation, metadata.as_ref()),
         /*retry_reason*/ None,
         review_cancel.clone(),
@@ -702,7 +716,7 @@ async fn maybe_auto_review_mcp_request_user_input(
         ReviewDecision::Approved
         | ReviewDecision::ApprovedExecpolicyAmendment { .. }
         | ReviewDecision::NetworkPolicyAmendment { .. } => MCP_TOOL_APPROVAL_ACCEPT.to_string(),
-        ReviewDecision::Denied | ReviewDecision::Abort => {
+        ReviewDecision::Denied | ReviewDecision::TimedOut | ReviewDecision::Abort => {
             MCP_TOOL_APPROVAL_DECLINE_SYNTHETIC.to_string()
         }
     };
@@ -719,6 +733,7 @@ async fn maybe_auto_review_mcp_request_user_input(
 fn spawn_guardian_review(
     session: Arc<Session>,
     turn: Arc<TurnContext>,
+    review_id: String,
     request: GuardianApprovalRequest,
     retry_reason: Option<String>,
     cancel_token: CancellationToken,
@@ -735,6 +750,7 @@ fn spawn_guardian_review(
         let decision = runtime.block_on(review_approval_request_with_cancel(
             &session,
             &turn,
+            review_id,
             request,
             retry_reason,
             cancel_token,

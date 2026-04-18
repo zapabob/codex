@@ -1,40 +1,10 @@
 use async_trait::async_trait;
-use serde_json::Value;
 use std::future::Future;
 use tokio_util::sync::CancellationToken;
 
-/// Cancellation error with optional context about dangling artifacts.
-#[derive(Debug, Clone)]
-pub struct CancelErr {
-    /// Optional artifacts that were being processed when cancelled
-    pub dangling_artifacts: Option<Vec<Value>>,
-}
-
-impl CancelErr {
-    /// Create a new CancelErr without artifacts
-    pub fn new() -> Self {
-        Self {
-            dangling_artifacts: None,
-        }
-    }
-
-    /// Create a CancelErr with dangling artifacts
-    pub fn with_artifacts(artifacts: Vec<Value>) -> Self {
-        Self {
-            dangling_artifacts: Some(artifacts),
-        }
-    }
-
-    /// Add artifacts to this error
-    pub fn set_artifacts(&mut self, artifacts: Vec<Value>) {
-        self.dangling_artifacts = Some(artifacts);
-    }
-}
-
-impl Default for CancelErr {
-    fn default() -> Self {
-        Self::new()
-    }
+#[derive(Debug, PartialEq, Eq)]
+pub enum CancelErr {
+    Cancelled,
 }
 
 #[async_trait]
@@ -54,7 +24,7 @@ where
 
     async fn or_cancel(self, token: &CancellationToken) -> Result<Self::Output, CancelErr> {
         tokio::select! {
-            _ = token.cancelled() => Err(CancelErr::new()),
+            _ = token.cancelled() => Err(CancelErr::Cancelled),
             res = self => Ok(res),
         }
     }
@@ -63,7 +33,9 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pretty_assertions::assert_eq;
     use std::time::Duration;
+    use tokio::task;
     use tokio::time::sleep;
 
     #[tokio::test]
@@ -73,8 +45,28 @@ mod tests {
 
         let result = value.or_cancel(&token).await;
 
-        assert!(result.is_ok());
-        assert!(result.unwrap() == 42);
+        assert_eq!(Ok(42), result);
+    }
+
+    #[tokio::test]
+    async fn returns_err_when_token_cancelled_first() {
+        let token = CancellationToken::new();
+        let token_clone = token.clone();
+
+        let cancel_handle = task::spawn(async move {
+            sleep(Duration::from_millis(10)).await;
+            token_clone.cancel();
+        });
+
+        let result = async {
+            sleep(Duration::from_millis(100)).await;
+            7
+        }
+        .or_cancel(&token)
+        .await;
+
+        cancel_handle.await.expect("cancel task panicked");
+        assert_eq!(Err(CancelErr::Cancelled), result);
     }
 
     #[tokio::test]
@@ -89,7 +81,6 @@ mod tests {
         .or_cancel(&token)
         .await;
 
-        assert!(result.is_err());
-        assert!(result.unwrap_err().dangling_artifacts.is_none());
+        assert_eq!(Err(CancelErr::Cancelled), result);
     }
 }

@@ -54,8 +54,10 @@ impl RateLimitStatusPayload {
     Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize, Default,
 )]
 pub enum PlanType {
-    #[serde(rename = "free")]
+    #[serde(rename = "guest")]
     #[default]
+    Guest,
+    #[serde(rename = "free")]
     Free,
     #[serde(rename = "go")]
     Go,
@@ -63,16 +65,28 @@ pub enum PlanType {
     Plus,
     #[serde(rename = "pro")]
     Pro,
+    #[serde(rename = "prolite")]
+    ProLite,
+    #[serde(rename = "free_workspace")]
+    FreeWorkspace,
     #[serde(rename = "team")]
     Team,
+    #[serde(rename = "self_serve_business_usage_based")]
+    SelfServeBusinessUsageBased,
     #[serde(rename = "business")]
     Business,
+    #[serde(rename = "enterprise_cbp_usage_based")]
+    EnterpriseCbpUsageBased,
     #[serde(rename = "education")]
     Education,
     #[serde(rename = "quorum")]
     Quorum,
+    #[serde(rename = "k12")]
+    K12,
     #[serde(rename = "enterprise")]
     Enterprise,
     #[serde(rename = "edu")]
     Edu,
+    #[serde(rename = "unknown", other)]
+    Unknown,
 }

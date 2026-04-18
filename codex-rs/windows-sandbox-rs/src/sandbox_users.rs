@@ -43,19 +43,6 @@ use codex_windows_sandbox::sandbox_secrets_dir;
 use codex_windows_sandbox::string_from_sid_bytes;
 use codex_windows_sandbox::to_wide;
 
-use std::io::Write;
-
-fn log_line(log: &mut File, msg: &str) -> Result<()> {
-    let ts = chrono::Utc::now().to_rfc3339();
-    writeln!(log, "[{ts}] {msg}").map_err(|err| {
-        anyhow::Error::new(SetupFailure::new(
-            SetupErrorCode::HelperLogFailed,
-            format!("failed to write setup log line: {err}"),
-        ))
-    })?;
-    Ok(())
-}
-
 pub const SANDBOX_USERS_GROUP: &str = "CodexSandboxUsers";
 const SANDBOX_USERS_GROUP_COMMENT: &str = "Codex sandbox internal group (managed)";
 const SID_ADMINISTRATORS: &str = "S-1-5-32-544";
@@ -76,10 +63,12 @@ pub fn provision_sandbox_users(
     codex_home: &Path,
     offline_username: &str,
     online_username: &str,
+    proxy_ports: &[u16],
+    allow_local_binding: bool,
     log: &mut File,
 ) -> Result<()> {
     ensure_sandbox_users_group(log)?;
-    log_line(
+    super::log_line(
         log,
         &format!("ensuring sandbox users offline={offline_username} online={online_username}"),
     )?;
@@ -93,6 +82,8 @@ pub fn provision_sandbox_users(
         &offline_password,
         online_username,
         &online_password,
+        proxy_ports,
+        allow_local_binding,
     )?;
     Ok(())
 }
@@ -136,7 +127,7 @@ pub fn ensure_local_user(name: &str, password: &str, log: &mut File) -> Result<(
                 std::ptr::null_mut(),
             );
             if upd != NERR_Success {
-                log_line(log, &format!("NetUserSetInfo failed for {name} code {upd}"))?;
+                super::log_line(log, &format!("NetUserSetInfo failed for {name} code {upd}"))?;
                 return Err(anyhow::Error::new(SetupFailure::new(
                     SetupErrorCode::HelperUserCreateOrUpdateFailed,
                     format!("failed to create/update user {name}, code {status}/{upd}"),
@@ -158,7 +149,7 @@ pub fn ensure_local_user(name: &str, password: &str, log: &mut File) -> Result<(
                 1,
             );
         } else {
-            log_line(
+            super::log_line(
                 log,
                 "LookupAccountSidW failed for Users SID; skipping Users group membership",
             )?;
@@ -186,7 +177,7 @@ pub fn ensure_local_group(name: &str, comment: &str, log: &mut File) -> Result<(
             &mut parm_err as *mut _,
         );
         if status != NERR_Success && status != ERROR_ALIAS_EXISTS && status != NERR_GROUP_EXISTS {
-            log_line(
+            super::log_line(
                 log,
                 &format!("NetLocalGroupAdd failed for {name} code {status} parm_err={parm_err}"),
             )?;
@@ -383,24 +374,26 @@ fn random_password() -> String {
 }
 
 #[derive(Serialize)]
-pub struct SandboxUserRecord {
+struct SandboxUserRecord {
     username: String,
     password: String,
 }
 
 #[derive(Serialize)]
-pub struct SandboxUsersFile {
+struct SandboxUsersFile {
     version: u32,
     offline: SandboxUserRecord,
     online: SandboxUserRecord,
 }
 
 #[derive(Serialize)]
-pub struct SetupMarker {
+struct SetupMarker {
     version: u32,
     offline_username: String,
     online_username: String,
     created_at: String,
+    proxy_ports: Vec<u16>,
+    allow_local_binding: bool,
     read_roots: Vec<PathBuf>,
     write_roots: Vec<PathBuf>,
 }
@@ -411,6 +404,8 @@ fn write_secrets(
     offline_pwd: &str,
     online_user: &str,
     online_pwd: &str,
+    proxy_ports: &[u16],
+    allow_local_binding: bool,
 ) -> Result<()> {
     let sandbox_dir = sandbox_dir(codex_home);
     std::fs::create_dir_all(&sandbox_dir).map_err(|err| {
@@ -460,6 +455,8 @@ fn write_secrets(
         offline_username: offline_user.to_string(),
         online_username: online_user.to_string(),
         created_at: chrono::Utc::now().to_rfc3339(),
+        proxy_ports: proxy_ports.to_vec(),
+        allow_local_binding,
         read_roots: Vec::new(),
         write_roots: Vec::new(),
     };

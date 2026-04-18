@@ -1,4 +1,6 @@
 use super::*;
+use codex_model_provider_info::ModelProviderInfo;
+use codex_model_provider_info::WireApi;
 use pretty_assertions::assert_eq;
 
 async fn process_compacted_history_with_test_session(
@@ -185,6 +187,30 @@ fn build_token_limited_compacted_history_appends_summary_message() {
     assert_eq!(summary, summary_text);
 }
 
+#[test]
+fn should_use_remote_compact_task_for_azure_provider() {
+    let provider = ModelProviderInfo {
+        name: "Azure".into(),
+        base_url: Some("https://example.com/openai".into()),
+        env_key: Some("AZURE_OPENAI_API_KEY".into()),
+        env_key_instructions: None,
+        experimental_bearer_token: None,
+        auth: None,
+        wire_api: WireApi::Responses,
+        query_params: None,
+        http_headers: None,
+        env_http_headers: None,
+        request_max_retries: None,
+        stream_max_retries: None,
+        stream_idle_timeout_ms: None,
+        websocket_connect_timeout_ms: None,
+        requires_openai_auth: false,
+        supports_websockets: false,
+    };
+
+    assert!(should_use_remote_compact_task(&provider));
+}
+
 #[tokio::test]
 async fn process_compacted_history_replaces_developer_messages() {
     let compacted_history = vec![
@@ -216,8 +242,11 @@ async fn process_compacted_history_replaces_developer_messages() {
             phase: None,
         },
     ];
-    let (refreshed, mut expected) =
-        process_compacted_history_with_test_session(compacted_history, None).await;
+    let (refreshed, mut expected) = process_compacted_history_with_test_session(
+        compacted_history,
+        /*previous_turn_settings*/ None,
+    )
+    .await;
     expected.push(ResponseItem::Message {
         id: None,
         role: "user".to_string(),
@@ -241,8 +270,11 @@ async fn process_compacted_history_reinjects_full_initial_context() {
         end_turn: None,
         phase: None,
     }];
-    let (refreshed, mut expected) =
-        process_compacted_history_with_test_session(compacted_history, None).await;
+    let (refreshed, mut expected) = process_compacted_history_with_test_session(
+        compacted_history,
+        /*previous_turn_settings*/ None,
+    )
+    .await;
     expected.push(ResponseItem::Message {
         id: None,
         role: "user".to_string(),
@@ -317,8 +349,11 @@ keep me updated
             phase: None,
         },
     ];
-    let (refreshed, mut expected) =
-        process_compacted_history_with_test_session(compacted_history, None).await;
+    let (refreshed, mut expected) = process_compacted_history_with_test_session(
+        compacted_history,
+        /*previous_turn_settings*/ None,
+    )
+    .await;
     expected.push(ResponseItem::Message {
         id: None,
         role: "user".to_string(),
@@ -363,8 +398,11 @@ async fn process_compacted_history_inserts_context_before_last_real_user_message
         },
     ];
 
-    let (refreshed, initial_context) =
-        process_compacted_history_with_test_session(compacted_history, None).await;
+    let (refreshed, initial_context) = process_compacted_history_with_test_session(
+        compacted_history,
+        /*previous_turn_settings*/ None,
+    )
+    .await;
     let mut expected = vec![
         ResponseItem::Message {
             id: None,

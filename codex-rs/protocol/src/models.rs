@@ -1,14 +1,19 @@
 use std::collections::HashMap;
+use std::fmt;
 use std::path::Path;
+use std::path::PathBuf;
+use std::sync::LazyLock;
 
 use codex_utils_image::PromptImageMode;
 use codex_utils_image::load_for_prompt_bytes;
+use codex_utils_template::Template;
 use serde::Deserialize;
 use serde::Deserializer;
 use serde::Serialize;
 use serde::ser::Serializer;
 use ts_rs::TS;
 
+use crate::config_types::ApprovalsReviewer;
 use crate::config_types::CollaborationMode;
 use crate::config_types::SandboxMode;
 use crate::protocol::AskForApproval;
@@ -22,12 +27,78 @@ use crate::protocol::SandboxPolicy;
 use crate::protocol::WritableRoot;
 use crate::user_input::UserInput;
 use codex_execpolicy::Policy;
-use codex_git::GhostCommit;
 use codex_utils_absolute_path::AbsolutePathBuf;
-use codex_utils_image::error::ImageProcessingError;
+use codex_utils_image::ImageProcessingError;
 use schemars::JsonSchema;
 
 use crate::mcp::CallToolResult;
+
+static SANDBOX_MODE_DANGER_FULL_ACCESS_TEMPLATE: LazyLock<Template> = LazyLock::new(|| {
+    Template::parse(SANDBOX_MODE_DANGER_FULL_ACCESS.trim_end())
+        .unwrap_or_else(|err| panic!("danger-full-access sandbox template must parse: {err}"))
+});
+static SANDBOX_MODE_WORKSPACE_WRITE_TEMPLATE: LazyLock<Template> = LazyLock::new(|| {
+    Template::parse(SANDBOX_MODE_WORKSPACE_WRITE.trim_end())
+        .unwrap_or_else(|err| panic!("workspace-write sandbox template must parse: {err}"))
+});
+static SANDBOX_MODE_READ_ONLY_TEMPLATE: LazyLock<Template> = LazyLock::new(|| {
+    Template::parse(SANDBOX_MODE_READ_ONLY.trim_end())
+        .unwrap_or_else(|err| panic!("read-only sandbox template must parse: {err}"))
+});
+
+type CommitID = String;
+
+/// Details of a ghost commit created from a repository state.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, TS)]
+pub struct GhostCommit {
+    id: CommitID,
+    parent: Option<CommitID>,
+    preexisting_untracked_files: Vec<PathBuf>,
+    preexisting_untracked_dirs: Vec<PathBuf>,
+}
+
+impl GhostCommit {
+    /// Create a new ghost commit wrapper from a raw commit ID and optional parent.
+    pub fn new(
+        id: CommitID,
+        parent: Option<CommitID>,
+        preexisting_untracked_files: Vec<PathBuf>,
+        preexisting_untracked_dirs: Vec<PathBuf>,
+    ) -> Self {
+        Self {
+            id,
+            parent,
+            preexisting_untracked_files,
+            preexisting_untracked_dirs,
+        }
+    }
+
+    /// Commit ID for the snapshot.
+    pub fn id(&self) -> &str {
+        &self.id
+    }
+
+    /// Parent commit ID, if the repository had a `HEAD` at creation time.
+    pub fn parent(&self) -> Option<&str> {
+        self.parent.as_deref()
+    }
+
+    /// Untracked or ignored files that already existed when the snapshot was captured.
+    pub fn preexisting_untracked_files(&self) -> &[PathBuf] {
+        &self.preexisting_untracked_files
+    }
+
+    /// Untracked or ignored directories that already existed when the snapshot was captured.
+    pub fn preexisting_untracked_dirs(&self) -> &[PathBuf] {
+        &self.preexisting_untracked_dirs
+    }
+}
+
+impl fmt::Display for GhostCommit {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.id)
+    }
+}
 
 /// Controls the per-command sandbox override requested by a shell-like tool call.
 #[derive(
@@ -87,138 +158,15 @@ impl NetworkPermissions {
     }
 }
 
-#[derive(
-    Debug,
-    Clone,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    Default,
-    Hash,
-    Serialize,
-    Deserialize,
-    JsonSchema,
-    TS,
-)]
-#[serde(rename_all = "snake_case")]
-pub enum MacOsPreferencesPermission {
-    None,
-    // IMPORTANT: ReadOnly needs to be the default because it's the
-    // security-sensitive default and keeps cf prefs working.
-    #[default]
-    ReadOnly,
-    ReadWrite,
-}
-
-#[derive(
-    Debug,
-    Clone,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    Default,
-    Hash,
-    Serialize,
-    Deserialize,
-    JsonSchema,
-    TS,
-)]
-#[serde(rename_all = "snake_case")]
-pub enum MacOsContactsPermission {
-    #[default]
-    None,
-    ReadOnly,
-    ReadWrite,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Default, Hash, Serialize, Deserialize, JsonSchema, TS)]
-#[serde(rename_all = "snake_case", try_from = "MacOsAutomationPermissionDe")]
-pub enum MacOsAutomationPermission {
-    #[default]
-    None,
-    All,
-    BundleIds(Vec<String>),
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(untagged)]
-enum MacOsAutomationPermissionDe {
-    Mode(String),
-    BundleIds(Vec<String>),
-    BundleIdsObject { bundle_ids: Vec<String> },
-}
-
-impl TryFrom<MacOsAutomationPermissionDe> for MacOsAutomationPermission {
-    type Error = String;
-
-    /// Accepts one of:
-    /// - `"none"` or `"all"`
-    /// - a plain list of bundle IDs, e.g. `["com.apple.Notes"]`
-    /// - an object with bundle IDs, e.g. `{"bundle_ids": ["com.apple.Notes"]}`
-    fn try_from(value: MacOsAutomationPermissionDe) -> Result<Self, Self::Error> {
-        let permission = match value {
-            MacOsAutomationPermissionDe::Mode(value) => {
-                let normalized = value.trim().to_ascii_lowercase();
-                if normalized == "all" {
-                    MacOsAutomationPermission::All
-                } else if normalized == "none" {
-                    MacOsAutomationPermission::None
-                } else {
-                    return Err(format!(
-                        "invalid macOS automation permission: {value}; expected none, all, or bundle ids"
-                    ));
-                }
-            }
-            MacOsAutomationPermissionDe::BundleIds(bundle_ids)
-            | MacOsAutomationPermissionDe::BundleIdsObject { bundle_ids } => {
-                let bundle_ids = bundle_ids
-                    .into_iter()
-                    .map(|bundle_id| bundle_id.trim().to_string())
-                    .filter(|bundle_id| !bundle_id.is_empty())
-                    .collect::<Vec<String>>();
-                if bundle_ids.is_empty() {
-                    MacOsAutomationPermission::None
-                } else {
-                    MacOsAutomationPermission::BundleIds(bundle_ids)
-                }
-            }
-        };
-
-        Ok(permission)
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Default, Hash, Serialize, Deserialize, JsonSchema, TS)]
-#[serde(default)]
-pub struct MacOsSeatbeltProfileExtensions {
-    #[serde(alias = "preferences")]
-    pub macos_preferences: MacOsPreferencesPermission,
-    #[serde(alias = "automations")]
-    pub macos_automation: MacOsAutomationPermission,
-    #[serde(alias = "launch_services")]
-    pub macos_launch_services: bool,
-    #[serde(alias = "accessibility")]
-    pub macos_accessibility: bool,
-    #[serde(alias = "calendar")]
-    pub macos_calendar: bool,
-    #[serde(alias = "reminders")]
-    pub macos_reminders: bool,
-    #[serde(alias = "contacts")]
-    pub macos_contacts: MacOsContactsPermission,
-}
-
 #[derive(Debug, Clone, Default, Eq, Hash, PartialEq, Serialize, Deserialize, JsonSchema, TS)]
 pub struct PermissionProfile {
     pub network: Option<NetworkPermissions>,
     pub file_system: Option<FileSystemPermissions>,
-    pub macos: Option<MacOsSeatbeltProfileExtensions>,
 }
 
 impl PermissionProfile {
     pub fn is_empty(&self) -> bool {
-        self.network.is_none() && self.file_system.is_none() && self.macos.is_none()
+        self.network.is_none() && self.file_system.is_none()
     }
 }
 
@@ -478,9 +426,10 @@ const APPROVAL_POLICY_UNLESS_TRUSTED: &str =
 const APPROVAL_POLICY_ON_FAILURE: &str =
     include_str!("prompts/permissions/approval_policy/on_failure.md");
 const APPROVAL_POLICY_ON_REQUEST_RULE: &str =
-    include_str!("prompts/permissions/approval_policy/on_request_rule.md");
+    include_str!("prompts/permissions/approval_policy/on_request.md");
 const APPROVAL_POLICY_ON_REQUEST_RULE_REQUEST_PERMISSION: &str =
     include_str!("prompts/permissions/approval_policy/on_request_rule_request_permission.md");
+const GUARDIAN_SUBAGENT_APPROVAL_SUFFIX: &str = "`approvals_reviewer` is `guardian_subagent`: Sandbox escalations with require_escalated will be reviewed for compliance with the policy. If a rejection happens, you should proceed only with a materially safer alternative, or inform the user of the risk and send a final message to ask for approval.";
 
 const SANDBOX_MODE_DANGER_FULL_ACCESS: &str =
     include_str!("prompts/permissions/sandbox_mode/danger_full_access.md");
@@ -491,6 +440,14 @@ const SANDBOX_MODE_READ_ONLY: &str = include_str!("prompts/permissions/sandbox_m
 const REALTIME_START_INSTRUCTIONS: &str = include_str!("prompts/realtime/realtime_start.md");
 const REALTIME_END_INSTRUCTIONS: &str = include_str!("prompts/realtime/realtime_end.md");
 
+struct PermissionsPromptConfig<'a> {
+    approval_policy: AskForApproval,
+    approvals_reviewer: ApprovalsReviewer,
+    exec_policy: &'a Policy,
+    exec_permission_approvals_enabled: bool,
+    request_permissions_tool_enabled: bool,
+}
+
 impl DeveloperInstructions {
     pub fn new<T: Into<String>>(text: T) -> Self {
         Self { text: text.into() }
@@ -498,6 +455,7 @@ impl DeveloperInstructions {
 
     pub fn from(
         approval_policy: AskForApproval,
+        approvals_reviewer: ApprovalsReviewer,
         exec_policy: &Policy,
         exec_permission_approvals_enabled: bool,
         request_permissions_tool_enabled: bool,
@@ -539,6 +497,14 @@ impl DeveloperInstructions {
                 exec_permission_approvals_enabled,
                 request_permissions_tool_enabled,
             ),
+        };
+
+        let text = if approvals_reviewer == ApprovalsReviewer::GuardianSubagent
+            && approval_policy != AskForApproval::Never
+        {
+            format!("{text}\n\n{GUARDIAN_SUBAGENT_APPROVAL_SUFFIX}")
+        } else {
+            text
         };
 
         DeveloperInstructions::new(text)
@@ -590,6 +556,7 @@ impl DeveloperInstructions {
     pub fn from_policy(
         sandbox_policy: &SandboxPolicy,
         approval_policy: AskForApproval,
+        approvals_reviewer: ApprovalsReviewer,
         exec_policy: &Policy,
         cwd: &Path,
         exec_permission_approvals_enabled: bool,
@@ -614,11 +581,14 @@ impl DeveloperInstructions {
         DeveloperInstructions::from_permissions_with_network(
             sandbox_mode,
             network_access,
-            approval_policy,
-            exec_policy,
+            PermissionsPromptConfig {
+                approval_policy,
+                approvals_reviewer,
+                exec_policy,
+                exec_permission_approvals_enabled,
+                request_permissions_tool_enabled,
+            },
             writable_roots,
-            exec_permission_approvals_enabled,
-            request_permissions_tool_enabled,
         )
     }
 
@@ -636,15 +606,11 @@ impl DeveloperInstructions {
             })
     }
 
-    #[allow(clippy::too_many_arguments)]
     fn from_permissions_with_network(
         sandbox_mode: SandboxMode,
         network_access: NetworkAccess,
-        approval_policy: AskForApproval,
-        exec_policy: &Policy,
+        config: PermissionsPromptConfig<'_>,
         writable_roots: Option<Vec<WritableRoot>>,
-        exec_permission_approvals_enabled: bool,
-        request_permissions_tool_enabled: bool,
     ) -> Self {
         let start_tag = DeveloperInstructions::new("<permissions instructions>");
         let end_tag = DeveloperInstructions::new("</permissions instructions>");
@@ -654,10 +620,11 @@ impl DeveloperInstructions {
                 network_access,
             ))
             .concat(DeveloperInstructions::from(
-                approval_policy,
-                exec_policy,
-                exec_permission_approvals_enabled,
-                request_permissions_tool_enabled,
+                config.approval_policy,
+                config.approvals_reviewer,
+                config.exec_policy,
+                config.exec_permission_approvals_enabled,
+                config.request_permissions_tool_enabled,
             ))
             .concat(DeveloperInstructions::from_writable_roots(writable_roots))
             .concat(end_tag)
@@ -686,11 +653,14 @@ impl DeveloperInstructions {
 
     fn sandbox_text(mode: SandboxMode, network_access: NetworkAccess) -> DeveloperInstructions {
         let template = match mode {
-            SandboxMode::DangerFullAccess => SANDBOX_MODE_DANGER_FULL_ACCESS.trim_end(),
-            SandboxMode::WorkspaceWrite => SANDBOX_MODE_WORKSPACE_WRITE.trim_end(),
-            SandboxMode::ReadOnly => SANDBOX_MODE_READ_ONLY.trim_end(),
+            SandboxMode::DangerFullAccess => &*SANDBOX_MODE_DANGER_FULL_ACCESS_TEMPLATE,
+            SandboxMode::WorkspaceWrite => &*SANDBOX_MODE_WORKSPACE_WRITE_TEMPLATE,
+            SandboxMode::ReadOnly => &*SANDBOX_MODE_READ_ONLY_TEMPLATE,
         };
-        let text = template.replace("{network_access}", &network_access.to_string());
+        let network_access = network_access.to_string();
+        let text = template
+            .render([("network_access", network_access.as_str())])
+            .unwrap_or_else(|err| panic!("sandbox template must render: {err}"));
 
         DeveloperInstructions::new(text)
     }
@@ -706,7 +676,7 @@ fn granular_prompt_intro_text() -> &'static str {
 }
 
 fn request_permissions_tool_prompt_section() -> &'static str {
-    "# request_permissions Tool\n\nThe built-in `request_permissions` tool is available in this session. Invoke it when you need to request additional `network`, `file_system`, or `macos` permissions before later shell-like commands need them. Request only the specific permissions required for the task."
+    "# request_permissions Tool\n\nThe built-in `request_permissions` tool is available in this session. Invoke it when you need to request additional `network` or `file_system` permissions before later shell-like commands need them. Request only the specific permissions required for the task."
 }
 
 fn granular_instructions(
@@ -1447,6 +1417,8 @@ impl CallToolResult {
 fn convert_mcp_content_to_items(
     contents: &[serde_json::Value],
 ) -> Option<Vec<FunctionCallOutputContentItem>> {
+    const CODEX_IMAGE_DETAIL_META_KEY: &str = "codex/imageDetail";
+
     #[derive(serde::Deserialize)]
     #[serde(tag = "type")]
     enum McpContent {
@@ -1457,6 +1429,8 @@ fn convert_mcp_content_to_items(
             data: String,
             #[serde(rename = "mimeType", alias = "mime_type")]
             mime_type: Option<String>,
+            #[serde(rename = "_meta", default)]
+            meta: Option<serde_json::Value>,
         },
         #[serde(other)]
         Unknown,
@@ -1468,7 +1442,11 @@ fn convert_mcp_content_to_items(
     for content in contents {
         let item = match serde_json::from_value::<McpContent>(content.clone()) {
             Ok(McpContent::Text { text }) => FunctionCallOutputContentItem::InputText { text },
-            Ok(McpContent::Image { data, mime_type }) => {
+            Ok(McpContent::Image {
+                data,
+                mime_type,
+                meta,
+            }) => {
                 saw_image = true;
                 let image_url = if data.starts_with("data:") {
                     data
@@ -1478,7 +1456,15 @@ fn convert_mcp_content_to_items(
                 };
                 FunctionCallOutputContentItem::InputImage {
                     image_url,
-                    detail: None,
+                    detail: meta
+                        .as_ref()
+                        .and_then(serde_json::Value::as_object)
+                        .and_then(|meta| meta.get(CODEX_IMAGE_DETAIL_META_KEY))
+                        .and_then(serde_json::Value::as_str)
+                        .and_then(|detail| match detail {
+                            "original" => Some(ImageDetail::Original),
+                            _ => None,
+                        }),
                 }
             }
             Ok(McpContent::Unknown) | Err(_) => FunctionCallOutputContentItem::InputText {
@@ -1627,168 +1613,8 @@ mod tests {
         let permission_profile = PermissionProfile {
             network: Some(NetworkPermissions { enabled: None }),
             file_system: None,
-            macos: None,
         };
         assert_eq!(permission_profile.is_empty(), false);
-    }
-
-    #[test]
-    fn macos_preferences_permission_deserializes_read_write() {
-        let permission = serde_json::from_str::<MacOsPreferencesPermission>("\"read_write\"")
-            .expect("deserialize macos preferences permission");
-        assert_eq!(permission, MacOsPreferencesPermission::ReadWrite);
-    }
-
-    #[test]
-    fn macos_preferences_permission_order_matches_permissiveness() {
-        assert!(MacOsPreferencesPermission::None < MacOsPreferencesPermission::ReadOnly);
-        assert!(MacOsPreferencesPermission::ReadOnly < MacOsPreferencesPermission::ReadWrite);
-    }
-
-    #[test]
-    fn macos_contacts_permission_order_matches_permissiveness() {
-        assert!(MacOsContactsPermission::None < MacOsContactsPermission::ReadOnly);
-        assert!(MacOsContactsPermission::ReadOnly < MacOsContactsPermission::ReadWrite);
-    }
-
-    #[test]
-    fn permission_profile_deserializes_macos_seatbelt_profile_extensions() {
-        let permission_profile = serde_json::from_value::<PermissionProfile>(serde_json::json!({
-            "network": null,
-            "file_system": null,
-            "macos": {
-                "macos_preferences": "read_write",
-                "macos_automation": ["com.apple.Notes"],
-                "macos_launch_services": true,
-                "macos_accessibility": true,
-                "macos_calendar": true
-            }
-        }))
-        .expect("deserialize permission profile");
-
-        assert_eq!(
-            permission_profile,
-            PermissionProfile {
-                network: None,
-                file_system: None,
-                macos: Some(MacOsSeatbeltProfileExtensions {
-                    macos_preferences: MacOsPreferencesPermission::ReadWrite,
-                    macos_automation: MacOsAutomationPermission::BundleIds(vec![
-                        "com.apple.Notes".to_string(),
-                    ]),
-                    macos_launch_services: true,
-                    macos_accessibility: true,
-                    macos_calendar: true,
-                    macos_reminders: false,
-                    macos_contacts: MacOsContactsPermission::None,
-                }),
-            }
-        );
-    }
-
-    #[test]
-    fn permission_profile_deserializes_macos_reminders_permission() {
-        let permission_profile = serde_json::from_value::<PermissionProfile>(serde_json::json!({
-            "macos": {
-                "macos_reminders": true
-            }
-        }))
-        .expect("deserialize reminders permission profile");
-
-        assert_eq!(
-            permission_profile,
-            PermissionProfile {
-                network: None,
-                file_system: None,
-                macos: Some(MacOsSeatbeltProfileExtensions {
-                    macos_preferences: MacOsPreferencesPermission::ReadOnly,
-                    macos_automation: MacOsAutomationPermission::None,
-                    macos_launch_services: false,
-                    macos_accessibility: false,
-                    macos_calendar: false,
-                    macos_reminders: true,
-                    macos_contacts: MacOsContactsPermission::None,
-                }),
-            }
-        );
-    }
-
-    #[test]
-    fn macos_seatbelt_profile_extensions_deserializes_missing_fields_to_defaults() {
-        let permissions =
-            serde_json::from_value::<MacOsSeatbeltProfileExtensions>(serde_json::json!({
-                "macos_automation": ["com.apple.Notes"]
-            }))
-            .expect("deserialize macos permissions");
-
-        assert_eq!(
-            permissions,
-            MacOsSeatbeltProfileExtensions {
-                macos_preferences: MacOsPreferencesPermission::ReadOnly,
-                macos_automation: MacOsAutomationPermission::BundleIds(vec![
-                    "com.apple.Notes".to_string(),
-                ]),
-                macos_launch_services: false,
-                macos_accessibility: false,
-                macos_calendar: false,
-                macos_reminders: false,
-                macos_contacts: MacOsContactsPermission::None,
-            }
-        );
-    }
-
-    #[test]
-    fn macos_seatbelt_profile_extensions_deserializes_tool_schema_aliases() {
-        let permissions =
-            serde_json::from_value::<MacOsSeatbeltProfileExtensions>(serde_json::json!({
-                "preferences": "read_write",
-                "automations": ["com.apple.Notes"],
-                "launch_services": true,
-                "accessibility": true,
-                "calendar": true,
-                "reminders": true,
-                "contacts": "read_only"
-            }))
-            .expect("deserialize macos permissions");
-
-        assert_eq!(
-            permissions,
-            MacOsSeatbeltProfileExtensions {
-                macos_preferences: MacOsPreferencesPermission::ReadWrite,
-                macos_automation: MacOsAutomationPermission::BundleIds(vec![
-                    "com.apple.Notes".to_string(),
-                ]),
-                macos_launch_services: true,
-                macos_accessibility: true,
-                macos_calendar: true,
-                macos_reminders: true,
-                macos_contacts: MacOsContactsPermission::ReadOnly,
-            }
-        );
-    }
-
-    #[test]
-    fn macos_automation_permission_deserializes_all_and_none() {
-        let all = serde_json::from_str::<MacOsAutomationPermission>("\"all\"")
-            .expect("deserialize all automation permission");
-        let none = serde_json::from_str::<MacOsAutomationPermission>("\"none\"")
-            .expect("deserialize none automation permission");
-
-        assert_eq!(all, MacOsAutomationPermission::All);
-        assert_eq!(none, MacOsAutomationPermission::None);
-    }
-
-    #[test]
-    fn macos_automation_permission_deserializes_bundle_ids_object() {
-        let permission = serde_json::from_value::<MacOsAutomationPermission>(serde_json::json!({
-            "bundle_ids": ["com.apple.Notes"]
-        }))
-        .expect("deserialize bundle_ids object automation permission");
-
-        assert_eq!(
-            permission,
-            MacOsAutomationPermission::BundleIds(vec!["com.apple.Notes".to_string(),])
-        );
     }
 
     #[test]
@@ -1917,6 +1743,14 @@ mod tests {
                 "Filesystem sandboxing defines which files can be read or written. `sandbox_mode` is `read-only`: The sandbox only permits reading files. Network access is restricted."
             )
         );
+
+        let danger_full_access: DeveloperInstructions = SandboxMode::DangerFullAccess.into();
+        assert_eq!(
+            danger_full_access,
+            DeveloperInstructions::new(
+                "Filesystem sandboxing defines which files can be read or written. `sandbox_mode` is `danger-full-access`: No filesystem sandboxing - all commands are permitted. Network access is enabled."
+            )
+        );
     }
 
     #[test]
@@ -1924,11 +1758,14 @@ mod tests {
         let instructions = DeveloperInstructions::from_permissions_with_network(
             SandboxMode::WorkspaceWrite,
             NetworkAccess::Enabled,
-            AskForApproval::OnRequest,
-            &Policy::empty(),
-            None,
-            false,
-            false,
+            PermissionsPromptConfig {
+                approval_policy: AskForApproval::OnRequest,
+                approvals_reviewer: ApprovalsReviewer::User,
+                exec_policy: &Policy::empty(),
+                exec_permission_approvals_enabled: false,
+                request_permissions_tool_enabled: false,
+            },
+            /*writable_roots*/ None,
         );
 
         let text = instructions.into_text();
@@ -1955,10 +1792,11 @@ mod tests {
         let instructions = DeveloperInstructions::from_policy(
             &policy,
             AskForApproval::UnlessTrusted,
+            ApprovalsReviewer::User,
             &Policy::empty(),
             &PathBuf::from("/tmp"),
-            false,
-            false,
+            /*exec_permission_approvals_enabled*/ false,
+            /*request_permissions_tool_enabled*/ false,
         );
         let text = instructions.into_text();
         assert!(text.contains("Network access is enabled."));
@@ -1977,11 +1815,14 @@ mod tests {
         let instructions = DeveloperInstructions::from_permissions_with_network(
             SandboxMode::WorkspaceWrite,
             NetworkAccess::Enabled,
-            AskForApproval::OnRequest,
-            &exec_policy,
-            None,
-            false,
-            false,
+            PermissionsPromptConfig {
+                approval_policy: AskForApproval::OnRequest,
+                approvals_reviewer: ApprovalsReviewer::User,
+                exec_policy: &exec_policy,
+                exec_permission_approvals_enabled: false,
+                request_permissions_tool_enabled: false,
+            },
+            /*writable_roots*/ None,
         );
 
         let text = instructions.into_text();
@@ -1995,11 +1836,14 @@ mod tests {
         let instructions = DeveloperInstructions::from_permissions_with_network(
             SandboxMode::WorkspaceWrite,
             NetworkAccess::Enabled,
-            AskForApproval::UnlessTrusted,
-            &Policy::empty(),
-            None,
-            false,
-            true,
+            PermissionsPromptConfig {
+                approval_policy: AskForApproval::UnlessTrusted,
+                approvals_reviewer: ApprovalsReviewer::User,
+                exec_policy: &Policy::empty(),
+                exec_permission_approvals_enabled: false,
+                request_permissions_tool_enabled: true,
+            },
+            /*writable_roots*/ None,
         );
 
         let text = instructions.into_text();
@@ -2012,11 +1856,14 @@ mod tests {
         let instructions = DeveloperInstructions::from_permissions_with_network(
             SandboxMode::WorkspaceWrite,
             NetworkAccess::Enabled,
-            AskForApproval::OnFailure,
-            &Policy::empty(),
-            None,
-            false,
-            true,
+            PermissionsPromptConfig {
+                approval_policy: AskForApproval::OnFailure,
+                approvals_reviewer: ApprovalsReviewer::User,
+                exec_policy: &Policy::empty(),
+                exec_permission_approvals_enabled: false,
+                request_permissions_tool_enabled: true,
+            },
+            /*writable_roots*/ None,
         );
 
         let text = instructions.into_text();
@@ -2029,11 +1876,14 @@ mod tests {
         let instructions = DeveloperInstructions::from_permissions_with_network(
             SandboxMode::WorkspaceWrite,
             NetworkAccess::Enabled,
-            AskForApproval::OnRequest,
-            &Policy::empty(),
-            None,
-            true,
-            false,
+            PermissionsPromptConfig {
+                approval_policy: AskForApproval::OnRequest,
+                approvals_reviewer: ApprovalsReviewer::User,
+                exec_policy: &Policy::empty(),
+                exec_permission_approvals_enabled: true,
+                request_permissions_tool_enabled: false,
+            },
+            /*writable_roots*/ None,
         );
 
         let text = instructions.into_text();
@@ -2046,11 +1896,14 @@ mod tests {
         let instructions = DeveloperInstructions::from_permissions_with_network(
             SandboxMode::WorkspaceWrite,
             NetworkAccess::Enabled,
-            AskForApproval::OnRequest,
-            &Policy::empty(),
-            None,
-            false,
-            true,
+            PermissionsPromptConfig {
+                approval_policy: AskForApproval::OnRequest,
+                approvals_reviewer: ApprovalsReviewer::User,
+                exec_policy: &Policy::empty(),
+                exec_permission_approvals_enabled: false,
+                request_permissions_tool_enabled: true,
+            },
+            /*writable_roots*/ None,
         );
 
         let text = instructions.into_text();
@@ -2065,16 +1918,48 @@ mod tests {
         let instructions = DeveloperInstructions::from_permissions_with_network(
             SandboxMode::WorkspaceWrite,
             NetworkAccess::Enabled,
-            AskForApproval::OnRequest,
-            &Policy::empty(),
-            None,
-            true,
-            true,
+            PermissionsPromptConfig {
+                approval_policy: AskForApproval::OnRequest,
+                approvals_reviewer: ApprovalsReviewer::User,
+                exec_policy: &Policy::empty(),
+                exec_permission_approvals_enabled: true,
+                request_permissions_tool_enabled: true,
+            },
+            /*writable_roots*/ None,
         );
 
         let text = instructions.into_text();
         assert!(text.contains("with_additional_permissions"));
         assert!(text.contains("# request_permissions Tool"));
+    }
+
+    #[test]
+    fn guardian_subagent_approvals_append_guardian_specific_guidance() {
+        let text = DeveloperInstructions::from(
+            AskForApproval::OnRequest,
+            ApprovalsReviewer::GuardianSubagent,
+            &Policy::empty(),
+            /*exec_permission_approvals_enabled*/ false,
+            /*request_permissions_tool_enabled*/ false,
+        )
+        .into_text();
+
+        assert!(text.contains("`approvals_reviewer` is `guardian_subagent`"));
+        assert!(text.contains("materially safer alternative"));
+    }
+
+    #[test]
+    fn guardian_subagent_approvals_omit_guardian_specific_guidance_when_approval_is_never() {
+        let text = DeveloperInstructions::from(
+            AskForApproval::Never,
+            ApprovalsReviewer::GuardianSubagent,
+            &Policy::empty(),
+            /*exec_permission_approvals_enabled*/ false,
+            /*request_permissions_tool_enabled*/ false,
+        )
+        .into_text();
+
+        assert!(!text.contains("`approvals_reviewer` is `guardian_subagent`"));
     }
 
     fn granular_categories_section(title: &str, categories: &[&str]) -> String {
@@ -2119,9 +2004,10 @@ mod tests {
                 request_permissions: true,
                 mcp_elicitations: false,
             }),
+            ApprovalsReviewer::User,
             &Policy::empty(),
-            true,
-            false,
+            /*exec_permission_approvals_enabled*/ true,
+            /*request_permissions_tool_enabled*/ false,
         )
         .into_text();
 
@@ -2152,9 +2038,10 @@ mod tests {
                 request_permissions: true,
                 mcp_elicitations: true,
             }),
+            ApprovalsReviewer::User,
             &Policy::empty(),
-            true,
-            false,
+            /*exec_permission_approvals_enabled*/ true,
+            /*request_permissions_tool_enabled*/ false,
         )
         .into_text();
 
@@ -2168,8 +2055,8 @@ mod tests {
                     "- `mcp_elicitations`",
                 ],
                 &[],
-                true,
-                false,
+                /*include_shell_permission_request_instructions*/ true,
+                /*include_request_permissions_tool_section*/ false,
             )
         );
     }
@@ -2184,9 +2071,10 @@ mod tests {
                 request_permissions: true,
                 mcp_elicitations: true,
             }),
+            ApprovalsReviewer::User,
             &Policy::empty(),
-            false,
-            false,
+            /*exec_permission_approvals_enabled*/ false,
+            /*request_permissions_tool_enabled*/ false,
         )
         .into_text();
 
@@ -2200,8 +2088,8 @@ mod tests {
                     "- `mcp_elicitations`",
                 ],
                 &[],
-                false,
-                false,
+                /*include_shell_permission_request_instructions*/ false,
+                /*include_request_permissions_tool_section*/ false,
             )
         );
     }
@@ -2216,9 +2104,10 @@ mod tests {
                 request_permissions: true,
                 mcp_elicitations: true,
             }),
+            ApprovalsReviewer::User,
             &Policy::empty(),
-            true,
-            true,
+            /*exec_permission_approvals_enabled*/ true,
+            /*request_permissions_tool_enabled*/ true,
         )
         .into_text();
         assert!(allowed.contains("# request_permissions Tool"));
@@ -2231,9 +2120,10 @@ mod tests {
                 request_permissions: false,
                 mcp_elicitations: true,
             }),
+            ApprovalsReviewer::User,
             &Policy::empty(),
-            true,
-            true,
+            /*exec_permission_approvals_enabled*/ true,
+            /*request_permissions_tool_enabled*/ true,
         )
         .into_text();
         assert!(!rejected.contains("# request_permissions Tool"));
@@ -2250,9 +2140,10 @@ mod tests {
                 request_permissions: true,
                 mcp_elicitations: false,
             }),
+            ApprovalsReviewer::User,
             &Policy::empty(),
-            true,
-            false,
+            /*exec_permission_approvals_enabled*/ true,
+            /*request_permissions_tool_enabled*/ false,
         )
         .into_text();
 
@@ -2422,6 +2313,70 @@ mod tests {
                 "type": "image",
                 "data": "data:image/png;base64,BASE64",
                 "mimeType": "image/png"
+            })],
+            structured_content: None,
+            is_error: Some(false),
+            meta: None,
+        };
+
+        let payload = call_tool_result.into_function_call_output_payload();
+        let Some(items) = payload.content_items() else {
+            panic!("expected content items");
+        };
+        let items = items.to_vec();
+        assert_eq!(
+            items,
+            vec![FunctionCallOutputContentItem::InputImage {
+                image_url: "data:image/png;base64,BASE64".into(),
+                detail: None,
+            }]
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn preserves_original_detail_metadata_on_mcp_images() -> Result<()> {
+        let call_tool_result = CallToolResult {
+            content: vec![serde_json::json!({
+                "type": "image",
+                "data": "BASE64",
+                "mimeType": "image/png",
+                "_meta": {
+                    "codex/imageDetail": "original",
+                },
+            })],
+            structured_content: None,
+            is_error: Some(false),
+            meta: None,
+        };
+
+        let payload = call_tool_result.into_function_call_output_payload();
+        let Some(items) = payload.content_items() else {
+            panic!("expected content items");
+        };
+        let items = items.to_vec();
+        assert_eq!(
+            items,
+            vec![FunctionCallOutputContentItem::InputImage {
+                image_url: "data:image/png;base64,BASE64".into(),
+                detail: Some(ImageDetail::Original),
+            }]
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn ignores_unknown_mcp_image_detail_metadata() -> Result<()> {
+        let call_tool_result = CallToolResult {
+            content: vec![serde_json::json!({
+                "type": "image",
+                "data": "BASE64",
+                "mimeType": "image/png",
+                "_meta": {
+                    "codex/imageDetail": "high",
+                },
             })],
             structured_content: None,
             is_error: Some(false),
@@ -2832,7 +2787,7 @@ mod tests {
                 assert_eq!(
                     content.get(3),
                     Some(&ContentItem::InputText {
-                        text: local_image_open_tag_text(2),
+                        text: local_image_open_tag_text(/*label_number*/ 2),
                     })
                 );
                 assert!(matches!(

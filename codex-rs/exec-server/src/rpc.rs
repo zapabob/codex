@@ -19,7 +19,6 @@ use tokio::sync::Mutex;
 use tokio::sync::mpsc;
 use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
-use tracing::warn;
 
 use crate::connection::JsonRpcConnection;
 use crate::connection::JsonRpcConnectionEvent;
@@ -180,7 +179,8 @@ pub(crate) struct RpcClient {
 
 impl RpcClient {
     pub(crate) fn new(connection: JsonRpcConnection) -> (Self, mpsc::Receiver<RpcClientEvent>) {
-        let (write_tx, mut incoming_rx, transport_tasks) = connection.into_parts();
+        let (write_tx, mut incoming_rx, _disconnected_rx, transport_tasks) =
+            connection.into_parts();
         let pending = Arc::new(Mutex::new(HashMap::<RequestId, PendingRequest>::new()));
         let (event_tx, event_rx) = mpsc::channel(128);
 
@@ -192,12 +192,12 @@ impl RpcClient {
                         if let Err(err) =
                             handle_server_message(&pending_for_reader, &event_tx, message).await
                         {
-                            warn!("JSON-RPC client closing after protocol error: {err}");
+                            let _ = err;
                             break;
                         }
                     }
                     JsonRpcConnectionEvent::MalformedMessage { reason } => {
-                        warn!("JSON-RPC client closing after malformed message: {reason}");
+                        let _ = reason;
                         break;
                     }
                     JsonRpcConnectionEvent::Disconnected { reason } => {
@@ -352,6 +352,14 @@ pub(crate) fn method_not_found(message: String) -> JSONRPCErrorError {
 pub(crate) fn invalid_params(message: String) -> JSONRPCErrorError {
     JSONRPCErrorError {
         code: -32602,
+        data: None,
+        message,
+    }
+}
+
+pub(crate) fn not_found(message: String) -> JSONRPCErrorError {
+    JSONRPCErrorError {
+        code: -32004,
         data: None,
         message,
     }

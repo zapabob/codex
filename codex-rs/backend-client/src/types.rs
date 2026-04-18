@@ -1,15 +1,11 @@
-pub use codex_backend_openapi_models::models::AdditionalRateLimitDetails;
 pub use codex_backend_openapi_models::models::ConfigFileResponse;
+pub use codex_backend_openapi_models::models::CreditStatusDetails;
 pub use codex_backend_openapi_models::models::PaginatedListTaskListItem;
 pub use codex_backend_openapi_models::models::PlanType;
 pub use codex_backend_openapi_models::models::RateLimitStatusDetails;
 pub use codex_backend_openapi_models::models::RateLimitStatusPayload;
 pub use codex_backend_openapi_models::models::RateLimitWindowSnapshot;
 pub use codex_backend_openapi_models::models::TaskListItem;
-
-pub use codex_protocol::protocol::CreditsSnapshot;
-
-pub use codex_backend_openapi_models::models::CreditStatusDetails;
 
 use serde::Deserialize;
 use serde::de::Deserializer;
@@ -312,7 +308,7 @@ where
     D: Deserializer<'de>,
     T: Deserialize<'de>,
 {
-    Option::<Vec<T>>::deserialize(deserializer).map(|opt| opt.unwrap_or_default())
+    Option::<Vec<T>>::deserialize(deserializer).map(Option::unwrap_or_default)
 }
 
 #[derive(Clone, Debug, Deserialize)]

@@ -33,7 +33,9 @@ pub fn apply_rollout_item(
 pub fn rollout_item_affects_thread_metadata(item: &RolloutItem) -> bool {
     match item {
         RolloutItem::SessionMeta(_) | RolloutItem::TurnContext(_) => true,
-        RolloutItem::EventMsg(EventMsg::TokenCount(_) | EventMsg::UserMessage(_)) => true,
+        RolloutItem::EventMsg(
+            EventMsg::TokenCount(_) | EventMsg::UserMessage(_) | EventMsg::ThreadNameUpdated(_),
+        ) => true,
         RolloutItem::EventMsg(_) | RolloutItem::ResponseItem(_) | RolloutItem::Compacted(_) => {
             false
         }
@@ -50,6 +52,7 @@ fn apply_session_meta_from_item(metadata: &mut ThreadMetadata, meta_line: &Sessi
     metadata.source = enum_to_string(&meta_line.meta.source);
     metadata.agent_nickname = meta_line.meta.agent_nickname.clone();
     metadata.agent_role = meta_line.meta.agent_role.clone();
+    metadata.agent_path = meta_line.meta.agent_path.clone();
     if let Some(provider) = meta_line.meta.model_provider.as_deref() {
         metadata.model_provider = provider.to_string();
     }
@@ -60,7 +63,7 @@ fn apply_session_meta_from_item(metadata: &mut ThreadMetadata, meta_line: &Sessi
         metadata.cwd = meta_line.meta.cwd.clone();
     }
     if let Some(git) = meta_line.git.as_ref() {
-        metadata.git_sha = git.commit_hash.clone();
+        metadata.git_sha = git.commit_hash.as_ref().map(|sha| sha.0.clone());
         metadata.git_branch = git.branch.clone();
         metadata.git_origin_url = git.repository_url.clone();
     }
@@ -94,13 +97,18 @@ fn apply_event_msg(metadata: &mut ThreadMetadata, event: &EventMsg) {
                 }
             }
         }
+        EventMsg::ThreadNameUpdated(updated) => {
+            if let Some(title) = updated.thread_name.as_deref()
+                && !title.trim().is_empty()
+            {
+                metadata.title = title.trim().to_string();
+            }
+        }
         _ => {}
     }
 }
 
-fn apply_response_item(_metadata: &mut ThreadMetadata, _item: &ResponseItem) {
-    // Title and first_user_message are derived from EventMsg::UserMessage only.
-}
+fn apply_response_item(_metadata: &mut ThreadMetadata, _item: &ResponseItem) {}
 
 fn strip_user_message_prefix(text: &str) -> &str {
     match text.find(USER_MESSAGE_BEGIN) {
@@ -151,6 +159,7 @@ mod tests {
     use codex_protocol::protocol::SessionMeta;
     use codex_protocol::protocol::SessionMetaLine;
     use codex_protocol::protocol::SessionSource;
+    use codex_protocol::protocol::ThreadNameUpdatedEvent;
     use codex_protocol::protocol::TurnContextItem;
     use codex_protocol::protocol::USER_MESSAGE_BEGIN;
     use codex_protocol::protocol::UserMessageEvent;
@@ -195,6 +204,25 @@ mod tests {
             Some("actual user request")
         );
         assert_eq!(metadata.title, "actual user request");
+    }
+
+    #[test]
+    fn thread_name_update_replaces_title_without_changing_first_user_message() {
+        let mut metadata = metadata_for_test();
+        metadata.title = "actual user request".to_string();
+        metadata.first_user_message = Some("actual user request".to_string());
+        let item = RolloutItem::EventMsg(EventMsg::ThreadNameUpdated(ThreadNameUpdatedEvent {
+            thread_id: metadata.id,
+            thread_name: Some("saved-session".to_string()),
+        }));
+
+        apply_rollout_item(&mut metadata, &item, "test-provider");
+
+        assert_eq!(
+            metadata.first_user_message.as_deref(),
+            Some("actual user request")
+        );
+        assert_eq!(metadata.title, "saved-session");
     }
 
     #[test]
@@ -251,6 +279,7 @@ mod tests {
                     originator: "codex_cli_rs".to_string(),
                     cli_version: "0.0.0".to_string(),
                     source: SessionSource::Cli,
+                    agent_path: None,
                     agent_nickname: None,
                     agent_role: None,
                     model_provider: Some("openai".to_string()),
@@ -273,6 +302,7 @@ mod tests {
                 approval_policy: AskForApproval::Never,
                 sandbox_policy: SandboxPolicy::DangerFullAccess,
                 network: None,
+                file_system_sandbox_policy: None,
                 model: "gpt-5".to_string(),
                 personality: None,
                 collaboration_mode: None,
@@ -311,6 +341,7 @@ mod tests {
                 approval_policy: AskForApproval::OnRequest,
                 sandbox_policy: SandboxPolicy::new_read_only_policy(),
                 network: None,
+                file_system_sandbox_policy: None,
                 model: "gpt-5".to_string(),
                 personality: None,
                 collaboration_mode: None,
@@ -343,6 +374,7 @@ mod tests {
                 approval_policy: AskForApproval::OnRequest,
                 sandbox_policy: SandboxPolicy::new_read_only_policy(),
                 network: None,
+                file_system_sandbox_policy: None,
                 model: "gpt-5".to_string(),
                 personality: None,
                 collaboration_mode: None,
@@ -377,6 +409,7 @@ mod tests {
                     originator: "codex_cli_rs".to_string(),
                     cli_version: "0.0.0".to_string(),
                     source: SessionSource::Cli,
+                    agent_path: None,
                     agent_nickname: None,
                     agent_role: None,
                     model_provider: Some("openai".to_string()),
@@ -402,6 +435,7 @@ mod tests {
             created_at,
             updated_at: created_at,
             source: "cli".to_string(),
+            agent_path: None,
             agent_nickname: None,
             agent_role: None,
             model_provider: "openai".to_string(),

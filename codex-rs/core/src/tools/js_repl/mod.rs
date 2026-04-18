@@ -31,21 +31,25 @@ use tracing::trace;
 use tracing::warn;
 use uuid::Uuid;
 
-use crate::client_common::tools::ToolSpec;
 use crate::codex::Session;
 use crate::codex::TurnContext;
+use crate::exec::ExecCapturePolicy;
 use crate::exec::ExecExpiration;
 use crate::exec_env::create_env;
 use crate::function_tool::FunctionCallError;
 use crate::original_image_detail::normalize_output_image_detail;
-use crate::sandboxing::CommandSpec;
-use crate::sandboxing::SandboxManager;
-use crate::sandboxing::SandboxPermissions;
+use crate::sandboxing::ExecOptions;
 use crate::tools::ToolRouter;
 use crate::tools::context::SharedTurnDiffTracker;
-use crate::tools::sandboxing::SandboxablePreference;
-use crate::truncate::TruncationPolicy;
-use crate::truncate::truncate_text;
+use codex_sandboxing::SandboxCommand;
+use codex_sandboxing::SandboxManager;
+use codex_sandboxing::SandboxTransformRequest;
+use codex_sandboxing::SandboxablePreference;
+use codex_tools::ResponsesApiNamespaceTool;
+use codex_tools::ToolName;
+use codex_tools::ToolSpec;
+use codex_utils_output_truncation::TruncationPolicy;
+use codex_utils_output_truncation::truncate_text;
 
 pub(crate) const JS_REPL_PRAGMA_PREFIX: &str = "// codex-js-repl:";
 const KERNEL_SOURCE: &str = include_str!("kernel.js");
@@ -1028,53 +1032,49 @@ impl JsReplManager {
             );
         }
 
-        let spec = CommandSpec {
-            program: node_path.to_string_lossy().to_string(),
+        let sandbox = SandboxManager::new();
+        let managed_network_active = turn.network.is_some();
+        let sandbox_type = sandbox.select_initial(
+            &turn.file_system_sandbox_policy,
+            turn.network_sandbox_policy,
+            SandboxablePreference::Auto,
+            turn.windows_sandbox_level,
+            managed_network_active,
+        );
+        let command = SandboxCommand {
+            program: node_path.into_os_string(),
             args: vec![
                 "--experimental-vm-modules".to_string(),
                 kernel_path.to_string_lossy().to_string(),
             ],
             cwd: turn.cwd.clone(),
             env,
-            expiration: ExecExpiration::DefaultTimeout,
-            sandbox_permissions: SandboxPermissions::UseDefault,
             additional_permissions: None,
-            justification: None,
         };
-
-        let sandbox = SandboxManager::new();
-        let has_managed_network_requirements = turn
-            .config
-            .config_layer_stack
-            .requirements_toml()
-            .network
-            .is_some();
-        let sandbox_type = sandbox.select_initial(
-            &turn.file_system_sandbox_policy,
-            turn.network_sandbox_policy,
-            SandboxablePreference::Auto,
-            turn.windows_sandbox_level,
-            has_managed_network_requirements,
-        );
+        let options = ExecOptions {
+            expiration: ExecExpiration::DefaultTimeout,
+            capture_policy: ExecCapturePolicy::ShellTool,
+        };
         let exec_env = sandbox
-            .transform(crate::sandboxing::SandboxTransformRequest {
-                spec,
+            .transform(SandboxTransformRequest {
+                command,
                 policy: &turn.sandbox_policy,
                 file_system_policy: &turn.file_system_sandbox_policy,
                 network_policy: turn.network_sandbox_policy,
                 sandbox: sandbox_type,
-                enforce_managed_network: has_managed_network_requirements,
+                enforce_managed_network: managed_network_active,
                 network: None,
                 sandbox_policy_cwd: &turn.cwd,
-                #[cfg(target_os = "macos")]
-                macos_seatbelt_profile_extensions: None,
-                codex_linux_sandbox_exe: turn.codex_linux_sandbox_exe.as_ref(),
+                codex_linux_sandbox_exe: turn.codex_linux_sandbox_exe.as_deref(),
                 use_legacy_landlock: turn.features.use_legacy_landlock(),
                 windows_sandbox_level: turn.windows_sandbox_level,
                 windows_sandbox_private_desktop: turn
                     .config
                     .permissions
                     .windows_sandbox_private_desktop,
+            })
+            .map(|request| {
+                crate::sandboxing::ExecRequest::from_sandbox_exec_request(request, options)
             })
             .map_err(|err| format!("failed to configure sandbox for js_repl: {err}"))?;
 
@@ -1558,46 +1558,81 @@ impl JsReplManager {
             .await
             .list_all_tools()
             .await;
-
         let router = ToolRouter::from_config(
             &exec.turn.tools_config,
             crate::tools::router::ToolRouterParams {
-                mcp_tools: Some(
-                    mcp_tools
-                        .into_iter()
-                        .map(|(name, tool)| (name, tool.tool))
-                        .collect(),
-                ),
-                app_tools: None,
+                deferred_mcp_tools: None,
+                mcp_tools: Some(mcp_tools),
+                unavailable_called_tools: Vec::new(),
+                // JS REPL dispatches nested tool calls directly, not through
+                // `ToolCallRuntime`'s parallel scheduling lock.
+                parallel_mcp_server_names: std::collections::HashSet::new(),
                 discoverable_tools: None,
                 dynamic_tools: exec.turn.dynamic_tools.as_slice(),
             },
         );
 
-        let payload = if let Some((server, tool)) = exec
+        let specs = router.specs();
+        let requested_tool_name = specs
+            .iter()
+            .find_map(|spec| match spec {
+                ToolSpec::Function(tool) if tool.name == req.tool_name => {
+                    Some(ToolName::plain(req.tool_name.clone()))
+                }
+                ToolSpec::Freeform(tool) if tool.name == req.tool_name => {
+                    Some(ToolName::plain(req.tool_name.clone()))
+                }
+                ToolSpec::Namespace(namespace) => {
+                    namespace.tools.iter().find_map(|tool| match tool {
+                        ResponsesApiNamespaceTool::Function(tool) => {
+                            let tool_name =
+                                ToolName::namespaced(namespace.name.clone(), tool.name.clone());
+                            (tool_name.display() == req.tool_name).then_some(tool_name)
+                        }
+                    })
+                }
+                ToolSpec::LocalShell {}
+                | ToolSpec::ImageGeneration { .. }
+                | ToolSpec::ToolSearch { .. }
+                | ToolSpec::WebSearch { .. }
+                | ToolSpec::Function(_)
+                | ToolSpec::Freeform(_) => None,
+            })
+            .unwrap_or_else(|| ToolName::plain(req.tool_name.clone()));
+        let (tool_call_name, payload) = if let Some(tool_info) = exec
             .session
-            .parse_mcp_tool_name(&req.tool_name, &None)
+            .resolve_mcp_tool_info(&requested_tool_name)
             .await
         {
-            crate::tools::context::ToolPayload::Mcp {
-                server,
-                tool,
-                raw_arguments: req.arguments.clone(),
-            }
-        } else if is_freeform_tool(&router.specs(), &req.tool_name) {
-            crate::tools::context::ToolPayload::Custom {
-                input: req.arguments.clone(),
-            }
+            (
+                tool_info.canonical_tool_name(),
+                crate::tools::context::ToolPayload::Mcp {
+                    server: tool_info.server_name,
+                    tool: tool_info.tool.name.to_string(),
+                    raw_arguments: req.arguments.clone(),
+                },
+            )
+        } else if matches!(
+            router.find_spec(&requested_tool_name),
+            Some(ToolSpec::Freeform(_))
+        ) {
+            (
+                requested_tool_name,
+                crate::tools::context::ToolPayload::Custom {
+                    input: req.arguments.clone(),
+                },
+            )
         } else {
-            crate::tools::context::ToolPayload::Function {
-                arguments: req.arguments.clone(),
-            }
+            (
+                requested_tool_name,
+                crate::tools::context::ToolPayload::Function {
+                    arguments: req.arguments.clone(),
+                },
+            )
         };
 
-        let tool_name = req.tool_name.clone();
         let call = crate::tools::router::ToolCall {
-            tool_name: tool_name.clone(),
-            tool_namespace: None,
+            tool_name: tool_call_name,
             call_id: req.id.clone(),
             payload,
         };
@@ -1715,7 +1750,7 @@ fn emitted_image_content_item(
 ) -> FunctionCallOutputContentItem {
     FunctionCallOutputContentItem::InputImage {
         image_url,
-        detail: normalize_output_image_detail(turn.features.get(), &turn.model_info, detail),
+        detail: normalize_output_image_detail(&turn.model_info, detail),
     }
 }
 
@@ -1754,12 +1789,6 @@ fn split_exec_result_content_items(
             (String::new(), content_items)
         }
     }
-}
-
-fn is_freeform_tool(specs: &[ToolSpec], name: &str) -> bool {
-    specs
-        .iter()
-        .any(|spec| spec.name() == name && matches!(spec, ToolSpec::Freeform(_)))
 }
 
 fn is_js_repl_internal_tool(name: &str) -> bool {

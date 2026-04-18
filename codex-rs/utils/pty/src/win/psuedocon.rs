@@ -1,5 +1,4 @@
 #![allow(clippy::expect_used)]
-#![allow(clippy::disallowed_methods)]
 #![allow(clippy::upper_case_acronyms)]
 
 // This file is copied from https://github.com/wezterm/wezterm (MIT license).
@@ -173,7 +172,7 @@ impl PsuedoCon {
         si.StartupInfo.hStdOutput = INVALID_HANDLE_VALUE;
         si.StartupInfo.hStdError = INVALID_HANDLE_VALUE;
 
-        let mut attrs = ProcThreadAttributeList::with_capacity(1)?;
+        let mut attrs = ProcThreadAttributeList::with_capacity(/*num_attributes*/ 1)?;
         attrs.set_pty(self.con)?;
         si.lpAttributeList = attrs.as_mut_ptr();
 

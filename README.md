@@ -14,6 +14,16 @@ Codex is an upstream-first fork of [openai/codex](https://github.com/openai/code
 - Make Windows-native build, packaging, install, and smoke verification first-class.
 - Use [`scripts/upstream_sync.py`](/C:/Users/downl/Desktop/codex-main/scripts/upstream_sync.py) as the authoritative sync and release-closeout driver.
 
+## Unique Extensions
+
+These are the pieces this fork still wants to be known for:
+
+- DeepResearch as a plugin-facing research workflow layered onto the official Codex app and app-server model
+- Git4D as an optional visualization path instead of a mandatory forked core experience
+- VR and AR capability as opt-in plugin surfaces with no-device and no-WebXR fallback
+- Repo-local plugin marketplace support for shipping fork-only value without permanently diverging the main product surface
+- Windows-first release operations, where packaging, overwrite install, and smoke verification are treated as product features instead of afterthoughts
+
 Current sync target:
 
 - baseline: `rust-v0.121.0` released on April 15, 2026
@@ -53,6 +63,8 @@ The product direction is intentionally narrow:
 - plugin marketplaces and plugin mentions carry fork-only extension value
 
 When upstream and fork behavior overlap, this repository adopts the upstream implementation and reinjects only the fork-specific advantage that still matters operationally.
+
+That means this repository is not trying to out-fork upstream on every surface. It is trying to keep the official Codex experience intact while making a few distinctive workflows genuinely stronger.
 
 ## Architecture Snapshot
 

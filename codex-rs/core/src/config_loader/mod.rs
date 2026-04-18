@@ -5,12 +5,15 @@ mod macos;
 #[cfg(test)]
 mod tests;
 
-use crate::config::ConfigToml;
 use crate::config_loader::layer_io::LoadedConfigLayers;
-use crate::git_info::resolve_root_git_project_for_trust;
 use codex_app_server_protocol::ConfigLayerSource;
 use codex_config::CONFIG_TOML_FILE;
 use codex_config::ConfigRequirementsWithSources;
+use codex_config::config_toml::ConfigToml;
+use codex_config::config_toml::ProjectConfig;
+use codex_exec_server::ExecutorFileSystem;
+use codex_git_utils::resolve_root_git_project_for_trust;
+use codex_protocol::config_types::ApprovalsReviewer;
 use codex_protocol::config_types::SandboxMode;
 use codex_protocol::config_types::TrustLevel;
 use codex_protocol::protocol::AskForApproval;
@@ -42,7 +45,11 @@ pub use codex_config::LoaderOverrides;
 pub use codex_config::McpServerIdentity;
 pub use codex_config::McpServerRequirement;
 pub use codex_config::NetworkConstraints;
+pub use codex_config::NetworkDomainPermissionToml;
+pub use codex_config::NetworkDomainPermissionsToml;
 pub use codex_config::NetworkRequirementsToml;
+pub use codex_config::NetworkUnixSocketPermissionToml;
+pub use codex_config::NetworkUnixSocketPermissionsToml;
 pub use codex_config::RequirementSource;
 pub use codex_config::ResidencyRequirement;
 pub use codex_config::SandboxModeRequirement;
@@ -52,10 +59,12 @@ pub use codex_config::TextRange;
 pub use codex_config::WebSearchModeRequirement;
 pub(crate) use codex_config::build_cli_overrides_layer;
 pub(crate) use codex_config::config_error_from_toml;
+pub use codex_config::default_project_root_markers;
 pub use codex_config::format_config_error;
 pub use codex_config::format_config_error_with_source;
 pub(crate) use codex_config::io_error_from_config_error;
 pub use codex_config::merge_toml_values;
+pub use codex_config::project_root_markers_from_config;
 #[cfg(test)]
 pub(crate) use codex_config::version_for_toml;
 
@@ -66,8 +75,6 @@ pub const SYSTEM_CONFIG_TOML_FILE_UNIX: &str = "/etc/codex/config.toml";
 
 #[cfg(windows)]
 const DEFAULT_PROGRAM_DATA_DIR_WINDOWS: &str = r"C:\ProgramData";
-
-const DEFAULT_PROJECT_ROOT_MARKERS: &[&str] = &[".git"];
 
 pub(crate) async fn first_layer_config_error(layers: &ConfigLayerStack) -> Option<ConfigError> {
     codex_config::first_layer_config_error::<ConfigToml>(layers, CONFIG_TOML_FILE).await
@@ -112,6 +119,7 @@ pub(crate) async fn first_layer_config_error_from_entries(
 /// thread-agnostic config loading (e.g., for the app server's `/config`
 /// endpoint) should `cwd` be `None`.
 pub async fn load_config_layers_state(
+    fs: &dyn ExecutorFileSystem,
     codex_home: &Path,
     cwd: Option<AbsolutePathBuf>,
     cli_overrides: &[(String, TomlValue)],
@@ -136,11 +144,12 @@ pub async fn load_config_layers_state(
 
     // Honor the system requirements.toml location.
     let requirements_toml_file = system_requirements_toml_file()?;
-    load_requirements_toml(&mut config_requirements_toml, requirements_toml_file).await?;
+    load_requirements_toml(fs, &mut config_requirements_toml, &requirements_toml_file).await?;
 
     // Make a best-effort to support the legacy `managed_config.toml` as a
     // requirements specification.
-    let loaded_config_layers = layer_io::load_config_layers_internal(codex_home, overrides).await?;
+    let loaded_config_layers =
+        layer_io::load_config_layers_internal(fs, codex_home, overrides).await?;
     load_requirements_from_legacy_scheme(
         &mut config_requirements_toml,
         loaded_config_layers.clone(),
@@ -167,7 +176,7 @@ pub async fn load_config_layers_state(
     // if it exists.
     let system_config_toml_file = system_config_toml_file()?;
     let system_layer =
-        load_config_toml_for_required_layer(&system_config_toml_file, |config_toml| {
+        load_config_toml_for_required_layer(fs, &system_config_toml_file, |config_toml| {
             ConfigLayerEntry::new(
                 ConfigLayerSource::System {
                     file: system_config_toml_file.clone(),
@@ -181,8 +190,8 @@ pub async fn load_config_layers_state(
     // Add a layer for $CODEX_HOME/config.toml if it exists. Note if the file
     // exists, but is malformed, then this error should be propagated to the
     // user.
-    let user_file = AbsolutePathBuf::resolve_path_against_base(CONFIG_TOML_FILE, codex_home)?;
-    let user_layer = load_config_toml_for_required_layer(&user_file, |config_toml| {
+    let user_file = AbsolutePathBuf::resolve_path_against_base(CONFIG_TOML_FILE, codex_home);
+    let user_layer = load_config_toml_for_required_layer(fs, &user_file, |config_toml| {
         ConfigLayerEntry::new(
             ConfigLayerSource::User {
                 file: user_file.clone(),
@@ -216,6 +225,7 @@ pub async fn load_config_layers_state(
             }
         };
         let project_trust_context = match project_trust_context(
+            fs,
             &merged_so_far,
             &cwd,
             &project_root_markers,
@@ -241,6 +251,7 @@ pub async fn load_config_layers_state(
             }
         };
         let project_layers = load_project_layers(
+            fs,
             &cwd,
             &project_trust_context.project_root,
             &project_trust_context,
@@ -285,9 +296,16 @@ pub async fn load_config_layers_state(
         ));
     }
     if let Some(config) = managed_config_from_mdm {
+        // As a general rule, config from MDM should _not_ include relative
+        // paths, starting with `./`, but a path starting with `~/` _is_ a
+        // supported use case. Because resolve_relative_paths_in_config_toml()
+        // relies on AbsolutePathBufGuard to resolve `~/`, we must supply a
+        // value for base_dir, so codex_home is as good a value as any.
+        let managed_config =
+            resolve_relative_paths_in_config_toml(config.managed_config, codex_home)?;
         layers.push(ConfigLayerEntry::new_with_raw_toml(
             ConfigLayerSource::LegacyManagedConfigTomlFromMdm,
-            config.managed_config,
+            managed_config,
             config.raw_toml,
         ));
     }
@@ -307,22 +325,23 @@ pub async fn load_config_layers_state(
 /// - If there is an error reading the file or parsing the TOML, returns an
 ///   error.
 async fn load_config_toml_for_required_layer(
-    config_toml: impl AsRef<Path>,
+    fs: &dyn ExecutorFileSystem,
+    toml_file: &AbsolutePathBuf,
     create_entry: impl FnOnce(TomlValue) -> ConfigLayerEntry,
 ) -> io::Result<ConfigLayerEntry> {
-    let toml_file = config_toml.as_ref();
-    let toml_value = match tokio::fs::read_to_string(toml_file).await {
+    let toml_value = match fs.read_file_text(toml_file, /*sandbox*/ None).await {
         Ok(contents) => {
             let config: TomlValue = toml::from_str(&contents).map_err(|err| {
-                let config_error = config_error_from_toml(toml_file, &contents, err.clone());
+                let config_error =
+                    config_error_from_toml(toml_file.as_path(), &contents, err.clone());
                 io_error_from_config_error(io::ErrorKind::InvalidData, config_error, Some(err))
             })?;
-            let config_parent = toml_file.parent().ok_or_else(|| {
+            let config_parent = toml_file.as_path().parent().ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
                     format!(
                         "Config file {} has no parent directory",
-                        toml_file.display()
+                        toml_file.as_path().display()
                     ),
                 )
             })?;
@@ -334,7 +353,10 @@ async fn load_config_toml_for_required_layer(
             } else {
                 Err(io::Error::new(
                     e.kind(),
-                    format!("Failed to read config file {}: {e}", toml_file.display()),
+                    format!(
+                        "Failed to read config file {}: {e}",
+                        toml_file.as_path().display()
+                    ),
                 ))
             }
         }
@@ -347,12 +369,14 @@ async fn load_config_toml_for_required_layer(
 /// `requirements.toml` location to `config_requirements_toml` by filling in
 /// any unset fields.
 async fn load_requirements_toml(
+    fs: &dyn ExecutorFileSystem,
     config_requirements_toml: &mut ConfigRequirementsWithSources,
-    requirements_toml_file: impl AsRef<Path>,
+    requirements_toml_file: &AbsolutePathBuf,
 ) -> io::Result<()> {
-    let requirements_toml_file =
-        AbsolutePathBuf::from_absolute_path(requirements_toml_file.as_ref())?;
-    match tokio::fs::read_to_string(&requirements_toml_file).await {
+    match fs
+        .read_file_text(requirements_toml_file, /*sandbox*/ None)
+        .await
+    {
         Ok(contents) => {
             let requirements_config: ConfigRequirementsToml =
                 toml::from_str(&contents).map_err(|e| {
@@ -360,7 +384,7 @@ async fn load_requirements_toml(
                         io::ErrorKind::InvalidData,
                         format!(
                             "Error parsing requirements file {}: {e}",
-                            requirements_toml_file.as_ref().display(),
+                            requirements_toml_file.as_path().display(),
                         ),
                     )
                 })?;
@@ -377,7 +401,7 @@ async fn load_requirements_toml(
                     e.kind(),
                     format!(
                         "Failed to read requirements file {}: {e}",
-                        requirements_toml_file.as_ref().display(),
+                        requirements_toml_file.as_path().display(),
                     ),
                 ));
             }
@@ -522,55 +546,6 @@ async fn load_requirements_from_legacy_scheme(
     Ok(())
 }
 
-/// Reads `project_root_markers` from the [toml::Value] produced by merging
-/// `config.toml` from the config layers in the stack preceding
-/// [ConfigLayerSource::Project].
-///
-/// Invariants:
-/// - If `project_root_markers` is not specified, returns `Ok(None)`.
-/// - If `project_root_markers` is specified, returns `Ok(Some(markers))` where
-///   `markers` is a `Vec<String>` (including `Ok(Some(Vec::new()))` for an
-///   empty array, which indicates that root detection should be disabled).
-/// - Returns an error if `project_root_markers` is specified but is not an
-///   array of strings.
-pub(crate) fn project_root_markers_from_config(
-    config: &TomlValue,
-) -> io::Result<Option<Vec<String>>> {
-    let Some(table) = config.as_table() else {
-        return Ok(None);
-    };
-    let Some(markers_value) = table.get("project_root_markers") else {
-        return Ok(None);
-    };
-    let TomlValue::Array(entries) = markers_value else {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "project_root_markers must be an array of strings",
-        ));
-    };
-    if entries.is_empty() {
-        return Ok(Some(Vec::new()));
-    }
-    let mut markers = Vec::new();
-    for entry in entries {
-        let Some(marker) = entry.as_str() else {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                "project_root_markers must be an array of strings",
-            ));
-        };
-        markers.push(marker.to_string());
-    }
-    Ok(Some(markers))
-}
-
-pub(crate) fn default_project_root_markers() -> Vec<String> {
-    DEFAULT_PROJECT_ROOT_MARKERS
-        .iter()
-        .map(ToString::to_string)
-        .collect()
-}
-
 struct ProjectTrustContext {
     project_root: AbsolutePathBuf,
     project_root_key: String,
@@ -581,7 +556,7 @@ struct ProjectTrustContext {
 
 #[derive(Deserialize)]
 struct ProjectTrustConfigToml {
-    projects: Option<std::collections::HashMap<String, crate::config::ProjectConfig>>,
+    projects: Option<std::collections::HashMap<String, ProjectConfig>>,
 }
 
 struct ProjectTrustDecision {
@@ -597,7 +572,7 @@ impl ProjectTrustDecision {
 
 impl ProjectTrustContext {
     fn decision_for_dir(&self, dir: &AbsolutePathBuf) -> ProjectTrustDecision {
-        let dir_key = dir.as_path().to_string_lossy().to_string();
+        let dir_key = project_trust_key(dir.as_path());
         if let Some(trust_level) = self.projects_trust.get(&dir_key).copied() {
             return ProjectTrustDecision {
                 trust_level: Some(trust_level),
@@ -668,6 +643,7 @@ fn project_layer_entry(
 }
 
 async fn project_trust_context(
+    fs: &dyn ExecutorFileSystem,
     merged_config: &TomlValue,
     cwd: &AbsolutePathBuf,
     project_root_markers: &[String],
@@ -682,18 +658,22 @@ async fn project_trust_context(
             .map_err(|err| std::io::Error::new(std::io::ErrorKind::InvalidData, err))?
     };
 
-    let project_root = find_project_root(cwd, project_root_markers).await?;
+    let project_root = find_project_root(fs, cwd, project_root_markers).await?;
     let projects = project_trust_config.projects.unwrap_or_default();
 
-    let project_root_key = project_root.as_path().to_string_lossy().to_string();
-    let repo_root = resolve_root_git_project_for_trust(cwd.as_path());
+    let project_root_key = project_trust_key(project_root.as_path());
+    let repo_root = resolve_root_git_project_for_trust(fs, cwd).await;
     let repo_root_key = repo_root
         .as_ref()
-        .map(|root| root.to_string_lossy().to_string());
+        .map(|root| project_trust_key(root.as_path()));
 
     let projects_trust = projects
         .into_iter()
-        .filter_map(|(key, project)| project.trust_level.map(|trust_level| (key, trust_level)))
+        .filter_map(|(key, project)| {
+            project
+                .trust_level
+                .map(|trust_level| (project_trust_key(Path::new(&key)), trust_level))
+        })
         .collect();
 
     Ok(ProjectTrustContext {
@@ -703,6 +683,16 @@ async fn project_trust_context(
         projects_trust,
         user_config_file: user_config_file.clone(),
     })
+}
+
+/// Canonicalize the path and convert it to a string to be used as a key in the
+/// projects trust map. On Windows, strips UNC, when possible, to try to ensure
+/// that different paths that point to the same location have the same key.
+pub fn project_trust_key(project_path: &Path) -> String {
+    normalize_path(project_path)
+        .unwrap_or_else(|_| project_path.to_path_buf())
+        .to_string_lossy()
+        .to_string()
 }
 
 /// Takes a `toml::Value` parsed from a config.toml file and walks through it,
@@ -766,6 +756,7 @@ fn copy_shape_from_original(original: &TomlValue, resolved: &TomlValue) -> TomlV
 }
 
 async fn find_project_root(
+    fs: &dyn ExecutorFileSystem,
     cwd: &AbsolutePathBuf,
     project_root_markers: &[String],
 ) -> io::Result<AbsolutePathBuf> {
@@ -773,11 +764,15 @@ async fn find_project_root(
         return Ok(cwd.clone());
     }
 
-    for ancestor in cwd.as_path().ancestors() {
+    for ancestor in cwd.ancestors() {
         for marker in project_root_markers {
             let marker_path = ancestor.join(marker);
-            if tokio::fs::metadata(&marker_path).await.is_ok() {
-                return AbsolutePathBuf::from_absolute_path(ancestor);
+            if fs
+                .get_metadata(&marker_path, /*sandbox*/ None)
+                .await
+                .is_ok()
+            {
+                return Ok(ancestor);
             }
         }
     }
@@ -790,6 +785,7 @@ async fn find_project_root(
 /// starting from folders closest to `project_root` (which is the lowest
 /// precedence) to those closest to `cwd` (which is the highest precedence).
 async fn load_project_layers(
+    fs: &dyn ExecutorFileSystem,
     cwd: &AbsolutePathBuf,
     project_root: &AbsolutePathBuf,
     trust_context: &ProjectTrustContext,
@@ -799,13 +795,12 @@ async fn load_project_layers(
     let codex_home_normalized =
         normalize_path(codex_home_abs.as_path()).unwrap_or_else(|_| codex_home_abs.to_path_buf());
     let mut dirs = cwd
-        .as_path()
         .ancestors()
         .scan(false, |done, a| {
             if *done {
                 None
             } else {
-                if a == project_root.as_path() {
+                if &a == project_root {
                     *done = true;
                 }
                 Some(a)
@@ -816,25 +811,24 @@ async fn load_project_layers(
 
     let mut layers = Vec::new();
     for dir in dirs {
-        let dot_codex = dir.join(".codex");
-        if !tokio::fs::metadata(&dot_codex)
+        let dot_codex_abs = dir.join(".codex");
+        if !fs
+            .get_metadata(&dot_codex_abs, /*sandbox*/ None)
             .await
-            .map(|meta| meta.is_dir())
+            .map(|metadata| metadata.is_directory)
             .unwrap_or(false)
         {
             continue;
         }
 
-        let layer_dir = AbsolutePathBuf::from_absolute_path(dir)?;
-        let decision = trust_context.decision_for_dir(&layer_dir);
-        let dot_codex_abs = AbsolutePathBuf::from_absolute_path(&dot_codex)?;
+        let decision = trust_context.decision_for_dir(&dir);
         let dot_codex_normalized =
             normalize_path(dot_codex_abs.as_path()).unwrap_or_else(|_| dot_codex_abs.to_path_buf());
         if dot_codex_abs == codex_home_abs || dot_codex_normalized == codex_home_normalized {
             continue;
         }
-        let config_file = dot_codex_abs.join(CONFIG_TOML_FILE)?;
-        match tokio::fs::read_to_string(&config_file).await {
+        let config_file = dot_codex_abs.join(CONFIG_TOML_FILE);
+        match fs.read_file_text(&config_file, /*sandbox*/ None).await {
             Ok(contents) => {
                 let config: TomlValue = match toml::from_str(&contents) {
                     Ok(config) => config,
@@ -851,7 +845,7 @@ async fn load_project_layers(
                         layers.push(project_layer_entry(
                             trust_context,
                             &dot_codex_abs,
-                            &layer_dir,
+                            &dir,
                             TomlValue::Table(toml::map::Map::new()),
                             /*config_toml_exists*/ true,
                         ));
@@ -863,7 +857,7 @@ async fn load_project_layers(
                 let entry = project_layer_entry(
                     trust_context,
                     &dot_codex_abs,
-                    &layer_dir,
+                    &dir,
                     config,
                     /*config_toml_exists*/ true,
                 );
@@ -877,7 +871,7 @@ async fn load_project_layers(
                     layers.push(project_layer_entry(
                         trust_context,
                         &dot_codex_abs,
-                        &layer_dir,
+                        &dir,
                         TomlValue::Table(toml::map::Map::new()),
                         /*config_toml_exists*/ false,
                     ));
@@ -901,11 +895,13 @@ async fn load_project_layers(
 /// exactly one value rather than a list of allowed values.
 ///
 /// If present, re-interpret `managed_config.toml` as a `requirements.toml`
-/// where each specified field is treated as a constraint allowing only that
-/// value.
+/// where each specified field is treated as a constraint. Most fields allow
+/// only the specified value. `approvals_reviewer = "guardian_subagent"` also
+/// allows `user` so people can opt out of the guardian reviewer.
 #[derive(Deserialize, Debug, Clone, Default, PartialEq)]
 struct LegacyManagedConfigToml {
     approval_policy: Option<AskForApproval>,
+    approvals_reviewer: Option<ApprovalsReviewer>,
     sandbox_mode: Option<SandboxMode>,
 }
 
@@ -915,10 +911,18 @@ impl From<LegacyManagedConfigToml> for ConfigRequirementsToml {
 
         let LegacyManagedConfigToml {
             approval_policy,
+            approvals_reviewer,
             sandbox_mode,
         } = legacy;
         if let Some(approval_policy) = approval_policy {
             config_requirements_toml.allowed_approval_policies = Some(vec![approval_policy]);
+        }
+        if let Some(approvals_reviewer) = approvals_reviewer {
+            let mut allowed_reviewers = vec![approvals_reviewer];
+            if approvals_reviewer == ApprovalsReviewer::GuardianSubagent {
+                allowed_reviewers.push(ApprovalsReviewer::User);
+            }
+            config_requirements_toml.allowed_approvals_reviewers = Some(allowed_reviewers);
         }
         if let Some(sandbox_mode) = sandbox_mode {
             let required_mode: SandboxModeRequirement = sandbox_mode.into();
@@ -964,7 +968,7 @@ foo = "xyzzy"
         expected_toml_value.insert(
             "model_instructions_file".to_string(),
             TomlValue::String(
-                AbsolutePathBuf::resolve_path_against_base("./some_file.md", base_dir)?
+                AbsolutePathBuf::resolve_path_against_base("./some_file.md", base_dir)
                     .as_path()
                     .to_string_lossy()
                     .to_string(),
@@ -983,6 +987,7 @@ foo = "xyzzy"
     fn legacy_managed_config_backfill_includes_read_only_sandbox_mode() {
         let legacy = LegacyManagedConfigToml {
             approval_policy: None,
+            approvals_reviewer: None,
             sandbox_mode: Some(SandboxMode::WorkspaceWrite),
         };
 
@@ -994,6 +999,41 @@ foo = "xyzzy"
                 SandboxModeRequirement::ReadOnly,
                 SandboxModeRequirement::WorkspaceWrite
             ])
+        );
+    }
+
+    #[test]
+    fn legacy_managed_config_backfill_allows_user_when_guardian_is_required() {
+        let legacy = LegacyManagedConfigToml {
+            approval_policy: None,
+            approvals_reviewer: Some(ApprovalsReviewer::GuardianSubagent),
+            sandbox_mode: None,
+        };
+
+        let requirements = ConfigRequirementsToml::from(legacy);
+
+        assert_eq!(
+            requirements.allowed_approvals_reviewers,
+            Some(vec![
+                ApprovalsReviewer::GuardianSubagent,
+                ApprovalsReviewer::User
+            ])
+        );
+    }
+
+    #[test]
+    fn legacy_managed_config_backfill_preserves_user_only_approvals_reviewer() {
+        let legacy = LegacyManagedConfigToml {
+            approval_policy: None,
+            approvals_reviewer: Some(ApprovalsReviewer::User),
+            sandbox_mode: None,
+        };
+
+        let requirements = ConfigRequirementsToml::from(legacy);
+
+        assert_eq!(
+            requirements.allowed_approvals_reviewers,
+            Some(vec![ApprovalsReviewer::User])
         );
     }
 

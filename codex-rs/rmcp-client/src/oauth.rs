@@ -19,6 +19,7 @@
 use anyhow::Context;
 use anyhow::Error;
 use anyhow::Result;
+use codex_config::types::OAuthCredentialsStoreMode;
 use oauth2::AccessToken;
 use oauth2::EmptyExtraTokenFields;
 use oauth2::RefreshToken;
@@ -26,7 +27,6 @@ use oauth2::Scope;
 use oauth2::TokenResponse;
 use oauth2::basic::BasicTokenType;
 use rmcp::transport::auth::OAuthTokenResponse;
-use schemars::JsonSchema;
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::Value;
@@ -59,22 +59,8 @@ pub struct StoredOAuthTokens {
     pub url: String,
     pub client_id: String,
     pub token_response: WrappedOAuthTokenResponse,
+    #[serde(default)]
     pub expires_at: Option<u64>,
-}
-
-/// Determine where Codex should store and read MCP credentials.
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
-pub enum OAuthCredentialsStoreMode {
-    /// `Keyring` when available; otherwise, `File`.
-    /// Credentials stored in the keyring will only be readable by Codex unless the user explicitly grants access via OS-level keyring access.
-    #[default]
-    Auto,
-    /// CODEX_HOME/.credentials.json
-    /// This file will be readable to Codex and other applications running as the same user.
-    File,
-    /// Keyring when available, otherwise fail.
-    Keyring,
 }
 
 /// Wrap OAuthTokenResponse to allow for partial equality comparison.
@@ -116,6 +102,22 @@ pub(crate) fn has_oauth_tokens(
     Ok(load_oauth_tokens(server_name, url, store_mode)?.is_some())
 }
 
+fn refresh_expires_in_from_timestamp(tokens: &mut StoredOAuthTokens) {
+    let Some(expires_at) = tokens.expires_at else {
+        return;
+    };
+
+    match expires_in_from_timestamp(expires_at) {
+        Some(seconds) => {
+            let duration = Duration::from_secs(seconds);
+            tokens.token_response.0.set_expires_in(Some(&duration));
+        }
+        None => {
+            tokens.token_response.0.set_expires_in(None);
+        }
+    }
+}
+
 fn load_oauth_tokens_from_keyring_with_fallback_to_file<K: KeyringStore>(
     keyring_store: &K,
     server_name: &str,
@@ -140,8 +142,9 @@ fn load_oauth_tokens_from_keyring<K: KeyringStore>(
     let key = compute_store_key(server_name, url)?;
     match keyring_store.load(KEYRING_SERVICE, &key) {
         Ok(Some(serialized)) => {
-            let tokens: StoredOAuthTokens = serde_json::from_str(&serialized)
+            let mut tokens: StoredOAuthTokens = serde_json::from_str(&serialized)
                 .context("failed to deserialize OAuth tokens from keyring")?;
+            refresh_expires_in_from_timestamp(&mut tokens);
             Ok(Some(tokens))
         }
         Ok(None) => Ok(None),
@@ -357,19 +360,6 @@ impl OAuthPersistor {
     }
 }
 
-fn token_needs_refresh(expires_at: Option<u64>) -> bool {
-    let Some(expires_at) = expires_at else {
-        return false;
-    };
-
-    let now = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap_or_else(|_| Duration::from_secs(0))
-        .as_millis() as u64;
-
-    now.saturating_add(REFRESH_SKEW_MILLIS) >= expires_at
-}
-
 const FALLBACK_FILENAME: &str = ".credentials.json";
 const MCP_SERVER_TYPE: &str = "http";
 
@@ -417,20 +407,14 @@ fn load_oauth_tokens_from_file(server_name: &str, url: &str) -> Result<Option<St
             token_response.set_scopes(Some(scopes.into_iter().map(Scope::new).collect()));
         }
 
-        if let Some(expires_at) = entry.expires_at
-            && let Some(seconds) = expires_in_from_timestamp(expires_at)
-        {
-            let duration = Duration::from_secs(seconds);
-            token_response.set_expires_in(Some(&duration));
-        }
-
-        let stored = StoredOAuthTokens {
+        let mut stored = StoredOAuthTokens {
             server_name: entry.server_name.clone(),
             url: entry.server_url.clone(),
             client_id: entry.client_id.clone(),
             token_response: WrappedOAuthTokenResponse(token_response),
-            expires_at: None,
+            expires_at: entry.expires_at,
         };
+        refresh_expires_in_from_timestamp(&mut stored);
 
         return Ok(Some(stored));
     }
@@ -443,6 +427,9 @@ fn save_oauth_tokens_to_file(tokens: &StoredOAuthTokens) -> Result<()> {
     let mut store = read_fallback_file()?.unwrap_or_default();
 
     let token_response = &tokens.token_response.0;
+    let expires_at = tokens
+        .expires_at
+        .or_else(|| compute_expires_at_millis(token_response));
     let refresh_token = token_response
         .refresh_token()
         .map(|token| token.secret().to_string());
@@ -455,7 +442,7 @@ fn save_oauth_tokens_to_file(tokens: &StoredOAuthTokens) -> Result<()> {
         server_url: tokens.url.clone(),
         client_id: tokens.client_id.clone(),
         access_token: token_response.access_token().secret().to_string(),
-        expires_at: compute_expires_at_millis(token_response),
+        expires_at,
         refresh_token,
         scopes,
     };
@@ -479,7 +466,7 @@ fn delete_oauth_tokens_from_file(key: &str) -> Result<bool> {
     Ok(removed)
 }
 
-pub fn compute_expires_at_millis(response: &OAuthTokenResponse) -> Option<u64> {
+pub(crate) fn compute_expires_at_millis(response: &OAuthTokenResponse) -> Option<u64> {
     let expires_in = response.expires_in()?;
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -506,6 +493,19 @@ fn expires_in_from_timestamp(expires_at: u64) -> Option<u64> {
     }
 }
 
+fn token_needs_refresh(expires_at: Option<u64>) -> bool {
+    let Some(expires_at) = expires_at else {
+        return false;
+    };
+
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_else(|_| Duration::from_secs(0))
+        .as_millis() as u64;
+
+    now.saturating_add(REFRESH_SKEW_MILLIS) >= expires_at
+}
+
 fn compute_store_key(server_name: &str, server_url: &str) -> Result<String> {
     let mut payload = JsonMap::new();
     payload.insert(
@@ -520,9 +520,7 @@ fn compute_store_key(server_name: &str, server_url: &str) -> Result<String> {
 }
 
 fn fallback_file_path() -> Result<PathBuf> {
-    let mut path = find_codex_home()?;
-    path.push(FALLBACK_FILENAME);
-    Ok(path)
+    Ok(find_codex_home()?.join(FALLBACK_FILENAME).to_path_buf())
 }
 
 fn read_fallback_file() -> Result<Option<FallbackFile>> {
@@ -641,8 +639,9 @@ mod tests {
         store.save(KEYRING_SERVICE, &key, &serialized)?;
 
         let loaded =
-            super::load_oauth_tokens_from_keyring(&store, &tokens.server_name, &tokens.url)?;
-        assert_eq!(loaded, Some(expected));
+            super::load_oauth_tokens_from_keyring(&store, &tokens.server_name, &tokens.url)?
+                .expect("tokens should load from keyring");
+        assert_tokens_match_without_expiry(&loaded, &expected);
         Ok(())
     }
 
@@ -802,6 +801,43 @@ mod tests {
         Ok(())
     }
 
+    #[test]
+    fn refresh_expires_in_from_timestamp_restores_future_durations() {
+        let mut tokens = sample_tokens();
+        let expires_at = tokens.expires_at.expect("expires_at should be set");
+
+        tokens.token_response.0.set_expires_in(None);
+        super::refresh_expires_in_from_timestamp(&mut tokens);
+
+        let actual = tokens
+            .token_response
+            .0
+            .expires_in()
+            .expect("expires_in should be restored")
+            .as_secs();
+        let expected = super::expires_in_from_timestamp(expires_at)
+            .expect("expires_at should still be in the future");
+        let diff = actual.abs_diff(expected);
+        assert!(diff <= 1, "expires_in drift too large: diff={diff}");
+    }
+
+    #[test]
+    fn refresh_expires_in_from_timestamp_clears_expired_tokens() {
+        let mut tokens = sample_tokens();
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap_or_else(|_| Duration::from_secs(0));
+        let expired_at = now.as_millis() as u64;
+        tokens.expires_at = Some(expired_at.saturating_sub(1000));
+
+        let duration = Duration::from_secs(600);
+        tokens.token_response.0.set_expires_in(Some(&duration));
+
+        super::refresh_expires_in_from_timestamp(&mut tokens);
+
+        assert!(tokens.token_response.0.expires_in().is_none());
+    }
+
     fn assert_tokens_match_without_expiry(
         actual: &StoredOAuthTokens,
         expected: &StoredOAuthTokens,
@@ -809,6 +845,7 @@ mod tests {
         assert_eq!(actual.server_name, expected.server_name);
         assert_eq!(actual.url, expected.url);
         assert_eq!(actual.client_id, expected.client_id);
+        assert_eq!(actual.expires_at, expected.expires_at);
         assert_token_response_match_without_expiry(
             &actual.token_response,
             &expected.token_response,
@@ -855,13 +892,14 @@ mod tests {
         ]));
         let expires_in = Duration::from_secs(3600);
         response.set_expires_in(Some(&expires_in));
+        let expires_at = super::compute_expires_at_millis(&response);
 
         StoredOAuthTokens {
             server_name: "test-server".to_string(),
             url: "https://example.test".to_string(),
             client_id: "client-id".to_string(),
             token_response: WrappedOAuthTokenResponse(response),
-            expires_at: None,
+            expires_at,
         }
     }
 }

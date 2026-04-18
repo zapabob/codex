@@ -21,6 +21,7 @@ pub enum SlashCommand {
     #[strum(serialize = "sandbox-add-read-dir")]
     SandboxReadRoot,
     Experimental,
+    Memories,
     Skills,
     Review,
     Rename,
@@ -33,8 +34,8 @@ pub enum SlashCommand {
     Collab,
     Agent,
     // Undo,
-    Diff,
     Copy,
+    Diff,
     Mention,
     Status,
     DebugConfig,
@@ -43,6 +44,7 @@ pub enum SlashCommand {
     Theme,
     Mcp,
     Apps,
+    Plugins,
     Logout,
     Quit,
     Exit,
@@ -80,8 +82,8 @@ impl SlashCommand {
             SlashCommand::Fork => "fork the current chat",
             // SlashCommand::Undo => "ask Codex to undo a turn",
             SlashCommand::Quit | SlashCommand::Exit => "exit Codex",
+            SlashCommand::Copy => "copy last response as markdown",
             SlashCommand::Diff => "show git diff (including untracked files)",
-            SlashCommand::Copy => "copy the latest Codex output to your clipboard",
             SlashCommand::Mention => "mention a file",
             SlashCommand::Skills => "use skills to improve how Codex performs specific tasks",
             SlashCommand::Status => "show current session configuration and token usage",
@@ -108,8 +110,10 @@ impl SlashCommand {
                 "let sandbox read a directory: /sandbox-add-read-dir <absolute_path>"
             }
             SlashCommand::Experimental => "toggle experimental features",
+            SlashCommand::Memories => "configure memory use and generation",
             SlashCommand::Mcp => "list configured MCP tools",
             SlashCommand::Apps => "manage apps",
+            SlashCommand::Plugins => "browse plugins",
             SlashCommand::Logout => "log out of Codex",
             SlashCommand::Rollout => "print the rollout file path",
             SlashCommand::TestApproval => "test approval request",
@@ -130,6 +134,7 @@ impl SlashCommand {
                 | SlashCommand::Rename
                 | SlashCommand::Plan
                 | SlashCommand::Fast
+                | SlashCommand::Resume
                 | SlashCommand::SandboxReadRoot
         )
     }
@@ -151,6 +156,7 @@ impl SlashCommand {
             | SlashCommand::ElevateSandbox
             | SlashCommand::SandboxReadRoot
             | SlashCommand::Experimental
+            | SlashCommand::Memories
             | SlashCommand::Review
             | SlashCommand::Plan
             | SlashCommand::Clear
@@ -168,6 +174,7 @@ impl SlashCommand {
             | SlashCommand::Stop
             | SlashCommand::Mcp
             | SlashCommand::Apps
+            | SlashCommand::Plugins
             | SlashCommand::Feedback
             | SlashCommand::Quit
             | SlashCommand::Exit => true,

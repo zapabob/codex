@@ -3,7 +3,6 @@ use std::sync::Arc;
 use std::time::Duration;
 use std::time::Instant;
 
-use async_trait::async_trait;
 use codex_protocol::mcp::CallToolResult;
 use codex_protocol::models::function_call_output_content_items_to_text;
 use rmcp::model::ListResourceTemplatesResult;
@@ -21,15 +20,15 @@ use serde_json::Value;
 use crate::codex::Session;
 use crate::codex::TurnContext;
 use crate::function_tool::FunctionCallError;
-use crate::protocol::EventMsg;
-use crate::protocol::McpInvocation;
-use crate::protocol::McpToolCallBeginEvent;
-use crate::protocol::McpToolCallEndEvent;
 use crate::tools::context::FunctionToolOutput;
 use crate::tools::context::ToolInvocation;
 use crate::tools::context::ToolPayload;
 use crate::tools::registry::ToolHandler;
 use crate::tools::registry::ToolKind;
+use codex_protocol::protocol::EventMsg;
+use codex_protocol::protocol::McpInvocation;
+use codex_protocol::protocol::McpToolCallBeginEvent;
+use codex_protocol::protocol::McpToolCallEndEvent;
 
 pub struct McpResourceHandler;
 
@@ -178,7 +177,6 @@ struct ReadResourcePayload {
     result: ReadResourceResult,
 }
 
-#[async_trait]
 impl ToolHandler for McpResourceHandler {
     type Output = FunctionToolOutput;
 
@@ -207,7 +205,7 @@ impl ToolHandler for McpResourceHandler {
 
         let arguments_value = parse_arguments(arguments.as_str())?;
 
-        match tool_name.as_str() {
+        match tool_name.name.as_str() {
             "list_mcp_resources" => {
                 handle_list_resources(
                     Arc::clone(&session),
@@ -564,6 +562,7 @@ async fn emit_tool_call_begin(
             EventMsg::McpToolCallBegin(McpToolCallBeginEvent {
                 call_id: call_id.to_string(),
                 invocation,
+                mcp_app_resource_uri: None,
             }),
         )
         .await;
@@ -583,6 +582,7 @@ async fn emit_tool_call_end(
             EventMsg::McpToolCallEnd(McpToolCallEndEvent {
                 call_id: call_id.to_string(),
                 invocation,
+                mcp_app_resource_uri: None,
                 duration,
                 result,
             }),

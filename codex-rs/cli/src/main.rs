@@ -10,14 +10,12 @@ use codex_chatgpt::apply_command::run_apply_command;
 use codex_cli::LandlockCommand;
 use codex_cli::SeatbeltCommand;
 use codex_cli::WindowsCommand;
-use codex_cli::login::read_api_key_from_stdin;
-use codex_cli::login::run_login_status;
-use codex_cli::login::run_login_with_api_key;
-use codex_cli::login::run_login_with_chatgpt;
-use codex_cli::login::run_login_with_device_code;
-use codex_cli::login::run_logout;
-#[cfg(feature = "custom-features")]
-use codex_cli::parallel_delegate_cmd::run_parallel_delegate_command;
+use codex_cli::read_api_key_from_stdin;
+use codex_cli::run_login_status;
+use codex_cli::run_login_with_api_key;
+use codex_cli::run_login_with_chatgpt;
+use codex_cli::run_login_with_device_code;
+use codex_cli::run_logout;
 use codex_cloud_tasks::Cli as CloudTasksCli;
 use codex_exec::Cli as ExecCli;
 use codex_exec::Command as ExecCommand;
@@ -29,7 +27,7 @@ use codex_state::state_db_path;
 use codex_tui::AppExitInfo;
 use codex_tui::Cli as TuiCli;
 use codex_tui::ExitReason;
-use codex_tui::update_action::UpdateAction;
+use codex_tui::UpdateAction;
 use codex_utils_cli::CliConfigOverrides;
 use owo_colors::OwoColorize;
 use std::io::IsTerminal;
@@ -40,37 +38,28 @@ use supports_color::Stream;
 mod app_cmd;
 #[cfg(target_os = "macos")]
 mod desktop_app;
+mod marketplace_cmd;
 mod mcp_cmd;
-#[cfg(feature = "custom-features")]
-mod research_cmd;
+mod responses_cmd;
 #[cfg(not(windows))]
 mod wsl_paths;
 
+use crate::marketplace_cmd::MarketplaceCli;
 use crate::mcp_cmd::McpCli;
+use crate::responses_cmd::ResponsesCommand;
+use crate::responses_cmd::run_responses_command;
 
-#[cfg(feature = "custom-features")]
-use codex_core::a2a_communication::{
-    A2ACommunicationManager, A2AConfig, AgentCapability, AgentIdentity, AgentRole,
-};
-#[cfg(feature = "custom-features")]
-use codex_core::autonomous_orchestration::{
-    AutonomousOrchestrationConfig, AutonomousOrchestrationManager, TaskPriority, TaskRequest,
-};
+use codex_core::clear_memory_roots_contents;
 use codex_core::config::Config;
 use codex_core::config::ConfigOverrides;
 use codex_core::config::edit::ConfigEditsBuilder;
 use codex_core::config::find_codex_home;
-use codex_core::features::Stage;
-use codex_core::features::is_known_feature_key;
-#[cfg(feature = "custom-features")]
-use codex_core::llmops::{
-    LLMOpsConfig, LLMOpsManager, ModelProvider, ModelVersion, PromptTemplate,
-};
-#[cfg(feature = "custom-features")]
-use codex_core::skill_mcp_integration::{
-    MCPResource, SkillDefinition, SkillMCPConfig, SkillMCPIntegrationManager,
-};
-use codex_core::terminal::TerminalName;
+use codex_features::FEATURES;
+use codex_features::Stage;
+use codex_features::is_known_feature_key;
+use codex_protocol::protocol::AskForApproval;
+use codex_protocol::user_input::UserInput;
+use codex_terminal_detection::TerminalName;
 
 /// Codex CLI
 ///
@@ -95,6 +84,9 @@ struct MultitoolCli {
     pub feature_toggles: FeatureToggles,
 
     #[clap(flatten)]
+    remote: InteractiveRemoteOptions,
+
+    #[clap(flatten)]
     interactive: TuiCli,
 
     #[clap(subcommand)]
@@ -110,35 +102,6 @@ enum Subcommand {
     /// Run a code review non-interactively.
     Review(ReviewArgs),
 
-    /// [experimental] Conduct deep research on a topic.
-    #[cfg(feature = "custom-features")]
-    Research(ResearchCommand),
-
-    /// [experimental] LLMOps management and monitoring.
-    #[cfg(feature = "custom-features")]
-    LlmOps(LlmOpsCommand),
-
-    /// [experimental] Agent-to-Agent communication management.
-    #[cfg(feature = "custom-features")]
-    A2a(A2aCommand),
-
-    /// [experimental] Skill and MCP integration management.
-    #[cfg(feature = "custom-features")]
-    SkillMcp(SkillMcpCommand),
-
-    /// [experimental] Autonomous orchestration management.
-    #[cfg(feature = "custom-features")]
-    Orchestrate(OrchestrateCommand),
-
-    /// [experimental] Delegate to multiple agents in parallel.
-    #[cfg(feature = "custom-features")]
-    #[clap(name = "delegate-parallel")]
-    DelegateParallel(DelegateParallelCommand),
-
-    /// Launch codex-gui-x from CLI/TUI workflows.
-    #[clap(name = "gui-x")]
-    GuiX(GuiXCommand),
-
     /// Manage login.
     Login(LoginCommand),
 
@@ -147,6 +110,9 @@ enum Subcommand {
 
     /// Manage external MCP servers for Codex.
     Mcp(McpCli),
+
+    /// Manage Codex plugins.
+    Plugin(PluginCli),
 
     /// Start Codex as an MCP server (stdio).
     McpServer,
@@ -189,12 +155,34 @@ enum Subcommand {
     #[clap(hide = true)]
     ResponsesApiProxy(ResponsesApiProxyArgs),
 
+    /// Internal: send one raw Responses API payload through Codex auth.
+    #[clap(hide = true)]
+    Responses(ResponsesCommand),
+
     /// Internal: relay stdio to a Unix domain socket.
     #[clap(hide = true, name = "stdio-to-uds")]
     StdioToUds(StdioToUdsCommand),
 
+    /// [EXPERIMENTAL] Run the standalone exec-server service.
+    ExecServer(ExecServerCommand),
+
     /// Inspect feature flags.
     Features(FeaturesCli),
+}
+
+#[derive(Debug, Parser)]
+struct PluginCli {
+    #[clap(flatten)]
+    pub config_overrides: CliConfigOverrides,
+
+    #[command(subcommand)]
+    subcommand: PluginSubcommand,
+}
+
+#[derive(Debug, clap::Subcommand)]
+enum PluginSubcommand {
+    /// Manage plugin marketplaces for Codex.
+    Marketplace(MarketplaceCli),
 }
 
 #[derive(Debug, Parser)]
@@ -214,6 +202,9 @@ struct DebugCommand {
 enum DebugSubcommand {
     /// Tooling: helps debug the app server.
     AppServer(DebugAppServerCommand),
+
+    /// Render the model-visible prompt input list as JSON.
+    PromptInput(DebugPromptInputCommand),
 
     /// Internal: reset local memory state for a fresh start.
     #[clap(hide = true)]
@@ -239,6 +230,17 @@ struct DebugAppServerSendMessageV2Command {
 }
 
 #[derive(Debug, Parser)]
+struct DebugPromptInputCommand {
+    /// Optional user prompt to append after session context.
+    #[arg(value_name = "PROMPT")]
+    prompt: Option<String>,
+
+    /// Optional image(s) to attach to the user prompt.
+    #[arg(long = "image", short = 'i', value_name = "FILE", value_delimiter = ',', num_args = 1..)]
+    images: Vec<PathBuf>,
+}
+
+#[derive(Debug, Parser)]
 struct ResumeCommand {
     /// Conversation/session id (UUID) or thread name. UUIDs take precedence if it parses.
     /// If omitted, use --last to pick the most recent recorded session.
@@ -252,6 +254,13 @@ struct ResumeCommand {
     /// Show all sessions (disables cwd filtering and shows CWD column).
     #[arg(long = "all", default_value_t = false)]
     all: bool,
+
+    /// Include non-interactive sessions in the resume picker and --last selection.
+    #[arg(long = "include-non-interactive", default_value_t = false)]
+    include_non_interactive: bool,
+
+    #[clap(flatten)]
+    remote: InteractiveRemoteOptions,
 
     #[clap(flatten)]
     config_overrides: TuiCli,
@@ -273,6 +282,9 @@ struct ForkCommand {
     all: bool,
 
     #[clap(flatten)]
+    remote: InteractiveRemoteOptions,
+
+    #[clap(flatten)]
     config_overrides: TuiCli,
 }
 
@@ -288,7 +300,7 @@ enum SandboxCommand {
     #[clap(visible_alias = "seatbelt")]
     Macos(SeatbeltCommand),
 
-    /// Run a command under Landlock+seccomp (Linux only).
+    /// Run a command under the Linux sandbox (bubblewrap by default).
     #[clap(visible_alias = "landlock")]
     Linux(LandlockCommand),
 
@@ -322,6 +334,8 @@ struct LoginCommand {
 
     #[arg(
         long = "api-key",
+        num_args = 0..=1,
+        default_missing_value = "",
         value_name = "API_KEY",
         help = "(deprecated) Previously accepted the API key directly; now exits with guidance to use --with-api-key",
         hide = true
@@ -363,7 +377,7 @@ struct AppServerCommand {
     subcommand: Option<AppServerSubcommand>,
 
     /// Transport endpoint URL. Supported values: `stdio://` (default),
-    /// `ws://IP:PORT`.
+    /// `ws://IP:PORT`, `off`.
     #[arg(
         long = "listen",
         value_name = "URL",
@@ -388,15 +402,34 @@ struct AppServerCommand {
     /// See https://developers.openai.com/codex/config-advanced/#metrics for more details.
     #[arg(long = "analytics-default-enabled")]
     analytics_default_enabled: bool,
+
+    #[command(flatten)]
+    auth: codex_app_server::AppServerWebsocketAuthArgs,
+}
+
+#[derive(Debug, Parser)]
+struct ExecServerCommand {
+    /// Transport endpoint URL. Supported values: `ws://IP:PORT` (default).
+    #[arg(
+        long = "listen",
+        value_name = "URL",
+        default_value = "ws://127.0.0.1:0"
+    )]
+    listen: String,
 }
 
 #[derive(Debug, clap::Subcommand)]
+#[allow(clippy::enum_variant_names)]
 enum AppServerSubcommand {
     /// [experimental] Generate TypeScript bindings for the app server protocol.
     GenerateTs(GenerateTsCommand),
 
     /// [experimental] Generate JSON Schema for the app server protocol.
     GenerateJsonSchema(GenerateJsonSchemaCommand),
+
+    /// [internal] Generate internal JSON Schema artifacts for Codex tooling.
+    #[clap(hide = true)]
+    GenerateInternalJsonSchema(GenerateInternalJsonSchemaCommand),
 }
 
 #[derive(Debug, Args)]
@@ -425,292 +458,18 @@ struct GenerateJsonSchemaCommand {
     experimental: bool,
 }
 
+#[derive(Debug, Args)]
+struct GenerateInternalJsonSchemaCommand {
+    /// Output directory where internal JSON Schema artifacts will be written
+    #[arg(short = 'o', long = "out", value_name = "DIR")]
+    out_dir: PathBuf,
+}
+
 #[derive(Debug, Parser)]
 struct StdioToUdsCommand {
     /// Path to the Unix domain socket to connect to.
     #[arg(value_name = "SOCKET_PATH")]
     socket_path: PathBuf,
-}
-
-#[cfg(feature = "custom-features")]
-#[derive(Debug, Parser)]
-struct ResearchCommand {
-    #[clap(skip)]
-    config_overrides: CliConfigOverrides,
-
-    /// Topic to research
-    #[arg(value_name = "TOPIC")]
-    topic: String,
-
-    /// Research depth (1-5)
-    #[arg(short, long, value_name = "DEPTH", default_value = "3")]
-    depth: u8,
-
-    /// Search breadth (number of sources)
-    #[arg(short, long, value_name = "BREADTH", default_value = "8")]
-    breadth: u8,
-
-    /// Token budget
-    #[arg(long, value_name = "TOKENS", default_value = "60000")]
-    budget: usize,
-
-    /// Require citations
-    #[arg(long, default_value = "true")]
-    citations: bool,
-
-    /// MCP tools to use (comma-separated)
-    #[arg(long, value_name = "TOOLS")]
-    mcp: Option<String>,
-
-    /// Enable lightweight fallback
-    #[arg(long, default_value = "false")]
-    lightweight_fallback: bool,
-
-    /// Use Gemini CLI with Google Search (OAuth 2.0 authentication)
-    #[arg(long, default_value = "false")]
-    gemini: bool,
-
-    /// Use MCP mode (Codex → MCP → Gemini CLI)
-    #[arg(long, default_value = "false")]
-    use_mcp: bool,
-
-    /// Output file for the report
-    #[arg(short, long, value_name = "FILE")]
-    out: Option<PathBuf>,
-}
-
-#[cfg(feature = "custom-features")]
-#[derive(Debug, Parser)]
-#[allow(dead_code)]
-struct LlmOpsCommand {
-    #[clap(skip)]
-    config_overrides: CliConfigOverrides,
-
-    #[clap(subcommand)]
-    subcommand: LlmOpsSubcommand,
-}
-
-#[cfg(feature = "custom-features")]
-#[derive(Debug, clap::Subcommand)]
-enum LlmOpsSubcommand {
-    /// Register a new model version
-    RegisterModel {
-        /// Model ID
-        #[arg(value_name = "MODEL_ID")]
-        model_id: String,
-
-        /// Model name
-        #[arg(long, value_name = "NAME")]
-        name: String,
-
-        /// Version
-        #[arg(long, value_name = "VERSION")]
-        version: String,
-
-        /// Provider (openai, anthropic, google, etc.)
-        #[arg(long, value_name = "PROVIDER")]
-        provider: String,
-    },
-
-    /// Register a new prompt template
-    RegisterPrompt {
-        /// Prompt ID
-        #[arg(value_name = "PROMPT_ID")]
-        prompt_id: String,
-
-        /// Prompt name
-        #[arg(long, value_name = "NAME")]
-        name: String,
-
-        /// Template file path
-        #[arg(long, value_name = "TEMPLATE")]
-        template: PathBuf,
-    },
-
-    /// Show LLMOps status
-    Status,
-}
-
-#[cfg(feature = "custom-features")]
-#[derive(Debug, Parser)]
-#[allow(dead_code)]
-struct A2aCommand {
-    #[clap(skip)]
-    config_overrides: CliConfigOverrides,
-
-    #[clap(subcommand)]
-    subcommand: A2aSubcommand,
-}
-
-#[cfg(feature = "custom-features")]
-#[derive(Debug, clap::Subcommand)]
-enum A2aSubcommand {
-    /// Register an agent
-    RegisterAgent {
-        /// Agent ID
-        #[arg(value_name = "AGENT_ID")]
-        agent_id: String,
-
-        /// Agent role
-        #[arg(long, value_name = "ROLE")]
-        role: String,
-
-        /// Capabilities (comma-separated)
-        #[arg(long, value_name = "CAPABILITIES")]
-        capabilities: String,
-    },
-
-    /// Send message to agent
-    SendMessage {
-        /// Target agent ID
-        #[arg(value_name = "AGENT_ID")]
-        agent_id: String,
-
-        /// Message content
-        #[arg(value_name = "MESSAGE")]
-        message: String,
-    },
-
-    /// Show A2A status
-    Status,
-}
-
-#[cfg(feature = "custom-features")]
-#[derive(Debug, Parser)]
-#[allow(dead_code)]
-struct SkillMcpCommand {
-    #[clap(skip)]
-    config_overrides: CliConfigOverrides,
-
-    #[clap(subcommand)]
-    subcommand: SkillMcpSubcommand,
-}
-
-#[cfg(feature = "custom-features")]
-#[derive(Debug, clap::Subcommand)]
-enum SkillMcpSubcommand {
-    /// Register a skill
-    RegisterSkill {
-        /// Skill definition file
-        #[arg(value_name = "SKILL_FILE")]
-        skill_file: PathBuf,
-    },
-
-    /// Register MCP resource
-    RegisterResource {
-        /// Resource URI
-        #[arg(value_name = "URI")]
-        uri: String,
-
-        /// Resource name
-        #[arg(long, value_name = "NAME")]
-        name: String,
-    },
-
-    /// Execute skill
-    ExecuteSkill {
-        /// Skill ID
-        #[arg(value_name = "SKILL_ID")]
-        skill_id: String,
-
-        /// Input data (JSON)
-        #[arg(value_name = "INPUT")]
-        input: String,
-    },
-
-    /// Show Skill/MCP status
-    Status,
-}
-
-#[cfg(feature = "custom-features")]
-#[derive(Debug, Parser)]
-#[allow(dead_code)]
-struct OrchestrateCommand {
-    #[clap(skip)]
-    config_overrides: CliConfigOverrides,
-
-    #[clap(subcommand)]
-    subcommand: OrchestrateSubcommand,
-}
-
-#[cfg(feature = "custom-features")]
-#[derive(Debug, clap::Subcommand)]
-enum OrchestrateSubcommand {
-    /// Submit a task for orchestration
-    SubmitTask {
-        /// Task name
-        #[arg(value_name = "NAME")]
-        name: String,
-
-        /// Task description
-        #[arg(long, value_name = "DESCRIPTION")]
-        description: String,
-
-        /// Priority (critical, high, medium, low, trivial)
-        #[arg(long, value_name = "PRIORITY", default_value = "medium")]
-        priority: String,
-
-        /// Required capabilities (comma-separated)
-        #[arg(long, value_name = "CAPABILITIES")]
-        capabilities: Option<String>,
-    },
-
-    /// Get task status
-    TaskStatus {
-        /// Task ID
-        #[arg(value_name = "TASK_ID")]
-        task_id: String,
-    },
-
-    /// Show orchestration status
-    Status,
-}
-
-#[cfg(feature = "custom-features")]
-#[derive(Debug, Parser)]
-#[allow(dead_code)]
-struct DelegateParallelCommand {
-    #[clap(skip)]
-    config_overrides: CliConfigOverrides,
-
-    /// Comma-separated agent names (for example: backend,qa,MILSPEC,gui)
-    #[arg(long, value_name = "AGENTS")]
-    agents: String,
-
-    /// Shared task for all agents (used when --goals is omitted)
-    #[arg(long, value_name = "TASK")]
-    task: Option<String>,
-
-    /// Comma-separated per-agent goals (must match --agents count)
-    #[arg(long, value_name = "GOALS")]
-    goals: Option<String>,
-
-    /// Optional deadline in minutes
-    #[arg(long, value_name = "MINUTES")]
-    deadline: Option<u64>,
-
-    /// Optional per-agent token budget
-    #[arg(long, value_name = "TOKENS")]
-    budget: Option<usize>,
-
-    /// Optional JSON output path
-    #[arg(long, value_name = "FILE")]
-    out: Option<PathBuf>,
-}
-
-#[derive(Debug, Parser)]
-struct GuiXCommand {
-    /// Host for Vite dev server
-    #[arg(long, value_name = "HOST", default_value = "127.0.0.1")]
-    host: String,
-
-    /// Port for Vite dev server
-    #[arg(long, value_name = "PORT", default_value_t = 5173)]
-    port: u16,
-
-    /// Keep CLI attached to the GUI dev server process
-    #[arg(long, default_value_t = false)]
-    attached: bool,
 }
 
 fn format_exit_messages(exit_info: AppExitInfo, color_enabled: bool) -> Vec<String> {
@@ -721,14 +480,13 @@ fn format_exit_messages(exit_info: AppExitInfo, color_enabled: bool) -> Vec<Stri
         ..
     } = exit_info;
 
-    if token_usage.is_zero() {
-        return Vec::new();
+    let mut lines = Vec::new();
+    if !token_usage.is_zero() {
+        lines.push(format!(
+            "{}",
+            codex_protocol::protocol::FinalOutput::from(token_usage)
+        ));
     }
-
-    let mut lines = vec![format!(
-        "{}",
-        codex_protocol::protocol::FinalOutput::from(token_usage)
-    )];
 
     if let Some(resume_cmd) =
         codex_core::util::resume_command(thread_name.as_deref(), conversation_id)
@@ -774,10 +532,19 @@ fn run_update_action(action: UpdateAction) -> anyhow::Result<()> {
     let status = {
         #[cfg(windows)]
         {
-            // On Windows, run via cmd.exe so .CMD/.BAT are correctly resolved (PATHEXT semantics).
-            std::process::Command::new("cmd")
-                .args(["/C", &cmd_str])
-                .status()?
+            if action == UpdateAction::StandaloneWindows {
+                let (cmd, args) = action.command_args();
+                // Run the standalone PowerShell installer with PowerShell
+                // itself. Routing this through `cmd.exe /C` would parse
+                // PowerShell metacharacters like `|` before PowerShell sees
+                // the installer command.
+                std::process::Command::new(cmd).args(args).status()?
+            } else {
+                // On Windows, run via cmd.exe so .CMD/.BAT are correctly resolved (PATHEXT semantics).
+                std::process::Command::new("cmd")
+                    .args(["/C", &cmd_str])
+                    .status()?
+            }
         }
         #[cfg(not(windows))]
         {
@@ -813,49 +580,6 @@ async fn run_debug_app_server_command(cmd: DebugAppServerCommand) -> anyhow::Res
     }
 }
 
-#[warn(dead_code)]
-pub fn parse_csv_list(raw: &str) -> Vec<String> {
-    raw.split(',')
-        .map(str::trim)
-        .filter(|item| !item.is_empty())
-        .map(ToOwned::to_owned)
-        .collect()
-}
-
-fn run_gui_x_command(cmd: GuiXCommand) -> anyhow::Result<()> {
-    let workspace = std::env::current_dir()?;
-    let gui_dir = workspace.join("codex-gui-x");
-    if !gui_dir.exists() {
-        anyhow::bail!(
-            "codex-gui-x directory was not found at {}",
-            gui_dir.display()
-        );
-    }
-
-    let npm_executable = if cfg!(windows) { "npm.cmd" } else { "npm" };
-    let mut child = std::process::Command::new(npm_executable);
-    child.current_dir(&gui_dir).arg("run").arg("dev").arg("--");
-    child.arg("--host").arg(&cmd.host);
-    child.arg("--port").arg(cmd.port.to_string());
-
-    if cmd.attached {
-        let status = child.status()?;
-        if !status.success() {
-            anyhow::bail!("codex-gui-x exited with status {status}");
-        }
-        return Ok(());
-    }
-
-    let process = child.spawn()?;
-    println!(
-        "codex-gui-x started (pid: {}) at http://{}:{}",
-        process.id(),
-        cmd.host,
-        cmd.port
-    );
-    Ok(())
-}
-
 #[derive(Debug, Default, Parser, Clone)]
 struct FeatureToggles {
     /// Enable a feature (repeatable). Equivalent to `-c features.<name>=true`.
@@ -865,6 +589,20 @@ struct FeatureToggles {
     /// Disable a feature (repeatable). Equivalent to `-c features.<name>=false`.
     #[arg(long = "disable", value_name = "FEATURE", action = clap::ArgAction::Append, global = true)]
     disable: Vec<String>,
+}
+
+#[derive(Debug, Default, Parser, Clone)]
+struct InteractiveRemoteOptions {
+    /// Connect the TUI to a remote app server websocket endpoint.
+    ///
+    /// Accepted forms: `ws://host:port` or `wss://host:port`.
+    #[arg(long = "remote", value_name = "ADDR")]
+    remote: Option<String>,
+
+    /// Name of the environment variable containing the bearer token to send to
+    /// a remote app server websocket.
+    #[arg(long = "remote-auth-token-env", value_name = "ENV_VAR")]
+    remote_auth_token_env: Option<String>,
 }
 
 impl FeatureToggles {
@@ -912,8 +650,7 @@ struct FeatureSetArgs {
     feature: String,
 }
 
-fn stage_str(stage: codex_core::features::Stage) -> &'static str {
-    use codex_core::features::Stage;
+fn stage_str(stage: Stage) -> &'static str {
     match stage {
         Stage::UnderDevelopment => "under development",
         Stage::Experimental { .. } => "experimental",
@@ -934,6 +671,7 @@ async fn cli_main(arg0_paths: Arg0DispatchPaths) -> anyhow::Result<()> {
     let MultitoolCli {
         config_overrides: mut root_config_overrides,
         feature_toggles,
+        remote,
         mut interactive,
         subcommand,
     } = MultitoolCli::parse();
@@ -941,6 +679,8 @@ async fn cli_main(arg0_paths: Arg0DispatchPaths) -> anyhow::Result<()> {
     // Fold --enable/--disable into config overrides so they flow to all subcommands.
     let toggle_overrides = feature_toggles.to_overrides()?;
     root_config_overrides.raw_overrides.extend(toggle_overrides);
+    let root_remote = remote.remote;
+    let root_remote_auth_token_env = remote.remote_auth_token_env;
 
     match subcommand {
         None => {
@@ -948,145 +688,141 @@ async fn cli_main(arg0_paths: Arg0DispatchPaths) -> anyhow::Result<()> {
                 &mut interactive.config_overrides,
                 root_config_overrides.clone(),
             );
-            let exit_info = run_interactive_tui(interactive, arg0_paths.clone()).await?;
+            let exit_info = run_interactive_tui(
+                interactive,
+                root_remote.clone(),
+                root_remote_auth_token_env.clone(),
+                arg0_paths.clone(),
+            )
+            .await?;
             handle_app_exit(exit_info)?;
         }
         Some(Subcommand::Exec(mut exec_cli)) => {
+            reject_remote_mode_for_subcommand(
+                root_remote.as_deref(),
+                root_remote_auth_token_env.as_deref(),
+                "exec",
+            )?;
             prepend_config_flags(
                 &mut exec_cli.config_overrides,
                 root_config_overrides.clone(),
             );
-            codex_exec::run_main(exec_cli, arg0_paths.codex_linux_sandbox_exe.clone()).await?;
+            codex_exec::run_main(exec_cli, arg0_paths.clone()).await?;
         }
         Some(Subcommand::Review(review_args)) => {
+            reject_remote_mode_for_subcommand(
+                root_remote.as_deref(),
+                root_remote_auth_token_env.as_deref(),
+                "review",
+            )?;
             let mut exec_cli = ExecCli::try_parse_from(["codex", "exec"])?;
             exec_cli.command = Some(ExecCommand::Review(review_args));
             prepend_config_flags(
                 &mut exec_cli.config_overrides,
                 root_config_overrides.clone(),
             );
-            codex_exec::run_main(exec_cli, arg0_paths.codex_linux_sandbox_exe.clone()).await?;
-        }
-        #[cfg(feature = "custom-features")]
-        Some(Subcommand::Research(mut research_cmd)) => {
-            prepend_config_flags(
-                &mut research_cmd.config_overrides,
-                root_config_overrides.clone(),
-            );
-            research_cmd::run_research_command(
-                research_cmd.topic,
-                research_cmd.depth,
-                research_cmd.breadth,
-                research_cmd.budget,
-                research_cmd.citations,
-                research_cmd.mcp,
-                research_cmd.lightweight_fallback,
-                research_cmd.out,
-                research_cmd.gemini,
-                research_cmd.use_mcp,
-            )
-            .await?;
-        }
-        #[cfg(feature = "custom-features")]
-        Some(Subcommand::LlmOps(llmops_cmd)) => {
-            run_llmops_command(llmops_cmd).await?;
-        }
-        #[cfg(feature = "custom-features")]
-        Some(Subcommand::A2a(a2a_cmd)) => {
-            run_a2a_command(a2a_cmd).await?;
-        }
-        #[cfg(feature = "custom-features")]
-        Some(Subcommand::SkillMcp(skill_mcp_cmd)) => {
-            run_skill_mcp_command(skill_mcp_cmd).await?;
-        }
-        #[cfg(feature = "custom-features")]
-        Some(Subcommand::Orchestrate(orchestrate_cmd)) => {
-            run_orchestrate_command(orchestrate_cmd).await?;
-        }
-        #[cfg(feature = "custom-features")]
-        Some(Subcommand::DelegateParallel(mut delegate_cmd)) => {
-            prepend_config_flags(
-                &mut delegate_cmd.config_overrides,
-                root_config_overrides.clone(),
-            );
-
-            let agents = parse_csv_list(&delegate_cmd.agents);
-            if agents.is_empty() {
-                anyhow::bail!("--agents must include at least one agent");
-            }
-
-            let goals = match delegate_cmd.goals.as_deref() {
-                Some(raw_goals) => parse_csv_list(raw_goals),
-                None => delegate_cmd
-                    .task
-                    .as_ref()
-                    .map(|task| vec![task.clone(); agents.len()])
-                    .unwrap_or_default(),
-            };
-
-            let scopes = vec![None; agents.len()];
-            let budgets = vec![delegate_cmd.budget; agents.len()];
-
-            run_parallel_delegate_command(
-                agents,
-                goals,
-                scopes,
-                budgets,
-                delegate_cmd.deadline,
-                delegate_cmd.out,
-                delegate_cmd.config_overrides,
-            )
-            .await?;
-        }
-        Some(Subcommand::GuiX(gui_cmd)) => {
-            run_gui_x_command(gui_cmd)?;
+            codex_exec::run_main(exec_cli, arg0_paths.clone()).await?;
         }
         Some(Subcommand::McpServer) => {
+            reject_remote_mode_for_subcommand(
+                root_remote.as_deref(),
+                root_remote_auth_token_env.as_deref(),
+                "mcp-server",
+            )?;
             codex_mcp_server::run_main(arg0_paths.clone(), root_config_overrides).await?;
         }
         Some(Subcommand::Mcp(mut mcp_cli)) => {
+            reject_remote_mode_for_subcommand(
+                root_remote.as_deref(),
+                root_remote_auth_token_env.as_deref(),
+                "mcp",
+            )?;
             // Propagate any root-level config overrides (e.g. `-c key=value`).
             prepend_config_flags(&mut mcp_cli.config_overrides, root_config_overrides.clone());
             mcp_cli.run().await?;
         }
-        Some(Subcommand::AppServer(app_server_cli)) => match app_server_cli.subcommand {
-            None => {
-                let transport = app_server_cli.listen;
-                codex_app_server::run_main_with_transport(
-                    arg0_paths.clone(),
-                    root_config_overrides,
-                    codex_core::config_loader::LoaderOverrides::default(),
-                    app_server_cli.analytics_default_enabled,
-                    transport,
-                )
-                .await?;
+        Some(Subcommand::Plugin(plugin_cli)) => {
+            reject_remote_mode_for_subcommand(
+                root_remote.as_deref(),
+                root_remote_auth_token_env.as_deref(),
+                "plugin",
+            )?;
+            let PluginCli {
+                mut config_overrides,
+                subcommand,
+            } = plugin_cli;
+            prepend_config_flags(&mut config_overrides, root_config_overrides.clone());
+            match subcommand {
+                PluginSubcommand::Marketplace(mut marketplace_cli) => {
+                    prepend_config_flags(&mut marketplace_cli.config_overrides, config_overrides);
+                    marketplace_cli.run().await?;
+                }
             }
-            Some(AppServerSubcommand::GenerateTs(gen_cli)) => {
-                let options = codex_app_server_protocol::GenerateTsOptions {
-                    experimental_api: gen_cli.experimental,
-                    ..Default::default()
-                };
-                codex_app_server_protocol::generate_ts_with_options(
-                    &gen_cli.out_dir,
-                    gen_cli.prettier.as_deref(),
-                    options,
-                )?;
+        }
+        Some(Subcommand::AppServer(app_server_cli)) => {
+            let AppServerCommand {
+                subcommand,
+                listen,
+                analytics_default_enabled,
+                auth,
+            } = app_server_cli;
+            reject_remote_mode_for_app_server_subcommand(
+                root_remote.as_deref(),
+                root_remote_auth_token_env.as_deref(),
+                subcommand.as_ref(),
+            )?;
+            match subcommand {
+                None => {
+                    let transport = listen;
+                    let auth = auth.try_into_settings()?;
+                    codex_app_server::run_main_with_transport(
+                        arg0_paths.clone(),
+                        root_config_overrides,
+                        codex_core::config_loader::LoaderOverrides::default(),
+                        analytics_default_enabled,
+                        transport,
+                        codex_protocol::protocol::SessionSource::VSCode,
+                        auth,
+                    )
+                    .await?;
+                }
+                Some(AppServerSubcommand::GenerateTs(gen_cli)) => {
+                    let options = codex_app_server_protocol::GenerateTsOptions {
+                        experimental_api: gen_cli.experimental,
+                        ..Default::default()
+                    };
+                    codex_app_server_protocol::generate_ts_with_options(
+                        &gen_cli.out_dir,
+                        gen_cli.prettier.as_deref(),
+                        options,
+                    )?;
+                }
+                Some(AppServerSubcommand::GenerateJsonSchema(gen_cli)) => {
+                    codex_app_server_protocol::generate_json_with_experimental(
+                        &gen_cli.out_dir,
+                        gen_cli.experimental,
+                    )?;
+                }
+                Some(AppServerSubcommand::GenerateInternalJsonSchema(gen_cli)) => {
+                    codex_app_server_protocol::generate_internal_json_schema(&gen_cli.out_dir)?;
+                }
             }
-            Some(AppServerSubcommand::GenerateJsonSchema(gen_cli)) => {
-                codex_app_server_protocol::generate_json_with_experimental(
-                    &gen_cli.out_dir,
-                    gen_cli.experimental,
-                )?;
-            }
-        },
+        }
         #[cfg(target_os = "macos")]
         Some(Subcommand::App(app_cli)) => {
+            reject_remote_mode_for_subcommand(
+                root_remote.as_deref(),
+                root_remote_auth_token_env.as_deref(),
+                "app",
+            )?;
             app_cmd::run_app(app_cli).await?;
         }
         Some(Subcommand::Resume(ResumeCommand {
             session_id,
             last,
             all,
+            include_non_interactive,
+            remote,
             config_overrides,
         })) => {
             interactive = finalize_resume_interactive(
@@ -1095,15 +831,25 @@ async fn cli_main(arg0_paths: Arg0DispatchPaths) -> anyhow::Result<()> {
                 session_id,
                 last,
                 all,
+                include_non_interactive,
                 config_overrides,
             );
-            let exit_info = run_interactive_tui(interactive, arg0_paths.clone()).await?;
+            let exit_info = run_interactive_tui(
+                interactive,
+                remote.remote.or(root_remote.clone()),
+                remote
+                    .remote_auth_token_env
+                    .or(root_remote_auth_token_env.clone()),
+                arg0_paths.clone(),
+            )
+            .await?;
             handle_app_exit(exit_info)?;
         }
         Some(Subcommand::Fork(ForkCommand {
             session_id,
             last,
             all,
+            remote,
             config_overrides,
         })) => {
             interactive = finalize_fork_interactive(
@@ -1114,10 +860,23 @@ async fn cli_main(arg0_paths: Arg0DispatchPaths) -> anyhow::Result<()> {
                 all,
                 config_overrides,
             );
-            let exit_info = run_interactive_tui(interactive, arg0_paths.clone()).await?;
+            let exit_info = run_interactive_tui(
+                interactive,
+                remote.remote.or(root_remote.clone()),
+                remote
+                    .remote_auth_token_env
+                    .or(root_remote_auth_token_env.clone()),
+                arg0_paths.clone(),
+            )
+            .await?;
             handle_app_exit(exit_info)?;
         }
         Some(Subcommand::Login(mut login_cli)) => {
+            reject_remote_mode_for_subcommand(
+                root_remote.as_deref(),
+                root_remote_auth_token_env.as_deref(),
+                "login",
+            )?;
             prepend_config_flags(
                 &mut login_cli.config_overrides,
                 root_config_overrides.clone(),
@@ -1149,6 +908,11 @@ async fn cli_main(arg0_paths: Arg0DispatchPaths) -> anyhow::Result<()> {
             }
         }
         Some(Subcommand::Logout(mut logout_cli)) => {
+            reject_remote_mode_for_subcommand(
+                root_remote.as_deref(),
+                root_remote_auth_token_env.as_deref(),
+                "logout",
+            )?;
             prepend_config_flags(
                 &mut logout_cli.config_overrides,
                 root_config_overrides.clone(),
@@ -1156,9 +920,19 @@ async fn cli_main(arg0_paths: Arg0DispatchPaths) -> anyhow::Result<()> {
             run_logout(logout_cli.config_overrides).await;
         }
         Some(Subcommand::Completion(completion_cli)) => {
+            reject_remote_mode_for_subcommand(
+                root_remote.as_deref(),
+                root_remote_auth_token_env.as_deref(),
+                "completion",
+            )?;
             print_completion(completion_cli);
         }
         Some(Subcommand::Cloud(mut cloud_cli)) => {
+            reject_remote_mode_for_subcommand(
+                root_remote.as_deref(),
+                root_remote_auth_token_env.as_deref(),
+                "cloud",
+            )?;
             prepend_config_flags(
                 &mut cloud_cli.config_overrides,
                 root_config_overrides.clone(),
@@ -1168,33 +942,48 @@ async fn cli_main(arg0_paths: Arg0DispatchPaths) -> anyhow::Result<()> {
         }
         Some(Subcommand::Sandbox(sandbox_args)) => match sandbox_args.cmd {
             SandboxCommand::Macos(mut seatbelt_cli) => {
+                reject_remote_mode_for_subcommand(
+                    root_remote.as_deref(),
+                    root_remote_auth_token_env.as_deref(),
+                    "sandbox macos",
+                )?;
                 prepend_config_flags(
                     &mut seatbelt_cli.config_overrides,
                     root_config_overrides.clone(),
                 );
-                codex_cli::debug_sandbox::run_command_under_seatbelt(
+                codex_cli::run_command_under_seatbelt(
                     seatbelt_cli,
                     arg0_paths.codex_linux_sandbox_exe.clone(),
                 )
                 .await?;
             }
             SandboxCommand::Linux(mut landlock_cli) => {
+                reject_remote_mode_for_subcommand(
+                    root_remote.as_deref(),
+                    root_remote_auth_token_env.as_deref(),
+                    "sandbox linux",
+                )?;
                 prepend_config_flags(
                     &mut landlock_cli.config_overrides,
                     root_config_overrides.clone(),
                 );
-                codex_cli::debug_sandbox::run_command_under_landlock(
+                codex_cli::run_command_under_landlock(
                     landlock_cli,
                     arg0_paths.codex_linux_sandbox_exe.clone(),
                 )
                 .await?;
             }
             SandboxCommand::Windows(mut windows_cli) => {
+                reject_remote_mode_for_subcommand(
+                    root_remote.as_deref(),
+                    root_remote_auth_token_env.as_deref(),
+                    "sandbox windows",
+                )?;
                 prepend_config_flags(
                     &mut windows_cli.config_overrides,
                     root_config_overrides.clone(),
                 );
-                codex_cli::debug_sandbox::run_command_under_windows(
+                codex_cli::run_command_under_windows(
                     windows_cli,
                     arg0_paths.codex_linux_sandbox_exe.clone(),
                 )
@@ -1203,33 +992,100 @@ async fn cli_main(arg0_paths: Arg0DispatchPaths) -> anyhow::Result<()> {
         },
         Some(Subcommand::Debug(DebugCommand { subcommand })) => match subcommand {
             DebugSubcommand::AppServer(cmd) => {
+                reject_remote_mode_for_subcommand(
+                    root_remote.as_deref(),
+                    root_remote_auth_token_env.as_deref(),
+                    "debug app-server",
+                )?;
                 run_debug_app_server_command(cmd).await?;
             }
+            DebugSubcommand::PromptInput(cmd) => {
+                reject_remote_mode_for_subcommand(
+                    root_remote.as_deref(),
+                    root_remote_auth_token_env.as_deref(),
+                    "debug prompt-input",
+                )?;
+                run_debug_prompt_input_command(
+                    cmd,
+                    root_config_overrides,
+                    interactive,
+                    arg0_paths.clone(),
+                )
+                .await?;
+            }
             DebugSubcommand::ClearMemories => {
+                reject_remote_mode_for_subcommand(
+                    root_remote.as_deref(),
+                    root_remote_auth_token_env.as_deref(),
+                    "debug clear-memories",
+                )?;
                 run_debug_clear_memories_command(&root_config_overrides, &interactive).await?;
             }
         },
         Some(Subcommand::Execpolicy(ExecpolicyCommand { sub })) => match sub {
-            ExecpolicySubcommand::Check(cmd) => run_execpolicycheck(cmd)?,
+            ExecpolicySubcommand::Check(cmd) => {
+                reject_remote_mode_for_subcommand(
+                    root_remote.as_deref(),
+                    root_remote_auth_token_env.as_deref(),
+                    "execpolicy check",
+                )?;
+                run_execpolicycheck(cmd)?
+            }
         },
         Some(Subcommand::Apply(mut apply_cli)) => {
+            reject_remote_mode_for_subcommand(
+                root_remote.as_deref(),
+                root_remote_auth_token_env.as_deref(),
+                "apply",
+            )?;
             prepend_config_flags(
                 &mut apply_cli.config_overrides,
                 root_config_overrides.clone(),
             );
-            run_apply_command(apply_cli, None).await?;
+            run_apply_command(apply_cli, /*cwd*/ None).await?;
         }
         Some(Subcommand::ResponsesApiProxy(args)) => {
+            reject_remote_mode_for_subcommand(
+                root_remote.as_deref(),
+                root_remote_auth_token_env.as_deref(),
+                "responses-api-proxy",
+            )?;
             tokio::task::spawn_blocking(move || codex_responses_api_proxy::run_main(args))
                 .await??;
         }
+        Some(Subcommand::Responses(ResponsesCommand {})) => {
+            reject_remote_mode_for_subcommand(
+                root_remote.as_deref(),
+                root_remote_auth_token_env.as_deref(),
+                "responses",
+            )?;
+            run_responses_command(root_config_overrides).await?;
+        }
         Some(Subcommand::StdioToUds(cmd)) => {
+            reject_remote_mode_for_subcommand(
+                root_remote.as_deref(),
+                root_remote_auth_token_env.as_deref(),
+                "stdio-to-uds",
+            )?;
             let socket_path = cmd.socket_path;
             tokio::task::spawn_blocking(move || codex_stdio_to_uds::run(socket_path.as_path()))
                 .await??;
         }
+        Some(Subcommand::ExecServer(cmd)) => {
+            reject_remote_mode_for_subcommand(
+                root_remote.as_deref(),
+                root_remote_auth_token_env.as_deref(),
+                "exec-server",
+            )?;
+            run_exec_server_command(cmd, &arg0_paths).await?;
+        }
         Some(Subcommand::Features(FeaturesCli { sub })) => match sub {
             FeaturesSubcommand::List => {
+                reject_remote_mode_for_subcommand(
+                    root_remote.as_deref(),
+                    root_remote_auth_token_env.as_deref(),
+                    "features list",
+                )?;
                 // Respect root-level `-c` overrides plus top-level flags like `--profile`.
                 let mut cli_kv_overrides = root_config_overrides
                     .parse_overrides()
@@ -1254,10 +1110,10 @@ async fn cli_main(arg0_paths: Arg0DispatchPaths) -> anyhow::Result<()> {
                     overrides,
                 )
                 .await?;
-                let mut rows = Vec::with_capacity(codex_core::features::FEATURES.len());
+                let mut rows = Vec::with_capacity(FEATURES.len());
                 let mut name_width = 0;
                 let mut stage_width = 0;
-                for def in codex_core::features::FEATURES.iter() {
+                for def in FEATURES {
                     let name = def.key;
                     let stage = stage_str(def.stage);
                     let enabled = config.features.enabled(def.id);
@@ -1272,9 +1128,19 @@ async fn cli_main(arg0_paths: Arg0DispatchPaths) -> anyhow::Result<()> {
                 }
             }
             FeaturesSubcommand::Enable(FeatureSetArgs { feature }) => {
+                reject_remote_mode_for_subcommand(
+                    root_remote.as_deref(),
+                    root_remote_auth_token_env.as_deref(),
+                    "features enable",
+                )?;
                 enable_feature_in_config(&interactive, &feature).await?;
             }
             FeaturesSubcommand::Disable(FeatureSetArgs { feature }) => {
+                reject_remote_mode_for_subcommand(
+                    root_remote.as_deref(),
+                    root_remote_auth_token_env.as_deref(),
+                    "features disable",
+                )?;
                 disable_feature_in_config(&interactive, &feature).await?;
             }
         },
@@ -1283,12 +1149,29 @@ async fn cli_main(arg0_paths: Arg0DispatchPaths) -> anyhow::Result<()> {
     Ok(())
 }
 
+async fn run_exec_server_command(
+    cmd: ExecServerCommand,
+    arg0_paths: &Arg0DispatchPaths,
+) -> anyhow::Result<()> {
+    let codex_self_exe = arg0_paths
+        .codex_self_exe
+        .clone()
+        .ok_or_else(|| anyhow::anyhow!("Codex executable path is not configured"))?;
+    let runtime_paths = codex_exec_server::ExecServerRuntimePaths::new(
+        codex_self_exe,
+        arg0_paths.codex_linux_sandbox_exe.clone(),
+    )?;
+    codex_exec_server::run_main(&cmd.listen, runtime_paths)
+        .await
+        .map_err(anyhow::Error::from_boxed)
+}
+
 async fn enable_feature_in_config(interactive: &TuiCli, feature: &str) -> anyhow::Result<()> {
     FeatureToggles::validate_feature(feature)?;
     let codex_home = find_codex_home()?;
     ConfigEditsBuilder::new(&codex_home)
         .with_profile(interactive.config_profile.as_deref())
-        .set_feature_enabled(feature, true)
+        .set_feature_enabled(feature, /*enabled*/ true)
         .apply()
         .await?;
     println!("Enabled feature `{feature}` in config.toml.");
@@ -1301,7 +1184,7 @@ async fn disable_feature_in_config(interactive: &TuiCli, feature: &str) -> anyho
     let codex_home = find_codex_home()?;
     ConfigEditsBuilder::new(&codex_home)
         .with_profile(interactive.config_profile.as_deref())
-        .set_feature_enabled(feature, false)
+        .set_feature_enabled(feature, /*enabled*/ false)
         .apply()
         .await?;
     println!("Disabled feature `{feature}` in config.toml.");
@@ -1317,10 +1200,7 @@ fn maybe_print_under_development_feature_warning(
         return;
     }
 
-    let Some(spec) = codex_core::features::FEATURES
-        .iter()
-        .find(|spec| spec.key == feature)
-    else {
+    let Some(spec) = FEATURES.iter().find(|spec| spec.key == feature) else {
         return;
     };
     if !matches!(spec.stage, Stage::UnderDevelopment) {
@@ -1332,6 +1212,72 @@ fn maybe_print_under_development_feature_warning(
         "Under-development features enabled: {feature}. Under-development features are incomplete and may behave unpredictably. To suppress this warning, set `suppress_unstable_features_warning = true` in {}.",
         config_path.display()
     );
+}
+
+async fn run_debug_prompt_input_command(
+    cmd: DebugPromptInputCommand,
+    root_config_overrides: CliConfigOverrides,
+    interactive: TuiCli,
+    arg0_paths: Arg0DispatchPaths,
+) -> anyhow::Result<()> {
+    let mut cli_kv_overrides = root_config_overrides
+        .parse_overrides()
+        .map_err(anyhow::Error::msg)?;
+    if interactive.web_search {
+        cli_kv_overrides.push((
+            "web_search".to_string(),
+            toml::Value::String("live".to_string()),
+        ));
+    }
+
+    let approval_policy = if interactive.full_auto {
+        Some(AskForApproval::OnRequest)
+    } else if interactive.dangerously_bypass_approvals_and_sandbox {
+        Some(AskForApproval::Never)
+    } else {
+        interactive.approval_policy.map(Into::into)
+    };
+    let sandbox_mode = if interactive.full_auto {
+        Some(codex_protocol::config_types::SandboxMode::WorkspaceWrite)
+    } else if interactive.dangerously_bypass_approvals_and_sandbox {
+        Some(codex_protocol::config_types::SandboxMode::DangerFullAccess)
+    } else {
+        interactive.sandbox_mode.map(Into::into)
+    };
+    let overrides = ConfigOverrides {
+        model: interactive.model,
+        config_profile: interactive.config_profile,
+        approval_policy,
+        sandbox_mode,
+        cwd: interactive.cwd,
+        codex_self_exe: arg0_paths.codex_self_exe,
+        codex_linux_sandbox_exe: arg0_paths.codex_linux_sandbox_exe,
+        main_execve_wrapper_exe: arg0_paths.main_execve_wrapper_exe,
+        show_raw_agent_reasoning: interactive.oss.then_some(true),
+        ephemeral: Some(true),
+        additional_writable_roots: interactive.add_dir,
+        ..Default::default()
+    };
+    let config =
+        Config::load_with_cli_overrides_and_harness_overrides(cli_kv_overrides, overrides).await?;
+
+    let mut input = interactive
+        .images
+        .into_iter()
+        .chain(cmd.images)
+        .map(|path| UserInput::LocalImage { path })
+        .collect::<Vec<_>>();
+    if let Some(prompt) = cmd.prompt.or(interactive.prompt) {
+        input.push(UserInput::Text {
+            text: prompt.replace("\r\n", "\n").replace('\r', "\n"),
+            text_elements: Vec::new(),
+        });
+    }
+
+    let prompt_input = codex_core::build_prompt_input(config, input).await?;
+    println!("{}", serde_json::to_string_pretty(&prompt_input)?);
+
+    Ok(())
 }
 
 async fn run_debug_clear_memories_command(
@@ -1351,37 +1297,24 @@ async fn run_debug_clear_memories_command(
     let state_path = state_db_path(config.sqlite_home.as_path());
     let mut cleared_state_db = false;
     if tokio::fs::try_exists(&state_path).await? {
-        let state_db = StateRuntime::init(
-            config.sqlite_home.clone(),
-            config.model_provider_id.clone(),
-            None,
-        )
-        .await?;
-        state_db.reset_memory_data_for_fresh_start().await?;
+        let state_db =
+            StateRuntime::init(config.sqlite_home.clone(), config.model_provider_id.clone())
+                .await?;
+        state_db.clear_memory_data().await?;
         cleared_state_db = true;
     }
 
-    let memory_root = config.codex_home.join("memories");
-    let removed_memory_root = match tokio::fs::remove_dir_all(&memory_root).await {
-        Ok(()) => true,
-        Err(err) if err.kind() == std::io::ErrorKind::NotFound => false,
-        Err(err) => return Err(err.into()),
-    };
+    clear_memory_roots_contents(&config.codex_home).await?;
 
     let mut message = if cleared_state_db {
         format!("Cleared memory state from {}.", state_path.display())
     } else {
         format!("No state db found at {}.", state_path.display())
     };
-
-    if removed_memory_root {
-        message.push_str(&format!(" Removed {}.", memory_root.display()));
-    } else {
-        message.push_str(&format!(
-            " No memory directory found at {}.",
-            memory_root.display()
-        ));
-    }
+    message.push_str(&format!(
+        " Cleared memory directories under {}.",
+        config.codex_home.display()
+    ));
 
     println!("{message}");
 
@@ -1399,8 +1332,64 @@ fn prepend_config_flags(
         .splice(0..0, cli_config_overrides.raw_overrides);
 }
 
+fn reject_remote_mode_for_subcommand(
+    remote: Option<&str>,
+    remote_auth_token_env: Option<&str>,
+    subcommand: &str,
+) -> anyhow::Result<()> {
+    if let Some(remote) = remote {
+        anyhow::bail!(
+            "`--remote {remote}` is only supported for interactive TUI commands, not `codex {subcommand}`"
+        );
+    }
+    if remote_auth_token_env.is_some() {
+        anyhow::bail!(
+            "`--remote-auth-token-env` is only supported for interactive TUI commands, not `codex {subcommand}`"
+        );
+    }
+    Ok(())
+}
+
+fn reject_remote_mode_for_app_server_subcommand(
+    remote: Option<&str>,
+    remote_auth_token_env: Option<&str>,
+    subcommand: Option<&AppServerSubcommand>,
+) -> anyhow::Result<()> {
+    let subcommand_name = match subcommand {
+        None => "app-server",
+        Some(AppServerSubcommand::GenerateTs(_)) => "app-server generate-ts",
+        Some(AppServerSubcommand::GenerateJsonSchema(_)) => "app-server generate-json-schema",
+        Some(AppServerSubcommand::GenerateInternalJsonSchema(_)) => {
+            "app-server generate-internal-json-schema"
+        }
+    };
+    reject_remote_mode_for_subcommand(remote, remote_auth_token_env, subcommand_name)
+}
+
+fn read_remote_auth_token_from_env_var_with<F>(
+    env_var_name: &str,
+    get_var: F,
+) -> anyhow::Result<String>
+where
+    F: FnOnce(&str) -> Result<String, std::env::VarError>,
+{
+    let auth_token = get_var(env_var_name)
+        .map_err(|_| anyhow::anyhow!("environment variable `{env_var_name}` is not set"))?;
+    let auth_token = auth_token.trim().to_string();
+    if auth_token.is_empty() {
+        anyhow::bail!("environment variable `{env_var_name}` is empty");
+    }
+    Ok(auth_token)
+}
+
+fn read_remote_auth_token_from_env_var(env_var_name: &str) -> anyhow::Result<String> {
+    read_remote_auth_token_from_env_var_with(env_var_name, |name| std::env::var(name))
+}
+
 async fn run_interactive_tui(
     mut interactive: TuiCli,
+    remote: Option<String>,
+    remote_auth_token_env: Option<String>,
     arg0_paths: Arg0DispatchPaths,
 ) -> std::io::Result<AppExitInfo> {
     if let Some(prompt) = interactive.prompt.take() {
@@ -1408,7 +1397,7 @@ async fn run_interactive_tui(
         interactive.prompt = Some(prompt.replace("\r\n", "\n").replace('\r', "\n"));
     }
 
-    let terminal_info = codex_core::terminal::terminal_info();
+    let terminal_info = codex_terminal_detection::terminal_info();
     if terminal_info.name == TerminalName::Dumb {
         if !(std::io::stdin().is_terminal() && std::io::stderr().is_terminal()) {
             return Ok(AppExitInfo::fatal(
@@ -1426,7 +1415,29 @@ async fn run_interactive_tui(
         }
     }
 
-    codex_tui::run_main(interactive, arg0_paths).await
+    let normalized_remote = remote
+        .as_deref()
+        .map(codex_tui::normalize_remote_addr)
+        .transpose()
+        .map_err(std::io::Error::other)?;
+    if remote_auth_token_env.is_some() && normalized_remote.is_none() {
+        return Ok(AppExitInfo::fatal(
+            "`--remote-auth-token-env` requires `--remote`.",
+        ));
+    }
+    let remote_auth_token = remote_auth_token_env
+        .as_deref()
+        .map(read_remote_auth_token_from_env_var)
+        .transpose()
+        .map_err(std::io::Error::other)?;
+    codex_tui::run_main(
+        interactive,
+        arg0_paths,
+        codex_core::config_loader::LoaderOverrides::default(),
+        normalized_remote,
+        remote_auth_token,
+    )
+    .await
 }
 
 fn confirm(prompt: &str) -> std::io::Result<bool> {
@@ -1445,6 +1456,7 @@ fn finalize_resume_interactive(
     session_id: Option<String>,
     last: bool,
     show_all: bool,
+    include_non_interactive: bool,
     resume_cli: TuiCli,
 ) -> TuiCli {
     // Start with the parsed interactive CLI so resume shares the same
@@ -1454,6 +1466,7 @@ fn finalize_resume_interactive(
     interactive.resume_last = last;
     interactive.resume_session_id = resume_session_id;
     interactive.resume_show_all = show_all;
+    interactive.resume_include_non_interactive = include_non_interactive;
 
     // Merge resume-scoped flags and overrides with highest precedence.
     merge_interactive_cli_flags(&mut interactive, resume_cli);
@@ -1559,12 +1572,15 @@ mod tests {
             config_overrides: root_overrides,
             subcommand,
             feature_toggles: _,
+            remote: _,
         } = cli;
 
         let Subcommand::Resume(ResumeCommand {
             session_id,
             last,
             all,
+            include_non_interactive,
+            remote: _,
             config_overrides: resume_cli,
         }) = subcommand.expect("resume present")
         else {
@@ -1577,6 +1593,7 @@ mod tests {
             session_id,
             last,
             all,
+            include_non_interactive,
             resume_cli,
         )
     }
@@ -1588,12 +1605,14 @@ mod tests {
             config_overrides: root_overrides,
             subcommand,
             feature_toggles: _,
+            remote: _,
         } = cli;
 
         let Subcommand::Fork(ForkCommand {
             session_id,
             last,
             all,
+            remote: _,
             config_overrides: fork_cli,
         }) = subcommand.expect("fork present")
         else {
@@ -1657,6 +1676,70 @@ mod tests {
         app_server
     }
 
+    #[test]
+    fn debug_prompt_input_parses_prompt_and_images() {
+        let cli = MultitoolCli::try_parse_from([
+            "codex",
+            "debug",
+            "prompt-input",
+            "hello",
+            "--image",
+            "/tmp/a.png,/tmp/b.png",
+        ])
+        .expect("parse");
+
+        let Some(Subcommand::Debug(DebugCommand {
+            subcommand: DebugSubcommand::PromptInput(cmd),
+        })) = cli.subcommand
+        else {
+            panic!("expected debug prompt-input subcommand");
+        };
+
+        assert_eq!(cmd.prompt.as_deref(), Some("hello"));
+        assert_eq!(
+            cmd.images,
+            vec![PathBuf::from("/tmp/a.png"), PathBuf::from("/tmp/b.png")]
+        );
+    }
+
+    #[test]
+    fn responses_subcommand_is_hidden_from_help_but_parses() {
+        let help = MultitoolCli::command().render_help().to_string();
+        assert!(!help.contains("responses"));
+
+        let cli = MultitoolCli::try_parse_from(["codex", "responses"]).expect("parse");
+        assert!(matches!(cli.subcommand, Some(Subcommand::Responses(_))));
+    }
+
+    #[test]
+    fn plugin_marketplace_add_parses_under_plugin() {
+        let cli =
+            MultitoolCli::try_parse_from(["codex", "plugin", "marketplace", "add", "owner/repo"])
+                .expect("parse");
+
+        assert!(matches!(cli.subcommand, Some(Subcommand::Plugin(_))));
+    }
+
+    #[test]
+    fn plugin_marketplace_upgrade_parses_under_plugin() {
+        let cli =
+            MultitoolCli::try_parse_from(["codex", "plugin", "marketplace", "upgrade", "debug"])
+                .expect("parse");
+
+        assert!(matches!(cli.subcommand, Some(Subcommand::Plugin(_))));
+    }
+
+    #[test]
+    fn marketplace_no_longer_parses_at_top_level() {
+        let add_result =
+            MultitoolCli::try_parse_from(["codex", "marketplace", "add", "owner/repo"]);
+        assert!(add_result.is_err());
+
+        let upgrade_result =
+            MultitoolCli::try_parse_from(["codex", "marketplace", "upgrade", "debug"]);
+        assert!(upgrade_result.is_err());
+    }
+
     fn sample_exit_info(conversation_id: Option<&str>, thread_name: Option<&str>) -> AppExitInfo {
         let token_usage = TokenUsage {
             output_tokens: 2,
@@ -1683,14 +1766,17 @@ mod tests {
             update_action: None,
             exit_reason: ExitReason::UserRequested,
         };
-        let lines = format_exit_messages(exit_info, false);
+        let lines = format_exit_messages(exit_info, /*color_enabled*/ false);
         assert!(lines.is_empty());
     }
 
     #[test]
     fn format_exit_messages_includes_resume_hint_without_color() {
-        let exit_info = sample_exit_info(Some("123e4567-e89b-12d3-a456-426614174000"), None);
-        let lines = format_exit_messages(exit_info, false);
+        let exit_info = sample_exit_info(
+            Some("123e4567-e89b-12d3-a456-426614174000"),
+            /*thread_name*/ None,
+        );
+        let lines = format_exit_messages(exit_info, /*color_enabled*/ false);
         assert_eq!(
             lines,
             vec![
@@ -1703,8 +1789,11 @@ mod tests {
 
     #[test]
     fn format_exit_messages_applies_color_when_enabled() {
-        let exit_info = sample_exit_info(Some("123e4567-e89b-12d3-a456-426614174000"), None);
-        let lines = format_exit_messages(exit_info, true);
+        let exit_info = sample_exit_info(
+            Some("123e4567-e89b-12d3-a456-426614174000"),
+            /*thread_name*/ None,
+        );
+        let lines = format_exit_messages(exit_info, /*color_enabled*/ true);
         assert_eq!(lines.len(), 2);
         assert!(lines[1].contains("\u{1b}[36m"));
     }
@@ -1715,7 +1804,7 @@ mod tests {
             Some("123e4567-e89b-12d3-a456-426614174000"),
             Some("my-thread"),
         );
-        let lines = format_exit_messages(exit_info, false);
+        let lines = format_exit_messages(exit_info, /*color_enabled*/ false);
         assert_eq!(
             lines,
             vec![
@@ -1768,6 +1857,15 @@ mod tests {
         let interactive = finalize_resume_from_args(["codex", "resume", "--all"].as_ref());
         assert!(interactive.resume_picker);
         assert!(interactive.resume_show_all);
+    }
+
+    #[test]
+    fn resume_include_non_interactive_flag_sets_source_filter_override() {
+        let interactive =
+            finalize_resume_from_args(["codex", "resume", "--include-non-interactive"].as_ref());
+
+        assert!(interactive.resume_picker);
+        assert!(interactive.resume_include_non_interactive);
     }
 
     #[test]
@@ -1895,6 +1993,113 @@ mod tests {
     }
 
     #[test]
+    fn remote_flag_parses_for_interactive_root() {
+        let cli = MultitoolCli::try_parse_from(["codex", "--remote", "ws://127.0.0.1:4500"])
+            .expect("parse");
+        assert_eq!(cli.remote.remote.as_deref(), Some("ws://127.0.0.1:4500"));
+    }
+
+    #[test]
+    fn remote_auth_token_env_flag_parses_for_interactive_root() {
+        let cli = MultitoolCli::try_parse_from([
+            "codex",
+            "--remote-auth-token-env",
+            "CODEX_REMOTE_AUTH_TOKEN",
+            "--remote",
+            "ws://127.0.0.1:4500",
+        ])
+        .expect("parse");
+        assert_eq!(
+            cli.remote.remote_auth_token_env.as_deref(),
+            Some("CODEX_REMOTE_AUTH_TOKEN")
+        );
+    }
+
+    #[test]
+    fn remote_flag_parses_for_resume_subcommand() {
+        let cli =
+            MultitoolCli::try_parse_from(["codex", "resume", "--remote", "ws://127.0.0.1:4500"])
+                .expect("parse");
+        let Subcommand::Resume(ResumeCommand { remote, .. }) =
+            cli.subcommand.expect("resume present")
+        else {
+            panic!("expected resume subcommand");
+        };
+        assert_eq!(remote.remote.as_deref(), Some("ws://127.0.0.1:4500"));
+    }
+
+    #[test]
+    fn reject_remote_mode_for_non_interactive_subcommands() {
+        let err = reject_remote_mode_for_subcommand(
+            Some("127.0.0.1:4500"),
+            /*remote_auth_token_env*/ None,
+            "exec",
+        )
+        .expect_err("non-interactive subcommands should reject --remote");
+        assert!(
+            err.to_string()
+                .contains("only supported for interactive TUI commands")
+        );
+    }
+
+    #[test]
+    fn reject_remote_auth_token_env_for_non_interactive_subcommands() {
+        let err = reject_remote_mode_for_subcommand(
+            /*remote*/ None,
+            Some("CODEX_REMOTE_AUTH_TOKEN"),
+            "exec",
+        )
+        .expect_err("non-interactive subcommands should reject --remote-auth-token-env");
+        assert!(
+            err.to_string()
+                .contains("only supported for interactive TUI commands")
+        );
+    }
+
+    #[test]
+    fn reject_remote_auth_token_env_for_app_server_generate_internal_json_schema() {
+        let subcommand =
+            AppServerSubcommand::GenerateInternalJsonSchema(GenerateInternalJsonSchemaCommand {
+                out_dir: PathBuf::from("/tmp/out"),
+            });
+        let err = reject_remote_mode_for_app_server_subcommand(
+            /*remote*/ None,
+            Some("CODEX_REMOTE_AUTH_TOKEN"),
+            Some(&subcommand),
+        )
+        .expect_err("non-interactive app-server subcommands should reject --remote-auth-token-env");
+        assert!(err.to_string().contains("generate-internal-json-schema"));
+    }
+
+    #[test]
+    fn read_remote_auth_token_from_env_var_reports_missing_values() {
+        let err = read_remote_auth_token_from_env_var_with("CODEX_REMOTE_AUTH_TOKEN", |_| {
+            Err(std::env::VarError::NotPresent)
+        })
+        .expect_err("missing env vars should be rejected");
+        assert!(err.to_string().contains("is not set"));
+    }
+
+    #[test]
+    fn read_remote_auth_token_from_env_var_trims_values() {
+        let auth_token =
+            read_remote_auth_token_from_env_var_with("CODEX_REMOTE_AUTH_TOKEN", |_| {
+                Ok("  bearer-token  ".to_string())
+            })
+            .expect("env var should parse");
+        assert_eq!(auth_token, "bearer-token");
+    }
+
+    #[test]
+    fn read_remote_auth_token_from_env_var_rejects_empty_values() {
+        let err = read_remote_auth_token_from_env_var_with("CODEX_REMOTE_AUTH_TOKEN", |_| {
+            Ok(" \n\t ".to_string())
+        })
+        .expect_err("empty env vars should be rejected");
+        assert!(err.to_string().contains("is empty"));
+    }
+
+    #[test]
     fn app_server_listen_websocket_url_parses() {
         let app_server = app_server_from_args(
             ["codex", "app-server", "--listen", "ws://127.0.0.1:4500"].as_ref(),
@@ -1918,9 +2123,80 @@ mod tests {
     }
 
     #[test]
+    fn app_server_listen_off_parses() {
+        let app_server = app_server_from_args(["codex", "app-server", "--listen", "off"].as_ref());
+        assert_eq!(app_server.listen, codex_app_server::AppServerTransport::Off);
+    }
+
+    #[test]
     fn app_server_listen_invalid_url_fails_to_parse() {
         let parse_result =
             MultitoolCli::try_parse_from(["codex", "app-server", "--listen", "http://foo"]);
+        assert!(parse_result.is_err());
+    }
+
+    #[test]
+    fn app_server_capability_token_flags_parse() {
+        let app_server = app_server_from_args(
+            [
+                "codex",
+                "app-server",
+                "--ws-auth",
+                "capability-token",
+                "--ws-token-file",
+                "/tmp/codex-token",
+            ]
+            .as_ref(),
+        );
+        assert_eq!(
+            app_server.auth.ws_auth,
+            Some(codex_app_server::WebsocketAuthCliMode::CapabilityToken)
+        );
+        assert_eq!(
+            app_server.auth.ws_token_file,
+            Some(PathBuf::from("/tmp/codex-token"))
+        );
+    }
+
+    #[test]
+    fn app_server_signed_bearer_flags_parse() {
+        let app_server = app_server_from_args(
+            [
+                "codex",
+                "app-server",
+                "--ws-auth",
+                "signed-bearer-token",
+                "--ws-shared-secret-file",
+                "/tmp/codex-secret",
+                "--ws-issuer",
+                "issuer",
+                "--ws-audience",
+                "audience",
+                "--ws-max-clock-skew-seconds",
+                "9",
+            ]
+            .as_ref(),
+        );
+        assert_eq!(
+            app_server.auth.ws_auth,
+            Some(codex_app_server::WebsocketAuthCliMode::SignedBearerToken)
+        );
+        assert_eq!(
+            app_server.auth.ws_shared_secret_file,
+            Some(PathBuf::from("/tmp/codex-secret"))
+        );
+        assert_eq!(app_server.auth.ws_issuer.as_deref(), Some("issuer"));
+        assert_eq!(app_server.auth.ws_audience.as_deref(), Some("audience"));
+        assert_eq!(app_server.auth.ws_max_clock_skew_seconds, Some(9));
+    }
+
+    #[test]
+    fn app_server_rejects_removed_insecure_non_loopback_flag() {
+        let parse_result = MultitoolCli::try_parse_from([
+            "codex",
+            "app-server",
+            "--allow-unauthenticated-non-loopback-ws",
+        ]);
         assert!(parse_result.is_err());
     }
 
@@ -1965,309 +2241,42 @@ mod tests {
             ]
         );
     }
-}
 
-// LLMOps command handlers
-#[cfg(feature = "custom-features")]
-async fn run_llmops_command(cmd: LlmOpsCommand) -> Result<(), anyhow::Error> {
-    let config = LLMOpsConfig {
-        enable_model_versioning: true,
-        enable_prompt_versioning: true,
-        enable_performance_monitoring: true,
-        enable_cost_optimization: true,
-        enable_security_hardening: true,
-        enable_observability: true,
-        max_tokens_per_request: 100000,
-        cost_budget_per_hour: 10.0,
-        security_level: codex_core::llmops::SecurityLevel::Standard,
-        observability_retention_days: 30,
-    };
-
-    let manager = LLMOpsManager::new(config)?;
-
-    match cmd.subcommand {
-        LlmOpsSubcommand::RegisterModel {
-            model_id,
-            name,
-            version,
-            provider,
-        } => {
-            let provider_enum = match provider.as_str() {
-                "openai" => ModelProvider::OpenAI,
-                "anthropic" => ModelProvider::Anthropic,
-                "google" => ModelProvider::Google,
-                _ => ModelProvider::Custom(provider),
-            };
-
-            let model = ModelVersion {
-                id: model_id,
-                model_name: name,
-                version,
-                provider: provider_enum,
-                capabilities: vec![codex_core::llmops::ModelCapability::TextGeneration],
-                performance_metrics: Default::default(),
-                security_assessment: Default::default(),
-                created_at: chrono::Utc::now(),
-                deprecated_at: None,
-            };
-
-            manager.register_model(model).await?;
-            println!("Model registered successfully");
-        }
-        LlmOpsSubcommand::RegisterPrompt {
-            prompt_id,
-            name,
-            template,
-        } => {
-            let template_content = std::fs::read_to_string(template)?;
-            let prompt = PromptTemplate {
-                id: prompt_id,
-                name,
-                version: "1.0.0".to_string(),
-                template: template_content,
-                variables: vec![],
-                context_requirements: vec![],
-                security_constraints: vec![],
-                performance_characteristics: Default::default(),
-                created_at: chrono::Utc::now(),
-            };
-
-            manager.register_prompt(prompt).await?;
-            println!("Prompt template registered successfully");
-        }
-        LlmOpsSubcommand::Status => {
-            let status = manager.get_system_status();
-            println!("LLMOps Status:");
-            println!("  Models: {}", status.model_count);
-            println!("  Prompts: {}", status.prompt_count);
-            println!("  Cost: ${:.2}", status.cost_metrics.total_cost);
-            println!("  Security: {}", status.security_status);
-        }
+    #[test]
+    fn feature_toggles_accept_legacy_linux_sandbox_flag() {
+        let toggles = FeatureToggles {
+            enable: vec!["use_linux_sandbox_bwrap".to_string()],
+            disable: Vec::new(),
+        };
+        let overrides = toggles.to_overrides().expect("valid features");
+        assert_eq!(
+            overrides,
+            vec!["features.use_linux_sandbox_bwrap=true".to_string(),]
+        );
     }
 
-    Ok(())
-}
-
-// A2A command handlers
-#[cfg(feature = "custom-features")]
-async fn run_a2a_command(cmd: A2aCommand) -> Result<(), anyhow::Error> {
-    let config = A2AConfig {
-        enable_encryption: true,
-        enable_authentication: true,
-        enable_authorization: true,
-        enable_trust_management: true,
-        max_message_size: 1048576,
-        message_ttl_seconds: 300,
-        retry_attempts: 3,
-        heartbeat_interval_seconds: 30,
-        coordination_timeout_seconds: 60,
-    };
-
-    let identity = AgentIdentity {
-        id: "cli-agent".to_string(),
-        name: "CLI Agent".to_string(),
-        role: AgentRole::Orchestrator,
-        capabilities: vec![
-            AgentCapability::Communication,
-            AgentCapability::Coordination,
-        ],
-        trust_score: 1.0,
-        last_seen: chrono::Utc::now(),
-    };
-
-    let manager = A2ACommunicationManager::new(config, identity);
-
-    match cmd.subcommand {
-        A2aSubcommand::RegisterAgent {
-            agent_id,
-            role,
-            capabilities,
-        } => {
-            let role_enum = match role.as_str() {
-                "orchestrator" => AgentRole::Orchestrator,
-                "reviewer" => AgentRole::CodeReviewer,
-                _ => AgentRole::Custom(role),
-            };
-
-            let caps: Vec<AgentCapability> = capabilities
-                .split(',')
-                .map(|s| match s.trim() {
-                    "communication" => AgentCapability::Communication,
-                    "analysis" => AgentCapability::CodeAnalysis,
-                    _ => AgentCapability::TaskExecution,
-                })
-                .collect();
-
-            let agent = AgentIdentity {
-                id: agent_id.clone(),
-                name: format!("Agent {}", agent_id),
-                role: role_enum,
-                capabilities: caps,
-                trust_score: 0.8,
-                last_seen: chrono::Utc::now(),
-            };
-
-            println!("Agent registered: {}", agent.id);
-        }
-        A2aSubcommand::SendMessage { agent_id, message } => {
-            println!("Message sent to {}: {}", agent_id, message);
-        }
-        A2aSubcommand::Status => {
-            let status = manager.get_system_status().await;
-            println!("A2A Status:");
-            println!("  Agents: {}", status.agent_count);
-            println!("  Connections: {}", status.active_connections);
-            println!("  Tasks: {}", status.task_count);
-            println!("  Message Queue: {}", status.message_queue_size);
-        }
+    #[test]
+    fn feature_toggles_accept_removed_image_detail_original_flag() {
+        let toggles = FeatureToggles {
+            enable: vec!["image_detail_original".to_string()],
+            disable: Vec::new(),
+        };
+        let overrides = toggles.to_overrides().expect("valid features");
+        assert_eq!(
+            overrides,
+            vec!["features.image_detail_original=true".to_string(),]
+        );
     }
 
-    Ok(())
-}
-
-// Skill/MCP command handlers
-#[cfg(feature = "custom-features")]
-async fn run_skill_mcp_command(cmd: SkillMcpCommand) -> Result<(), anyhow::Error> {
-    let config = SkillMCPConfig {
-        enable_dynamic_loading: true,
-        enable_safe_execution: true,
-        enable_resource_management: true,
-        enable_performance_monitoring: true,
-        max_concurrent_skills: 10,
-        skill_timeout_seconds: 300,
-        mcp_context_budget: 10000,
-        security_level: codex_core::skill_mcp_integration::MCPSecurityLevel::Standard,
-        observability_enabled: true,
-    };
-
-    let manager = SkillMCPIntegrationManager::new(config);
-
-    match cmd.subcommand {
-        SkillMcpSubcommand::RegisterSkill { skill_file } => {
-            let content = std::fs::read_to_string(skill_file)?;
-            let skill: SkillDefinition = serde_json::from_str(&content)?;
-            manager.register_skill(skill).await?;
-            println!("Skill registered successfully");
-        }
-        SkillMcpSubcommand::RegisterResource { uri, name } => {
-            let resource = MCPResource {
-                uri,
-                name: name.clone(),
-                description: format!("Resource {}", name),
-                mime_type: "application/json".to_string(),
-                metadata: std::collections::HashMap::new(),
-                access_control: Default::default(),
-                caching_policy: Default::default(),
-            };
-            manager.register_mcp_resource(resource).await?;
-            println!("MCP resource registered successfully");
-        }
-        SkillMcpSubcommand::ExecuteSkill { skill_id, input } => {
-            let input_data: serde_json::Value = serde_json::from_str(&input)?;
-            let result = manager.execute_skill(&skill_id, input_data).await?;
-            println!("Skill execution result: {}", result);
-        }
-        SkillMcpSubcommand::Status => {
-            let status = manager.get_system_status().await;
-            println!("Skill/MCP Status:");
-            println!("  Skills: {}", status.skill_count);
-            println!("  Resources: {}", status.resource_count);
-            println!("  Tools: {}", status.tool_count);
-            println!(
-                "  Context Usage: {}/{}",
-                status.context_usage.current_tokens, status.context_usage.max_tokens
-            );
-        }
+    #[test]
+    fn feature_toggles_unknown_feature_errors() {
+        let toggles = FeatureToggles {
+            enable: vec!["does_not_exist".to_string()],
+            disable: Vec::new(),
+        };
+        let err = toggles
+            .to_overrides()
+            .expect_err("feature should be rejected");
+        assert_eq!(err.to_string(), "Unknown feature flag: does_not_exist");
     }
-
-    Ok(())
-}
-
-// Orchestration command handlers
-#[cfg(feature = "custom-features")]
-async fn run_orchestrate_command(cmd: OrchestrateCommand) -> Result<(), anyhow::Error> {
-    let config = AutonomousOrchestrationConfig {
-        enable_task_decomposition: true,
-        enable_agent_coordination: true,
-        enable_token_management: true,
-        enable_terminal_invocation: true,
-        enable_loose_coupling: true,
-        enable_self_healing: true,
-        max_concurrent_tasks: 5,
-        task_timeout_seconds: 3600,
-        coordination_timeout_seconds: 300,
-        token_budget_per_task: 10000,
-        terminal_pool_size: 3,
-        healing_retry_attempts: 3,
-    };
-
-    let manager = AutonomousOrchestrationManager::new(config);
-
-    match cmd.subcommand {
-        OrchestrateSubcommand::SubmitTask {
-            name,
-            description,
-            priority,
-            capabilities,
-        } => {
-            let priority_enum = match priority.as_str() {
-                "critical" => TaskPriority::Critical,
-                "high" => TaskPriority::High,
-                "low" => TaskPriority::Low,
-                "trivial" => TaskPriority::Trivial,
-                _ => TaskPriority::Medium,
-            };
-
-            let caps: Vec<AgentCapability> = capabilities
-                .as_ref()
-                .map(|s| {
-                    s.split(',')
-                        .map(|c| match c.trim() {
-                            "communication" => AgentCapability::Communication,
-                            "analysis" => AgentCapability::CodeAnalysis,
-                            _ => AgentCapability::TaskExecution,
-                        })
-                        .collect()
-                })
-                .unwrap_or_default();
-
-            let request = TaskRequest {
-                name,
-                description,
-                priority: priority_enum,
-                required_capabilities: caps,
-                resource_requirements: Default::default(),
-                dependencies: vec![],
-                deadline: None,
-                metadata: std::collections::HashMap::new(),
-            };
-
-            let task_id = manager.submit_task(request).await?;
-            println!("Task submitted: {}", task_id);
-        }
-        OrchestrateSubcommand::TaskStatus { task_id } => {
-            let status = manager.get_task_status(&task_id).await?;
-            println!("Task Status:");
-            println!("  ID: {}", status.task_id);
-            println!("  Status: {:?}", status.status);
-            println!("  Progress: {:.1}%", status.progress * 100.0);
-            println!("  Assigned Agent: {:?}", status.assigned_agent);
-            println!("  Subtasks: {}", status.subtasks.len());
-        }
-        OrchestrateSubcommand::Status => {
-            let status = manager.get_system_status().await;
-            println!("Orchestration Status:");
-            println!("  Tasks: {}", status.task_count);
-            println!("  Agents: {}", status.agent_count);
-            println!("  Active Tasks: {}", status.active_tasks);
-            println!(
-                "  Token Usage: {:.1}%",
-                status.token_usage.utilization_percent
-            );
-            println!("  Terminal Sessions: {}", status.terminal_sessions);
-            println!("  System Health: {:?}", status.system_health.overall_status);
-        }
-    }
-
-    Ok(())
 }

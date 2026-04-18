@@ -18,8 +18,6 @@
 //! # }
 //! ```
 
-use chrono::Duration as ChronoDuration;
-use chrono::Utc;
 use std::sync::OnceLock;
 use std::time::Duration;
 use std::time::SystemTime;
@@ -47,8 +45,6 @@ use crate::StateRuntime;
 const LOG_QUEUE_CAPACITY: usize = 512;
 const LOG_BATCH_SIZE: usize = 128;
 const LOG_FLUSH_INTERVAL: Duration = Duration::from_secs(2);
-const LOG_RETENTION_DAYS: i64 = 10;
-
 pub struct LogDbLayer {
     sender: mpsc::Sender<LogDbCommand>,
     process_uuid: String,
@@ -58,7 +54,6 @@ pub fn start(state_db: std::sync::Arc<StateRuntime>) -> LogDbLayer {
     let process_uuid = current_process_log_uuid().to_string();
     let (sender, receiver) = mpsc::channel(LOG_QUEUE_CAPACITY);
     tokio::spawn(run_inserter(std::sync::Arc::clone(&state_db), receiver));
-    tokio::spawn(run_retention_cleanup(state_db));
 
     LogDbLayer {
         sender,
@@ -337,14 +332,6 @@ async fn flush(state_db: &std::sync::Arc<StateRuntime>, buffer: &mut Vec<LogEntr
     let _ = state_db.insert_logs(entries.as_slice()).await;
 }
 
-async fn run_retention_cleanup(state_db: std::sync::Arc<StateRuntime>) {
-    let Some(cutoff) = Utc::now().checked_sub_signed(ChronoDuration::days(LOG_RETENTION_DAYS))
-    else {
-        return;
-    };
-    let _ = state_db.delete_logs_before(cutoff.timestamp()).await;
-}
-
 #[derive(Default)]
 struct MessageVisitor {
     message: Option<String>,
@@ -397,9 +384,8 @@ mod tests {
     use std::io;
     use std::sync::Arc;
     use std::sync::Mutex;
-    use std::time::Duration;
 
-    use tokio::time::Instant;
+    use pretty_assertions::assert_eq;
     use tracing_subscriber::filter::Targets;
     use tracing_subscriber::fmt::writer::MakeWriter;
     use tracing_subscriber::layer::SubscriberExt;
@@ -455,6 +441,7 @@ mod tests {
             .await
             .expect("initialize runtime");
         let writer = SharedWriter::default();
+        let layer = start(runtime.clone());
 
         let subscriber = tracing_subscriber::registry()
             .with(
@@ -465,7 +452,8 @@ mod tests {
                     .with_filter(Targets::new().with_default(tracing::Level::TRACE)),
             )
             .with(
-                start(runtime.clone())
+                layer
+                    .clone()
                     .with_filter(Targets::new().with_default(tracing::Level::TRACE)),
             );
         let guard = subscriber.set_default();
@@ -476,6 +464,7 @@ mod tests {
         });
         tracing::debug!("threadless-after");
 
+        layer.flush().await;
         drop(guard);
 
         let feedback_logs = writer.snapshot();
@@ -488,24 +477,17 @@ mod tests {
                 .collect::<Vec<_>>()
                 .join("\n")
         };
-        let deadline = Instant::now() + Duration::from_secs(2);
-        loop {
-            let sqlite_logs = String::from_utf8(
-                runtime
-                    .query_feedback_logs("thread-1")
-                    .await
-                    .expect("query feedback logs"),
-            )
-            .expect("valid utf-8");
-            if without_timestamps(&sqlite_logs) == without_timestamps(&feedback_logs) {
-                break;
-            }
-            assert!(
-                Instant::now() < deadline,
-                "sqlite feedback logs did not match feedback formatter output before timeout\nsqlite:\n{sqlite_logs}\nfeedback:\n{feedback_logs}"
-            );
-            tokio::time::sleep(Duration::from_millis(10)).await;
-        }
+        let sqlite_logs = String::from_utf8(
+            runtime
+                .query_feedback_logs("thread-1")
+                .await
+                .expect("query feedback logs"),
+        )
+        .expect("valid utf-8");
+        assert_eq!(
+            without_timestamps(&sqlite_logs),
+            without_timestamps(&feedback_logs)
+        );
 
         let _ = tokio::fs::remove_dir_all(codex_home).await;
     }

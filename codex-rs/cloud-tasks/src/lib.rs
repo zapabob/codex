@@ -1,15 +1,18 @@
 mod app;
 mod cli;
-pub mod env_detect;
+pub(crate) mod env_detect;
 mod new_task;
-pub mod scrollable_diff;
+pub(crate) mod scrollable_diff;
 mod ui;
-pub mod util;
+pub(crate) mod util;
 pub use cli::Cli;
 
 use anyhow::anyhow;
 use chrono::Utc;
 use codex_cloud_tasks_client::TaskStatus;
+use codex_git_utils::current_branch_name;
+use codex_git_utils::default_branch_name;
+use codex_login::default_client::get_codex_user_agent;
 use owo_colors::OwoColorize;
 use owo_colors::Stream;
 use std::cmp::Ordering;
@@ -38,6 +41,7 @@ struct BackendContext {
 }
 
 async fn init_backend(user_agent_suffix: &str) -> anyhow::Result<BackendContext> {
+    #[cfg(debug_assertions)]
     let use_mock = matches!(
         std::env::var("CODEX_CLOUD_TASKS_MODE").ok().as_deref(),
         Some("mock") | Some("MOCK")
@@ -47,14 +51,15 @@ async fn init_backend(user_agent_suffix: &str) -> anyhow::Result<BackendContext>
 
     set_user_agent_suffix(user_agent_suffix);
 
+    #[cfg(debug_assertions)]
     if use_mock {
         return Ok(BackendContext {
-            backend: Arc::new(codex_cloud_tasks_client::MockClient),
+            backend: Arc::new(codex_cloud_tasks_mock_client::MockClient),
             base_url,
         });
     }
 
-    let ua = codex_core::default_client::get_codex_user_agent();
+    let ua = get_codex_user_agent();
     let mut http = codex_cloud_tasks_client::HttpClient::new(base_url.clone())?.with_user_agent(ua);
     let style = if base_url.contains("/backend-api") {
         "wham"
@@ -119,11 +124,11 @@ struct RealGitInfo;
 #[async_trait::async_trait]
 impl GitInfoProvider for RealGitInfo {
     async fn default_branch_name(&self, path: &std::path::Path) -> Option<String> {
-        codex_core::git_info::default_branch_name(path).await
+        default_branch_name(path).await
     }
 
     async fn current_branch_name(&self, path: &std::path::Path) -> Option<String> {
-        codex_core::git_info::current_branch_name(path).await
+        current_branch_name(path).await
     }
 }
 
@@ -166,13 +171,12 @@ async fn run_exec_command(args: crate::cli::ExecCommand) -> anyhow::Result<()> {
     let prompt = resolve_query_input(query)?;
     let env_id = resolve_environment_id(&ctx, &environment).await?;
     let git_ref = resolve_git_ref(branch.as_ref()).await;
-    let attempts = i32::try_from(attempts).unwrap_or(1);
     let created = codex_cloud_tasks_client::CloudBackend::create_task(
         &*ctx.backend,
         &env_id,
         &prompt,
         &git_ref,
-        false,
+        /*qa_mode*/ false,
         attempts,
     )
     .await?;
@@ -277,6 +281,7 @@ fn parse_task_id(raw: &str) -> anyhow::Result<codex_cloud_tasks_client::TaskId> 
 #[derive(Clone, Debug)]
 struct AttemptDiffData {
     placement: Option<i64>,
+    created_at: Option<chrono::DateTime<Utc>>,
     diff: String,
 }
 
@@ -285,27 +290,12 @@ fn cmp_attempt(lhs: &AttemptDiffData, rhs: &AttemptDiffData) -> Ordering {
         (Some(a), Some(b)) => a.cmp(&b),
         (Some(_), None) => Ordering::Less,
         (None, Some(_)) => Ordering::Greater,
-        (None, None) => Ordering::Equal,
-    }
-}
-
-fn parse_attempt_placement_str(value: Option<String>) -> Option<i64> {
-    value.and_then(|raw| raw.parse::<i64>().ok())
-}
-
-fn parse_attempt_placement_i32(value: Option<i32>) -> Option<i64> {
-    value.map(i64::from)
-}
-
-async fn get_task_diff_optional(
-    backend: &dyn codex_cloud_tasks_client::CloudBackend,
-    task_id: &codex_cloud_tasks_client::TaskId,
-) -> anyhow::Result<Option<String>> {
-    let diff = codex_cloud_tasks_client::CloudBackend::get_task_diff(backend, task_id).await?;
-    if diff.trim().is_empty() {
-        Ok(None)
-    } else {
-        Ok(Some(diff))
+        (None, None) => match (lhs.created_at, rhs.created_at) {
+            (Some(a), Some(b)) => a.cmp(&b),
+            (Some(_), None) => Ordering::Less,
+            (None, Some(_)) => Ordering::Greater,
+            (None, None) => Ordering::Equal,
+        },
     }
 }
 
@@ -313,24 +303,31 @@ async fn collect_attempt_diffs(
     backend: &dyn codex_cloud_tasks_client::CloudBackend,
     task_id: &codex_cloud_tasks_client::TaskId,
 ) -> anyhow::Result<Vec<AttemptDiffData>> {
-    let text = codex_cloud_tasks_client::CloudBackend::get_task_text(backend, task_id).await?;
+    let text =
+        codex_cloud_tasks_client::CloudBackend::get_task_text(backend, task_id.clone()).await?;
     let mut attempts = Vec::new();
-    if let Some(diff) = get_task_diff_optional(backend, task_id).await? {
+    if let Some(diff) =
+        codex_cloud_tasks_client::CloudBackend::get_task_diff(backend, task_id.clone()).await?
+    {
         attempts.push(AttemptDiffData {
-            placement: parse_attempt_placement_i32(text.attempt_placement),
+            placement: text.attempt_placement,
+            created_at: None,
             diff,
         });
     }
     if let Some(turn_id) = text.turn_id {
         let siblings = codex_cloud_tasks_client::CloudBackend::list_sibling_attempts(
-            backend, task_id, &turn_id,
+            backend,
+            task_id.clone(),
+            turn_id,
         )
         .await?;
         for sibling in siblings {
-            if !sibling.diff.is_empty() {
+            if let Some(diff) = sibling.diff {
                 attempts.push(AttemptDiffData {
-                    placement: parse_attempt_placement_str(sibling.attempt_placement),
-                    diff: sibling.diff,
+                    placement: sibling.attempt_placement,
+                    created_at: sibling.created_at,
+                    diff,
                 });
             }
         }
@@ -369,7 +366,6 @@ fn task_status_label(status: &TaskStatus) -> &'static str {
     match status {
         TaskStatus::Pending => "PENDING",
         TaskStatus::Ready => "READY",
-        TaskStatus::Running => "RUNNING",
         TaskStatus::Applied => "APPLIED",
         TaskStatus::Error => "ERROR",
     }
@@ -428,9 +424,6 @@ fn format_task_status_lines(
                 .to_string(),
             TaskStatus::Pending => status
                 .if_supports_color(Stream::Stdout, |t| t.magenta())
-                .to_string(),
-            TaskStatus::Running => status
-                .if_supports_color(Stream::Stdout, |t| t.cyan())
                 .to_string(),
             TaskStatus::Applied => status
                 .if_supports_color(Stream::Stdout, |t| t.blue())
@@ -503,33 +496,11 @@ fn format_task_list_lines(
     lines
 }
 
-async fn run_list_command(args: crate::cli::ListCommand) -> anyhow::Result<()> {
-    let ctx = init_backend("codex_cloud_tasks_list").await?;
-    let page = codex_cloud_tasks_client::CloudBackend::list_tasks(
-        &*ctx.backend,
-        args.environment.as_deref(),
-        Some(args.limit),
-        None,
-    )
-    .await?;
-
-    let now = Utc::now();
-    let colorize = supports_color::on(SupportStream::Stdout).is_some();
-    let base_url = util::normalize_base_url(
-        &std::env::var("CODEX_CLOUD_TASKS_BASE_URL")
-            .unwrap_or_else(|_| "https://chatgpt.com/backend-api".to_string()),
-    );
-
-    for line in format_task_list_lines(&page.tasks, &base_url, now, colorize) {
-        println!("{line}");
-    }
-    Ok(())
-}
-
 async fn run_status_command(args: crate::cli::StatusCommand) -> anyhow::Result<()> {
     let ctx = init_backend("codex_cloud_tasks_status").await?;
     let task_id = parse_task_id(&args.task_id)?;
-    let summary = fetch_task_summary(&*ctx.backend, &task_id).await?;
+    let summary =
+        codex_cloud_tasks_client::CloudBackend::get_task_summary(&*ctx.backend, task_id).await?;
     let now = Utc::now();
     let colorize = supports_color::on(SupportStream::Stdout).is_some();
     for line in format_task_status_lines(&summary, now, colorize) {
@@ -541,16 +512,71 @@ async fn run_status_command(args: crate::cli::StatusCommand) -> anyhow::Result<(
     Ok(())
 }
 
-async fn fetch_task_summary(
-    backend: &dyn codex_cloud_tasks_client::CloudBackend,
-    task_id: &codex_cloud_tasks_client::TaskId,
-) -> anyhow::Result<codex_cloud_tasks_client::TaskSummary> {
-    let page =
-        codex_cloud_tasks_client::CloudBackend::list_tasks(backend, None, Some(100), None).await?;
-    page.tasks
-        .into_iter()
-        .find(|task| task.id == *task_id)
-        .ok_or_else(|| anyhow!("task {} not found", task_id.0))
+async fn run_list_command(args: crate::cli::ListCommand) -> anyhow::Result<()> {
+    let ctx = init_backend("codex_cloud_tasks_list").await?;
+    let env_filter = if let Some(env) = args.environment {
+        Some(resolve_environment_id(&ctx, &env).await?)
+    } else {
+        None
+    };
+    let page = codex_cloud_tasks_client::CloudBackend::list_tasks(
+        &*ctx.backend,
+        env_filter.as_deref(),
+        Some(args.limit),
+        args.cursor.as_deref(),
+    )
+    .await?;
+    if args.json {
+        let tasks: Vec<_> = page
+            .tasks
+            .iter()
+            .map(|task| {
+                serde_json::json!({
+                    "id": task.id.0,
+                    "url": util::task_url(&ctx.base_url, &task.id.0),
+                    "title": task.title,
+                    "status": task.status,
+                    "updated_at": task.updated_at,
+                    "environment_id": task.environment_id,
+                    "environment_label": task.environment_label,
+                    "summary": {
+                        "files_changed": task.summary.files_changed,
+                        "lines_added": task.summary.lines_added,
+                        "lines_removed": task.summary.lines_removed,
+                    },
+                    "is_review": task.is_review,
+                    "attempt_total": task.attempt_total,
+                })
+            })
+            .collect();
+        let payload = serde_json::json!({
+            "tasks": tasks,
+            "cursor": page.cursor,
+        });
+        println!("{}", serde_json::to_string_pretty(&payload)?);
+        return Ok(());
+    }
+    if page.tasks.is_empty() {
+        println!("No tasks found.");
+        return Ok(());
+    }
+    let now = Utc::now();
+    let colorize = supports_color::on(SupportStream::Stdout).is_some();
+    for line in format_task_list_lines(&page.tasks, &ctx.base_url, now, colorize) {
+        println!("{line}");
+    }
+    if let Some(cursor) = page.cursor {
+        let command = format!("codex cloud list --cursor='{cursor}'");
+        if colorize {
+            println!(
+                "\nTo fetch the next page, run {}",
+                command.if_supports_color(Stream::Stdout, |text| text.cyan())
+            );
+        } else {
+            println!("\nTo fetch the next page, run {command}");
+        }
+    }
+    Ok(())
 }
 
 async fn run_diff_command(args: crate::cli::DiffCommand) -> anyhow::Result<()> {
@@ -569,7 +595,7 @@ async fn run_apply_command(args: crate::cli::ApplyCommand) -> anyhow::Result<()>
     let selected = select_attempt(&attempts, args.attempt)?;
     let outcome = codex_cloud_tasks_client::CloudBackend::apply_task(
         &*ctx.backend,
-        &task_id,
+        task_id,
         Some(selected.diff.clone()),
     )
     .await?;
@@ -620,7 +646,7 @@ fn spawn_preflight(
         } = job;
         let result = codex_cloud_tasks_client::CloudBackend::apply_task_preflight(
             &*backend,
-            &task_id,
+            task_id.clone(),
             diff_override,
         )
         .await;
@@ -679,9 +705,12 @@ fn spawn_apply(
             task_id,
             diff_override,
         } = job;
-        let result =
-            codex_cloud_tasks_client::CloudBackend::apply_task(&*backend, &task_id, diff_override)
-                .await;
+        let result = codex_cloud_tasks_client::CloudBackend::apply_task(
+            &*backend,
+            task_id.clone(),
+            diff_override,
+        )
+        .await;
 
         let event = match result {
             Ok(outcome) => app::AppEvent::ApplyFinished {
@@ -776,7 +805,7 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
     append_error_log(format!(
         "startup: wham_force_internal={} ua={}",
         force_internal,
-        codex_core::default_client::get_codex_user_agent()
+        get_codex_user_agent()
     ));
     // Non-blocking initial load so the in-box spinner can animate
     app.status = "Loading tasks…".to_string();
@@ -803,7 +832,7 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
         let backend = Arc::clone(&backend);
         let tx = tx.clone();
         tokio::spawn(async move {
-            let res = app::load_tasks(&*backend, None).await;
+            let res = app::load_tasks(&*backend, /*env*/ None).await;
             let _ = tx.send(app::AppEvent::TasksLoaded {
                 env: None,
                 result: res,
@@ -837,7 +866,10 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
             let headers = util::build_chatgpt_headers().await;
 
             // Run autodetect. If it fails, we keep using "All".
-            let res = crate::env_detect::autodetect_environment_id(&base_url, &headers, None).await;
+            let res = crate::env_detect::autodetect_environment_id(
+                &base_url, &headers, /*desired_label*/ None,
+            )
+            .await;
             let _ = tx.send(app::AppEvent::EnvironmentAutodetected(res));
         });
     }
@@ -901,7 +933,8 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                 if let Some(page) = app.new_task.as_mut() {
                     if page.composer.flush_paste_burst_if_due() { needs_redraw = true; }
                     if page.composer.is_in_paste_burst() {
-                        let _ = frame_tx.send(Instant::now() + codex_tui::ComposerInput::recommended_flush_delay());
+                        let _ = frame_tx
+                            .send(Instant::now() + codex_tui::ComposerInput::recommended_flush_delay());
                     }
                 }
                 // Keep spinner pulsing only while loading.
@@ -1081,7 +1114,7 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                 ov.base_can_apply = true;
                                 ov.apply_selection_to_fields();
                             } else {
-                                let mut overlay = app::DiffOverlay::new(id.clone(), title, None);
+                                let mut overlay = app::DiffOverlay::new(id.clone(), title, /*attempt_total_hint*/ None);
                                 {
                                     let base = overlay.base_attempt_mut();
                                     base.diff_lines = diff_lines.clone();
@@ -1136,8 +1169,8 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                         tokio::spawn(async move {
                                             match codex_cloud_tasks_client::CloudBackend::list_sibling_attempts(
                                                 &*backend,
-                                                &task_id,
-                                                &turn_id,
+                                                task_id.clone(),
+                                                turn_id,
                                             )
                                             .await
                                             {
@@ -1154,7 +1187,7 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                         });
                                     }
                             } else {
-                                let mut overlay = app::DiffOverlay::new(id.clone(), title, None);
+                                let mut overlay = app::DiffOverlay::new(id.clone(), title, /*attempt_total_hint*/ None);
                                 {
                                     let base = overlay.base_attempt_mut();
                                     base.text_lines = conv.clone();
@@ -1189,20 +1222,18 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                     }
                                     let diff_lines = attempt
                                         .diff
-                                        .lines()
-                                        .map(str::to_string)
-                                        .collect();
-                                    let text_lines = conversation_lines(None, &attempt.messages);
+                                        .as_ref()
+                                        .map(|d| d.lines().map(str::to_string).collect())
+                                        .unwrap_or_default();
+                                    let text_lines = conversation_lines(/*prompt*/ None, &attempt.messages);
                                     ov.attempts.push(app::AttemptView {
                                         turn_id: Some(attempt.turn_id.clone()),
                                         status: attempt.status,
-                                        attempt_placement: parse_attempt_placement_str(
-                                            attempt.attempt_placement,
-                                        ),
+                                        attempt_placement: attempt.attempt_placement,
                                         diff_lines,
                                         text_lines,
                                         prompt: None,
-                                        diff_raw: Some(attempt.diff.clone()),
+                                        diff_raw: attempt.diff.clone(),
                                     });
                                 }
                                 if ov.attempts.len() > 1 {
@@ -1241,7 +1272,7 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                 ov.current_view = app::DetailView::Prompt;
                                 ov.apply_selection_to_fields();
                             } else {
-                                let mut overlay = app::DiffOverlay::new(id.clone(), title, None);
+                                let mut overlay = app::DiffOverlay::new(id.clone(), title, /*attempt_total_hint*/ None);
                                 {
                                     let base = overlay.base_attempt_mut();
                                     base.text_lines = pretty;
@@ -1464,7 +1495,9 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                 _ => {
                                     if page.submitting {
                                         // Ignore input while submitting
-                                    } else if let codex_tui::ComposerAction::Submitted(text) = page.composer.input(key) {
+                                    } else if let codex_tui::ComposerAction::Submitted(text) =
+                                        page.composer.input(key)
+                                    {
                                             // Submit only if we have an env id
                                             if let Some(env) = page.env_id.clone() {
                                                 append_error_log(format!(
@@ -1478,10 +1511,9 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                                 let backend = Arc::clone(&backend);
                                                 let best_of_n = page.best_of_n;
                                                 tokio::spawn(async move {
-                                                    let git_ref = resolve_git_ref(None).await;
+                                                    let git_ref = resolve_git_ref(/*branch_override*/ None).await;
 
-                                                    let best_of_n = i32::try_from(best_of_n).unwrap_or(1);
-                                                    let result = codex_cloud_tasks_client::CloudBackend::create_task(&*backend, &env, &text, &git_ref, false, best_of_n).await;
+                                                    let result = codex_cloud_tasks_client::CloudBackend::create_task(&*backend, &env, &text, &git_ref, /*qa_mode*/ false, best_of_n).await;
                                                     let evt = match result {
                                                         Ok(ok) => app::AppEvent::NewTaskSubmitted(Ok(ok)),
                                                         Err(e) => app::AppEvent::NewTaskSubmitted(Err(format!("{e}"))),
@@ -1495,7 +1527,10 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                     needs_redraw = true;
                                     // If paste‑burst is active, schedule a micro‑flush frame.
                                     if page.composer.is_in_paste_burst() {
-                                        let _ = frame_tx.send(Instant::now() + codex_tui::ComposerInput::recommended_flush_delay());
+                                        let _ = frame_tx.send(
+                                            Instant::now()
+                                                + codex_tui::ComposerInput::recommended_flush_delay(),
+                                        );
                                     }
                                     // Always schedule an immediate redraw for key edits in the composer.
                                     let _ = frame_tx.send(Instant::now());
@@ -1561,7 +1596,7 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                         let total = ov.attempt_display_total();
                                         let current = ov.selected_attempt + 1;
                                         app.status = format!("Viewing attempt {current} of {total}");
-                                        ov.sd.to_top();
+                                        ov.sd.scroll_to_top();
                                         needs_redraw = true;
                                     }
                             };
@@ -1637,7 +1672,7 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                         let has_diff = ov.current_attempt().is_some_and(app::AttemptView::has_diff) || ov.base_can_apply;
                                         if has_text && has_diff {
                                             ov.set_view(app::DetailView::Prompt);
-                                            ov.sd.to_top();
+                                            ov.sd.scroll_to_top();
                                             needs_redraw = true;
                                         }
                                     }
@@ -1648,7 +1683,7 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                         let has_diff = ov.current_attempt().is_some_and(app::AttemptView::has_diff) || ov.base_can_apply;
                                         if has_text && has_diff {
                                             ov.set_view(app::DetailView::Diff);
-                                            ov.sd.to_top();
+                                            ov.sd.scroll_to_top();
                                             needs_redraw = true;
                                         }
                                     }
@@ -1664,11 +1699,11 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                     needs_redraw = true;
                                 }
                                 KeyCode::Down | KeyCode::Char('j') => {
-                                    if let Some(ov) = &mut app.diff_overlay { ov.sd.scroll_by(1); }
+                                    if let Some(ov) = &mut app.diff_overlay { ov.sd.scroll_by(/*delta*/ 1); }
                                     needs_redraw = true;
                                 }
                                 KeyCode::Up | KeyCode::Char('k') => {
-                                    if let Some(ov) = &mut app.diff_overlay { ov.sd.scroll_by(-1); }
+                                    if let Some(ov) = &mut app.diff_overlay { ov.sd.scroll_by(/*delta*/ -1); }
                                     needs_redraw = true;
                                 }
                                 KeyCode::PageDown | KeyCode::Char(' ') => {
@@ -1679,8 +1714,8 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                     if let Some(ov) = &mut app.diff_overlay { let step = ov.sd.state.viewport_h.saturating_sub(1) as i16; ov.sd.page_by(-step); }
                                     needs_redraw = true;
                                 }
-                                KeyCode::Home => { if let Some(ov) = &mut app.diff_overlay { ov.sd.to_top(); } needs_redraw = true; }
-                                KeyCode::End  => { if let Some(ov) = &mut app.diff_overlay { ov.sd.to_bottom(); } needs_redraw = true; }
+                                KeyCode::Home => { if let Some(ov) = &mut app.diff_overlay { ov.sd.scroll_to_top(); } needs_redraw = true; }
+                                KeyCode::End  => { if let Some(ov) = &mut app.diff_overlay { ov.sd.scroll_to_bottom(); } needs_redraw = true; }
                                 _ => {}
                             }
                         } else if app.env_modal.is_some() {
@@ -1700,7 +1735,7 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                 KeyCode::PageUp => { if let Some(m) = app.env_modal.as_mut() { let step = 10usize; m.selected = m.selected.saturating_sub(step); } needs_redraw = true; }
                                 KeyCode::Char('n') => {
                                     if app.env_filter.is_none() {
-                                        app.new_task = Some(crate::new_task::NewTaskPage::new(None, app.best_of_n));
+                                        app.new_task = Some(crate::new_task::NewTaskPage::new(/*env_id*/ None, app.best_of_n));
                                     } else {
                                         app.new_task = Some(crate::new_task::NewTaskPage::new(app.env_filter.clone(), app.best_of_n));
                                     }
@@ -1821,8 +1856,7 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                         let overlay = app::DiffOverlay::new(
                                             task.id.clone(),
                                             task.title.clone(),
-                                            task.attempt_total
-                                                .and_then(|value| usize::try_from(value).ok()),
+                                            task.attempt_total,
                                         );
                                         app.diff_overlay = Some(overlay);
                                         needs_redraw = true;
@@ -1835,12 +1869,12 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                             let diff_id = id.clone();
                                             let diff_title = title.clone();
                                             tokio::spawn(async move {
-                                                match get_task_diff_optional(&*backend, &diff_id).await {
+                                                match codex_cloud_tasks_client::CloudBackend::get_task_diff(&*backend, diff_id.clone()).await {
                                                     Ok(Some(diff)) => {
                                                         let _ = tx.send(app::AppEvent::DetailsDiffLoaded { id: diff_id, title: diff_title, diff });
                                                     }
                                                     Ok(None) => {
-                                                        match codex_cloud_tasks_client::CloudBackend::get_task_text(&*backend, &diff_id).await {
+                                                        match codex_cloud_tasks_client::CloudBackend::get_task_text(&*backend, diff_id.clone()).await {
                                                             Ok(text) => {
                                                                 let evt = app::AppEvent::DetailsMessagesLoaded {
                                                                     id: diff_id,
@@ -1849,7 +1883,7 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                                                     prompt: text.prompt,
                                                                     turn_id: text.turn_id,
                                                                     sibling_turn_ids: text.sibling_turn_ids,
-                                                                    attempt_placement: parse_attempt_placement_i32(text.attempt_placement),
+                                                                    attempt_placement: text.attempt_placement,
                                                                     attempt_status: text.attempt_status,
                                                                 };
                                                                 let _ = tx.send(evt);
@@ -1861,7 +1895,7 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                                     }
                                                     Err(e) => {
                                                         append_error_log(format!("get_task_diff failed for {}: {e}", diff_id.0));
-                                                        match codex_cloud_tasks_client::CloudBackend::get_task_text(&*backend, &diff_id).await {
+                                                        match codex_cloud_tasks_client::CloudBackend::get_task_text(&*backend, diff_id.clone()).await {
                                                             Ok(text) => {
                                                                 let evt = app::AppEvent::DetailsMessagesLoaded {
                                                                     id: diff_id,
@@ -1870,7 +1904,7 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                                                     prompt: text.prompt,
                                                                     turn_id: text.turn_id,
                                                                     sibling_turn_ids: text.sibling_turn_ids,
-                                                                    attempt_placement: parse_attempt_placement_i32(text.attempt_placement),
+                                                                    attempt_placement: text.attempt_placement,
                                                                     attempt_status: text.attempt_status,
                                                                 };
                                                                 let _ = tx.send(evt);
@@ -1890,7 +1924,7 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                             let msg_id = id;
                                             let msg_title = title;
                                             tokio::spawn(async move {
-                                                if let Ok(text) = codex_cloud_tasks_client::CloudBackend::get_task_text(&*backend, &msg_id).await {
+                                                if let Ok(text) = codex_cloud_tasks_client::CloudBackend::get_task_text(&*backend, msg_id.clone()).await {
                                                     let evt = app::AppEvent::DetailsMessagesLoaded {
                                                         id: msg_id,
                                                         title: msg_title,
@@ -1898,7 +1932,7 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                                         prompt: text.prompt,
                                                         turn_id: text.turn_id,
                                                         sibling_turn_ids: text.sibling_turn_ids,
-                                                        attempt_placement: parse_attempt_placement_i32(text.attempt_placement),
+                                                        attempt_placement: text.attempt_placement,
                                                         attempt_status: text.attempt_status,
                                                     };
                                                     let _ = tx.send(evt);
@@ -1917,7 +1951,7 @@ pub async fn run_main(cli: Cli, _codex_linux_sandbox_exe: Option<PathBuf>) -> an
                                     }
 
                                     if let Some(task) = app.tasks.get(app.selected).cloned() {
-                                        match get_task_diff_optional(&*backend, &task.id).await {
+                                        match codex_cloud_tasks_client::CloudBackend::get_task_diff(&*backend, task.id.clone()).await {
                                             Ok(Some(diff)) => {
                                                 let diff_override = Some(diff.clone());
                                                 let task_id = task.id.clone();
@@ -2101,10 +2135,10 @@ mod tests {
     use super::*;
     use crate::resolve_git_ref_with_git_info;
     use codex_cloud_tasks_client::DiffSummary;
-    use codex_cloud_tasks_client::MockClient;
     use codex_cloud_tasks_client::TaskId;
     use codex_cloud_tasks_client::TaskStatus;
     use codex_cloud_tasks_client::TaskSummary;
+    use codex_cloud_tasks_mock_client::MockClient;
     use codex_tui::ComposerAction;
     use codex_tui::ComposerInput;
     use crossterm::event::KeyCode;
@@ -2143,7 +2177,7 @@ mod tests {
     async fn branch_override_is_used_when_provided() {
         let git_ref = resolve_git_ref_with_git_info(
             Some(&"feature/override".to_string()),
-            &StubGitInfo::new(None, None),
+            &StubGitInfo::new(/*default_branch*/ None, /*current_branch*/ None),
         )
         .await;
 
@@ -2154,7 +2188,7 @@ mod tests {
     async fn trims_override_whitespace() {
         let git_ref = resolve_git_ref_with_git_info(
             Some(&"  feature/spaces  ".to_string()),
-            &StubGitInfo::new(None, None),
+            &StubGitInfo::new(/*default_branch*/ None, /*current_branch*/ None),
         )
         .await;
 
@@ -2164,7 +2198,7 @@ mod tests {
     #[tokio::test]
     async fn prefers_current_branch_when_available() {
         let git_ref = resolve_git_ref_with_git_info(
-            None,
+            /*branch_override*/ None,
             &StubGitInfo::new(
                 Some("default-main".to_string()),
                 Some("feature/current".to_string()),
@@ -2178,8 +2212,8 @@ mod tests {
     #[tokio::test]
     async fn falls_back_to_current_branch_when_default_is_missing() {
         let git_ref = resolve_git_ref_with_git_info(
-            None,
-            &StubGitInfo::new(None, Some("develop".to_string())),
+            /*branch_override*/ None,
+            &StubGitInfo::new(/*default_branch*/ None, Some("develop".to_string())),
         )
         .await;
 
@@ -2188,7 +2222,11 @@ mod tests {
 
     #[tokio::test]
     async fn falls_back_to_main_when_no_git_info_is_available() {
-        let git_ref = resolve_git_ref_with_git_info(None, &StubGitInfo::new(None, None)).await;
+        let git_ref = resolve_git_ref_with_git_info(
+            /*branch_override*/ None,
+            &StubGitInfo::new(/*default_branch*/ None, /*current_branch*/ None),
+        )
+        .await;
 
         assert_eq!(git_ref, "main");
     }
@@ -2211,7 +2249,7 @@ mod tests {
             is_review: false,
             attempt_total: None,
         };
-        let lines = format_task_status_lines(&task, now, false);
+        let lines = format_task_status_lines(&task, now, /*colorize*/ false);
         assert_eq!(
             lines,
             vec![
@@ -2236,7 +2274,7 @@ mod tests {
             is_review: false,
             attempt_total: Some(1),
         };
-        let lines = format_task_status_lines(&task, now, false);
+        let lines = format_task_status_lines(&task, now, /*colorize*/ false);
         assert_eq!(
             lines,
             vec![
@@ -2278,7 +2316,12 @@ mod tests {
                 attempt_total: Some(1),
             },
         ];
-        let lines = format_task_list_lines(&tasks, "https://chatgpt.com/backend-api", now, false);
+        let lines = format_task_list_lines(
+            &tasks,
+            "https://chatgpt.com/backend-api",
+            now,
+            /*colorize*/ false,
+        );
         assert_eq!(
             lines,
             vec![
@@ -2313,6 +2356,7 @@ mod tests {
     fn select_attempt_validates_bounds() {
         let attempts = vec![AttemptDiffData {
             placement: Some(0),
+            created_at: None,
             diff: "diff --git a/file b/file\n".to_string(),
         }];
         let first = select_attempt(&attempts, Some(1)).expect("attempt 1");

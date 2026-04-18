@@ -7,8 +7,6 @@ use arc_swap::ArcSwap;
 
 use crate::config_loader::ConfigLayerStack;
 use crate::config_loader::ConfigLayerStackOrdering;
-use crate::is_dangerous_command::command_might_be_dangerous;
-use crate::is_safe_command::is_known_safe_command;
 use codex_execpolicy::AmendError;
 use codex_execpolicy::Decision;
 use codex_execpolicy::Error as ExecPolicyRuleError;
@@ -25,16 +23,18 @@ use codex_protocol::permissions::FileSystemSandboxKind;
 use codex_protocol::permissions::FileSystemSandboxPolicy;
 use codex_protocol::protocol::AskForApproval;
 use codex_protocol::protocol::SandboxPolicy;
+use codex_shell_command::is_dangerous_command::command_might_be_dangerous;
+use codex_shell_command::is_safe_command::is_known_safe_command;
 use thiserror::Error;
 use tokio::fs;
 use tokio::task::spawn_blocking;
 use tracing::instrument;
 
-use crate::bash::parse_shell_lc_plain_commands;
-use crate::bash::parse_shell_lc_single_command_prefix;
 use crate::config::Config;
 use crate::sandboxing::SandboxPermissions;
 use crate::tools::sandboxing::ExecApprovalRequirement;
+use codex_shell_command::bash::parse_shell_lc_plain_commands;
+use codex_shell_command::bash::parse_shell_lc_single_command_prefix;
 use codex_utils_absolute_path::AbsolutePathBuf;
 use shlex::try_join as shlex_try_join;
 
@@ -296,9 +296,19 @@ impl ExecPolicyManager {
                 }
             }
             Decision::Allow => ExecApprovalRequirement::Skip {
-                // Bypass sandbox if execpolicy allows the command
-                bypass_sandbox: evaluation.matched_rules.iter().any(|rule_match| {
-                    is_policy_match(rule_match) && rule_match.decision() == Decision::Allow
+                // Bypass sandbox only when every parsed command segment is
+                // explicitly allowed by execpolicy.
+                bypass_sandbox: commands.iter().all(|command| {
+                    exec_policy
+                        .matches_for_command_with_options(
+                            command,
+                            /*heuristics_fallback*/ None,
+                            &match_options,
+                        )
+                        .iter()
+                        .any(|rule_match| {
+                            is_policy_match(rule_match) && rule_match.decision() == Decision::Allow
+                        })
                 }),
                 proposed_execpolicy_amendment: if auto_amendment_allowed {
                     try_derive_execpolicy_amendment_for_allow_rules(&evaluation.matched_rules)
@@ -494,8 +504,7 @@ pub async fn load_exec_policy(config_stack: &ConfigLayerStack) -> Result<Policy,
         /*include_disabled*/ false,
     ) {
         if let Some(config_folder) = layer.config_folder() {
-            #[expect(clippy::expect_used)]
-            let policy_dir = config_folder.join(RULES_DIR_NAME).expect("safe join");
+            let policy_dir = config_folder.join(RULES_DIR_NAME);
             let layer_policy_paths = collect_policy_files(&policy_dir).await?;
             policy_paths.extend(layer_policy_paths);
         }
@@ -549,7 +558,7 @@ pub fn render_decision_for_unmatched_command(
 
     // On Windows, ReadOnly sandbox is not a real sandbox, so special-case it
     // here.
-    let runtime_sandbox_provides_safety =
+    let environment_lacks_sandbox_protections =
         cfg!(windows) && matches!(sandbox_policy, SandboxPolicy::ReadOnly { .. });
 
     // If the command is flagged as dangerous or we have no sandbox protection,
@@ -558,9 +567,20 @@ pub fn render_decision_for_unmatched_command(
     // We prefer to prompt the user rather than outright forbid the command,
     // but if the user has explicitly disabled prompts, we must
     // forbid the command.
-    if command_might_be_dangerous(command) || runtime_sandbox_provides_safety {
+    if command_might_be_dangerous(command) || environment_lacks_sandbox_protections {
         return match approval_policy {
-            AskForApproval::Never => Decision::Forbidden,
+            AskForApproval::Never => {
+                let sandbox_is_explicitly_disabled = matches!(
+                    sandbox_policy,
+                    SandboxPolicy::DangerFullAccess | SandboxPolicy::ExternalSandbox { .. }
+                );
+                if sandbox_is_explicitly_disabled {
+                    // If the sandbox is explicitly disabled, we should allow the command to run
+                    Decision::Allow
+                } else {
+                    Decision::Forbidden
+                }
+            }
             AskForApproval::OnFailure
             | AskForApproval::OnRequest
             | AskForApproval::UnlessTrusted

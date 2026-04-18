@@ -524,6 +524,21 @@
       ],
       "type": "object"
     },
+    "ExperimentalFeatureEnablementSetParams": {
+      "properties": {
+        "enablement": {
+          "additionalProperties": {
+            "type": "boolean"
+          },
+          "description": "Process-wide runtime feature enablement keyed by canonical feature name.\n\nOnly named features are updated. Omitted features are left unchanged. Send an empty map for a no-op.",
+          "type": "object"
+        }
+      },
+      "required": [
+        "enablement"
+      ],
+      "type": "object"
+    },
     "ExperimentalFeatureListParams": {
       "properties": {
         "cursor": {
@@ -590,6 +605,16 @@
         "description": {
           "type": "string"
         },
+        "details": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/MigrationDetails"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "itemType": {
           "$ref": "#/definitions/ExternalAgentConfigMigrationItemType"
         }
@@ -605,6 +630,7 @@
         "AGENTS_MD",
         "CONFIG",
         "SKILLS",
+        "PLUGINS",
         "MCP_SERVER_CONFIG"
       ],
       "type": "string"
@@ -629,6 +655,15 @@
         "reason": {
           "type": [
             "string",
+            "null"
+          ]
+        },
+        "tags": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": [
+            "object",
             "null"
           ]
         },
@@ -778,6 +813,41 @@
       },
       "required": [
         "path"
+      ],
+      "type": "object"
+    },
+    "FsUnwatchParams": {
+      "description": "Stop filesystem watch notifications for a prior `fs/watch`.",
+      "properties": {
+        "watchId": {
+          "description": "Watch identifier previously provided to `fs/watch`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "watchId"
+      ],
+      "type": "object"
+    },
+    "FsWatchParams": {
+      "description": "Start filesystem watch notifications for an absolute path.",
+      "properties": {
+        "path": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/AbsolutePathBuf"
+            }
+          ],
+          "description": "Absolute file or directory path to watch."
+        },
+        "watchId": {
+          "description": "Connection-scoped watch identifier used for `fs/unwatch` and `fs/changed`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "watchId"
       ],
       "type": "object"
     },
@@ -997,6 +1067,17 @@
             "null"
           ]
         },
+        "detail": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/McpServerStatusDetail"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Controls how much MCP inventory data to fetch for each server. Defaults to `Full` when omitted."
+        },
         "limit": {
           "description": "Optional page size; defaults to a server-defined value.",
           "format": "uint32",
@@ -1112,6 +1193,22 @@
           "type": "object"
         },
         {
+          "properties": {
+            "type": {
+              "enum": [
+                "chatgptDeviceCode"
+              ],
+              "title": "ChatgptDeviceCodeLoginAccountParamsType",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "title": "ChatgptDeviceCodeLoginAccountParams",
+          "type": "object"
+        },
+        {
           "description": "[UNSTABLE] FOR OPENAI INTERNAL USE ONLY - DO NOT USE. The access token must contain the same scopes that Codex-managed ChatGPT auth tokens have.",
           "properties": {
             "accessToken": {
@@ -1147,6 +1244,51 @@
         }
       ]
     },
+    "MarketplaceAddParams": {
+      "properties": {
+        "refName": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source": {
+          "type": "string"
+        },
+        "sparsePaths": {
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "source"
+      ],
+      "type": "object"
+    },
+    "McpResourceReadParams": {
+      "properties": {
+        "server": {
+          "type": "string"
+        },
+        "threadId": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "server",
+        "threadId",
+        "uri"
+      ],
+      "type": "object"
+    },
     "McpServerOauthLoginParams": {
       "properties": {
         "name": {
@@ -1171,6 +1313,34 @@
       },
       "required": [
         "name"
+      ],
+      "type": "object"
+    },
+    "McpServerStatusDetail": {
+      "enum": [
+        "full",
+        "toolsAndAuthOnly"
+      ],
+      "type": "string"
+    },
+    "McpServerToolCallParams": {
+      "properties": {
+        "_meta": true,
+        "arguments": true,
+        "server": {
+          "type": "string"
+        },
+        "threadId": {
+          "type": "string"
+        },
+        "tool": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "server",
+        "threadId",
+        "tool"
       ],
       "type": "object"
     },
@@ -1199,6 +1369,20 @@
           "type": "string"
         }
       ]
+    },
+    "MigrationDetails": {
+      "properties": {
+        "plugins": {
+          "items": {
+            "$ref": "#/definitions/PluginsMigration"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "plugins"
+      ],
+      "type": "object"
     },
     "ModeKind": {
       "description": "Initial collaboration mode to use when the TUI starts.",
@@ -1253,10 +1437,10 @@
     },
     "PluginInstallParams": {
       "properties": {
-// STASHED:         "forceRemoteSync": {
-// STASHED:           "description": "When true, apply the remote plugin change before the local install flow.",
-// STASHED:           "type": "boolean"
-// STASHED:         },
+        "forceRemoteSync": {
+          "description": "When true, apply the remote plugin change before the local install flow.",
+          "type": "boolean"
+        },
         "marketplacePath": {
           "$ref": "#/definitions/AbsolutePathBuf"
         },
@@ -1319,6 +1503,24 @@
       ],
       "type": "object"
     },
+    "PluginsMigration": {
+      "properties": {
+        "marketplaceName": {
+          "type": "string"
+        },
+        "pluginNames": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "marketplaceName",
+        "pluginNames"
+      ],
+      "type": "object"
+    },
     "ReadOnlyAccess": {
       "oneOf": [
         {
@@ -1365,6 +1567,37 @@
           "type": "object"
         }
       ]
+    },
+    "RealtimeOutputModality": {
+      "enum": [
+        "text",
+        "audio"
+      ],
+      "type": "string"
+    },
+    "RealtimeVoice": {
+      "enum": [
+        "alloy",
+        "arbor",
+        "ash",
+        "ballad",
+        "breeze",
+        "cedar",
+        "coral",
+        "cove",
+        "echo",
+        "ember",
+        "juniper",
+        "maple",
+        "marin",
+        "sage",
+        "shimmer",
+        "sol",
+        "spruce",
+        "vale",
+        "verse"
+      ],
+      "type": "string"
     },
     "ReasoningEffort": {
       "description": "See https://platform.openai.com/docs/guides/reasoning?api-mode=responses#get-started-with-reasoning",
@@ -2343,13 +2576,27 @@
         "enabled": {
           "type": "boolean"
         },
+        "name": {
+          "description": "Name-based selector.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "path": {
-          "type": "string"
+          "anyOf": [
+            {
+              "$ref": "#/definitions/AbsolutePathBuf"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Path-based selector."
         }
       },
       "required": [
-        "enabled",
-        "path"
+        "enabled"
       ],
       "type": "object"
     },
@@ -2544,6 +2791,23 @@
       ],
       "type": "object"
     },
+    "ThreadInjectItemsParams": {
+      "properties": {
+        "items": {
+          "description": "Raw Responses API items to append to the thread's model-visible history.",
+          "items": true,
+          "type": "array"
+        },
+        "threadId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "items",
+        "threadId"
+      ],
+      "type": "object"
+    },
     "ThreadListParams": {
       "properties": {
         "archived": {
@@ -2637,6 +2901,13 @@
         }
       },
       "type": "object"
+    },
+    "ThreadMemoryMode": {
+      "enum": [
+        "enabled",
+        "disabled"
+      ],
+      "type": "string"
     },
     "ThreadMetadataGitInfoUpdateParams": {
       "properties": {
@@ -2739,6 +3010,48 @@
         "sampleRate"
       ],
       "type": "object"
+    },
+    "ThreadRealtimeStartTransport": {
+      "description": "EXPERIMENTAL - transport used by thread realtime.",
+      "oneOf": [
+        {
+          "properties": {
+            "type": {
+              "enum": [
+                "websocket"
+              ],
+              "title": "WebsocketThreadRealtimeStartTransportType",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "title": "WebsocketThreadRealtimeStartTransport",
+          "type": "object"
+        },
+        {
+          "properties": {
+            "sdp": {
+              "description": "SDP offer generated by a WebRTC RTCPeerConnection after configuring audio and the realtime events data channel.",
+              "type": "string"
+            },
+            "type": {
+              "enum": [
+                "webrtc"
+              ],
+              "title": "WebrtcThreadRealtimeStartTransportType",
+              "type": "string"
+            }
+          },
+          "required": [
+            "sdp",
+            "type"
+          ],
+          "title": "WebrtcThreadRealtimeStartTransport",
+          "type": "object"
+        }
+      ]
     },
     "ThreadResumeParams": {
       "description": "There are three ways to resume a thread: 1. By thread_id: load the thread from disk by thread_id and resume it. 2. By history: instantiate the thread from memory and resume it. 3. By path: load the thread from disk by path and resume it.\n\nThe precedence is: history > path > thread_id. If using history or path, the thread_id param will be ignored.\n\nPrefer using thread_id whenever possible.",
@@ -3027,9 +3340,26 @@
               "type": "null"
             }
           ]
+        },
+        "sessionStartSource": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ThreadStartSource"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "type": "object"
+    },
+    "ThreadStartSource": {
+      "enum": [
+        "startup",
+        "clear"
+      ],
+      "type": "string"
     },
     "ThreadUnarchiveParams": {
       "properties": {
@@ -3723,6 +4053,31 @@
       "type": "object"
     },
     {
+      "description": "Append raw Responses API items to the thread history without starting a user turn.",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/RequestId"
+        },
+        "method": {
+          "enum": [
+            "thread/inject_items"
+          ],
+          "title": "Thread/injectItemsRequestMethod",
+          "type": "string"
+        },
+        "params": {
+          "$ref": "#/definitions/ThreadInjectItemsParams"
+        }
+      },
+      "required": [
+        "id",
+        "method",
+        "params"
+      ],
+      "title": "Thread/injectItemsRequest",
+      "type": "object"
+    },
+    {
       "properties": {
         "id": {
           "$ref": "#/definitions/RequestId"
@@ -3744,6 +4099,30 @@
         "params"
       ],
       "title": "Skills/listRequest",
+      "type": "object"
+    },
+    {
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/RequestId"
+        },
+        "method": {
+          "enum": [
+            "marketplace/add"
+          ],
+          "title": "Marketplace/addRequestMethod",
+          "type": "string"
+        },
+        "params": {
+          "$ref": "#/definitions/MarketplaceAddParams"
+        }
+      },
+      "required": [
+        "id",
+        "method",
+        "params"
+      ],
+      "title": "Marketplace/addRequest",
       "type": "object"
     },
     {
@@ -3993,6 +4372,54 @@
         },
         "method": {
           "enum": [
+            "fs/watch"
+          ],
+          "title": "Fs/watchRequestMethod",
+          "type": "string"
+        },
+        "params": {
+          "$ref": "#/definitions/FsWatchParams"
+        }
+      },
+      "required": [
+        "id",
+        "method",
+        "params"
+      ],
+      "title": "Fs/watchRequest",
+      "type": "object"
+    },
+    {
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/RequestId"
+        },
+        "method": {
+          "enum": [
+            "fs/unwatch"
+          ],
+          "title": "Fs/unwatchRequestMethod",
+          "type": "string"
+        },
+        "params": {
+          "$ref": "#/definitions/FsUnwatchParams"
+        }
+      },
+      "required": [
+        "id",
+        "method",
+        "params"
+      ],
+      "title": "Fs/unwatchRequest",
+      "type": "object"
+    },
+    {
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/RequestId"
+        },
+        "method": {
+          "enum": [
             "skills/config/write"
           ],
           "title": "Skills/config/writeRequestMethod",
@@ -4209,6 +4636,30 @@
         },
         "method": {
           "enum": [
+            "experimentalFeature/enablement/set"
+          ],
+          "title": "ExperimentalFeature/enablement/setRequestMethod",
+          "type": "string"
+        },
+        "params": {
+          "$ref": "#/definitions/ExperimentalFeatureEnablementSetParams"
+        }
+      },
+      "required": [
+        "id",
+        "method",
+        "params"
+      ],
+      "title": "ExperimentalFeature/enablement/setRequest",
+      "type": "object"
+    },
+    {
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/RequestId"
+        },
+        "method": {
+          "enum": [
             "mcpServer/oauth/login"
           ],
           "title": "McpServer/oauth/loginRequestMethod",
@@ -4271,6 +4722,54 @@
         "params"
       ],
       "title": "McpServerStatus/listRequest",
+      "type": "object"
+    },
+    {
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/RequestId"
+        },
+        "method": {
+          "enum": [
+            "mcpServer/resource/read"
+          ],
+          "title": "McpServer/resource/readRequestMethod",
+          "type": "string"
+        },
+        "params": {
+          "$ref": "#/definitions/McpResourceReadParams"
+        }
+      },
+      "required": [
+        "id",
+        "method",
+        "params"
+      ],
+      "title": "McpServer/resource/readRequest",
+      "type": "object"
+    },
+    {
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/RequestId"
+        },
+        "method": {
+          "enum": [
+            "mcpServer/tool/call"
+          ],
+          "title": "McpServer/tool/callRequestMethod",
+          "type": "string"
+        },
+        "params": {
+          "$ref": "#/definitions/McpServerToolCallParams"
+        }
+      },
+      "required": [
+        "id",
+        "method",
+        "params"
+      ],
+      "title": "McpServer/tool/callRequest",
       "type": "object"
     },
     {

@@ -7,14 +7,16 @@ use std::time::Duration;
 use anyhow::anyhow;
 use codex_protocol::config_types::Personality;
 use codex_protocol::config_types::ReasoningSummary as ReasoningSummaryConfig;
+use codex_protocol::models::DeveloperInstructions;
+use codex_protocol::models::ResponseItem;
 use codex_protocol::openai_models::ReasoningEffort as ReasoningEffortConfig;
 use codex_protocol::protocol::AskForApproval;
 use codex_protocol::protocol::EventMsg;
 use codex_protocol::protocol::InitialHistory;
 use codex_protocol::protocol::Op;
 use codex_protocol::protocol::RolloutItem;
+use codex_protocol::protocol::SandboxPolicy;
 use codex_protocol::protocol::SubAgentSource;
-use codex_protocol::user_input::UserInput;
 use serde_json::Value;
 use tokio::sync::Mutex;
 use tokio_util::sync::CancellationToken;
@@ -29,17 +31,29 @@ use crate::config::Constrained;
 use crate::config::ManagedFeatures;
 use crate::config::NetworkProxySpec;
 use crate::config::Permissions;
-use crate::config::types::McpServerConfig;
-use crate::features::Feature;
-use crate::model_provider_info::ModelProviderInfo;
-use crate::protocol::SandboxPolicy;
 use crate::rollout::recorder::RolloutRecorder;
+use codex_config::types::McpServerConfig;
+use codex_features::Feature;
+use codex_model_provider_info::ModelProviderInfo;
+use codex_utils_absolute_path::AbsolutePathBuf;
 
 use super::GUARDIAN_REVIEW_TIMEOUT;
 use super::GUARDIAN_REVIEWER_NAME;
+use super::GuardianApprovalRequest;
+use super::prompt::GuardianPromptMode;
+use super::prompt::GuardianTranscriptCursor;
+use super::prompt::build_guardian_prompt_items;
 use super::prompt::guardian_policy_prompt;
+use super::prompt::guardian_policy_prompt_with_config;
 
 const GUARDIAN_INTERRUPT_DRAIN_TIMEOUT: Duration = Duration::from_secs(5);
+const GUARDIAN_FOLLOWUP_REVIEW_REMINDER: &str = concat!(
+    "Use prior reviews as context, not binding precedent. ",
+    "Follow the Workspace Policy. ",
+    "If the user explicitly approves a previously rejected action after being informed of the ",
+    "concrete risks, set outcome to \"allow\" unless the policy explicitly disallows user ",
+    "overwrites in such cases."
+);
 
 #[derive(Debug)]
 pub(crate) enum GuardianReviewSessionOutcome {
@@ -52,7 +66,8 @@ pub(crate) struct GuardianReviewSessionParams {
     pub(crate) parent_session: Arc<Session>,
     pub(crate) parent_turn: Arc<TurnContext>,
     pub(crate) spawn_config: Config,
-    pub(crate) prompt_items: Vec<UserInput>,
+    pub(crate) request: GuardianApprovalRequest,
+    pub(crate) retry_reason: Option<String>,
     pub(crate) schema: Value,
     pub(crate) model: String,
     pub(crate) reasoning_effort: Option<ReasoningEffortConfig>,
@@ -77,12 +92,25 @@ struct GuardianReviewSession {
     cancel_token: CancellationToken,
     reuse_key: GuardianReviewSessionReuseKey,
     review_lock: Mutex<()>,
-    last_committed_rollout_items: Mutex<Option<Vec<RolloutItem>>>,
+    state: Mutex<GuardianReviewState>,
+}
+
+struct GuardianReviewState {
+    prior_review_count: usize,
+    last_reviewed_transcript_cursor: Option<GuardianTranscriptCursor>,
+    last_committed_fork_snapshot: Option<GuardianReviewForkSnapshot>,
 }
 
 struct EphemeralReviewCleanup {
     state: Arc<Mutex<GuardianReviewSessionState>>,
     review_session: Option<Arc<GuardianReviewSession>>,
+}
+
+#[derive(Clone)]
+struct GuardianReviewForkSnapshot {
+    initial_history: InitialHistory,
+    prior_review_count: usize,
+    last_reviewed_transcript_cursor: Option<GuardianTranscriptCursor>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -102,7 +130,7 @@ struct GuardianReviewSessionReuseKey {
     base_instructions: Option<String>,
     user_instructions: Option<String>,
     compact_prompt: Option<String>,
-    cwd: PathBuf,
+    cwd: AbsolutePathBuf,
     mcp_servers: Constrained<HashMap<String, McpServerConfig>>,
     codex_linux_sandbox_exe: Option<PathBuf>,
     main_execve_wrapper_exe: Option<PathBuf>,
@@ -156,20 +184,23 @@ impl GuardianReviewSession {
         }));
     }
 
-    async fn fork_initial_history(&self) -> Option<InitialHistory> {
-        self.last_committed_rollout_items
-            .lock()
-            .await
-            .clone()
-            .filter(|items| !items.is_empty())
-            .map(InitialHistory::Forked)
+    async fn fork_snapshot(&self) -> Option<GuardianReviewForkSnapshot> {
+        self.state.lock().await.last_committed_fork_snapshot.clone()
     }
 
-    async fn refresh_last_committed_rollout_items(&self) {
+    async fn refresh_last_committed_fork_snapshot(&self) {
         match load_rollout_items_for_fork(&self.codex.session).await {
-            Ok(Some(items)) => {
-                *self.last_committed_rollout_items.lock().await = Some(items);
+            Ok(Some(items)) if !items.is_empty() => {
+                let mut state = self.state.lock().await;
+                let prior_review_count = state.prior_review_count;
+                let last_reviewed_transcript_cursor = state.last_reviewed_transcript_cursor;
+                state.last_committed_fork_snapshot = Some(GuardianReviewForkSnapshot {
+                    initial_history: InitialHistory::Forked(items),
+                    prior_review_count,
+                    last_reviewed_transcript_cursor,
+                });
             }
+            Ok(Some(_)) => {}
             Ok(None) => {}
             Err(err) => {
                 warn!("failed to refresh guardian trunk rollout snapshot: {err}");
@@ -266,7 +297,7 @@ impl GuardianReviewSessionManager {
                             params.spawn_config.clone(),
                             next_reuse_key.clone(),
                             spawn_cancel_token.clone(),
-                            /*initial_history*/ None,
+                            /*fork_snapshot*/ None,
                         )),
                     )
                     .await
@@ -296,30 +327,32 @@ impl GuardianReviewSessionManager {
         };
 
         if trunk.reuse_key != next_reuse_key {
-            return self
-                .run_ephemeral_review(
-                    params,
-                    next_reuse_key,
-                    deadline,
-                    /*initial_history*/ None,
-                )
-                .await;
+            return Box::pin(self.run_ephemeral_review(
+                params,
+                next_reuse_key,
+                deadline,
+                /*fork_snapshot*/ None,
+            ))
+            .await;
         }
 
         let trunk_guard = match trunk.review_lock.try_lock() {
             Ok(trunk_guard) => trunk_guard,
             Err(_) => {
-                let initial_history = trunk.fork_initial_history().await;
-                return self
-                    .run_ephemeral_review(params, next_reuse_key, deadline, initial_history)
-                    .await;
+                return Box::pin(self.run_ephemeral_review(
+                    params,
+                    next_reuse_key,
+                    deadline,
+                    trunk.fork_snapshot().await,
+                ))
+                .await;
             }
         };
 
         let (outcome, keep_review_session) =
-            run_review_on_session(trunk.as_ref(), &params, deadline).await;
+            Box::pin(run_review_on_session(trunk.as_ref(), &params, deadline)).await;
         if keep_review_session && matches!(outcome, GuardianReviewSessionOutcome::Completed(_)) {
-            trunk.refresh_last_committed_rollout_items().await;
+            trunk.refresh_last_committed_fork_snapshot().await;
         }
         drop(trunk_guard);
 
@@ -343,7 +376,11 @@ impl GuardianReviewSessionManager {
             codex,
             cancel_token: CancellationToken::new(),
             review_lock: Mutex::new(()),
-            last_committed_rollout_items: Mutex::new(None),
+            state: Mutex::new(GuardianReviewState {
+                prior_review_count: 0,
+                last_reviewed_transcript_cursor: None,
+                last_committed_fork_snapshot: None,
+            }),
         }));
     }
 
@@ -361,8 +398,23 @@ impl GuardianReviewSessionManager {
                 codex,
                 cancel_token: CancellationToken::new(),
                 review_lock: Mutex::new(()),
-                last_committed_rollout_items: Mutex::new(None),
+                state: Mutex::new(GuardianReviewState {
+                    prior_review_count: 0,
+                    last_reviewed_transcript_cursor: None,
+                    last_committed_fork_snapshot: None,
+                }),
             }));
+    }
+
+    #[cfg(test)]
+    pub(crate) async fn committed_fork_rollout_items_for_test(&self) -> Option<Vec<RolloutItem>> {
+        let trunk = self.state.lock().await.trunk.clone()?;
+        let state = trunk.state.lock().await;
+        let snapshot = state.last_committed_fork_snapshot.as_ref()?;
+        match &snapshot.initial_history {
+            InitialHistory::Forked(items) => Some(items.clone()),
+            InitialHistory::New | InitialHistory::Cleared | InitialHistory::Resumed(_) => None,
+        }
     }
 
     async fn remove_trunk_if_current(
@@ -406,7 +458,7 @@ impl GuardianReviewSessionManager {
         params: GuardianReviewSessionParams,
         reuse_key: GuardianReviewSessionReuseKey,
         deadline: tokio::time::Instant,
-        initial_history: Option<InitialHistory>,
+        fork_snapshot: Option<GuardianReviewForkSnapshot>,
     ) -> GuardianReviewSessionOutcome {
         let spawn_cancel_token = CancellationToken::new();
         let mut fork_config = params.spawn_config.clone();
@@ -420,7 +472,7 @@ impl GuardianReviewSessionManager {
                 fork_config,
                 reuse_key,
                 spawn_cancel_token.clone(),
-                initial_history,
+                fork_snapshot,
             )),
         )
         .await
@@ -434,7 +486,12 @@ impl GuardianReviewSessionManager {
         let mut cleanup =
             EphemeralReviewCleanup::new(Arc::clone(&self.state), Arc::clone(&review_session));
 
-        let (outcome, _) = run_review_on_session(review_session.as_ref(), &params, deadline).await;
+        let (outcome, _) = Box::pin(run_review_on_session(
+            review_session.as_ref(),
+            &params,
+            deadline,
+        ))
+        .await;
         if let Some(review_session) = self.take_active_ephemeral(&review_session).await {
             cleanup.disarm();
             review_session.shutdown_in_background();
@@ -448,9 +505,17 @@ async fn spawn_guardian_review_session(
     spawn_config: Config,
     reuse_key: GuardianReviewSessionReuseKey,
     cancel_token: CancellationToken,
-    initial_history: Option<InitialHistory>,
+    fork_snapshot: Option<GuardianReviewForkSnapshot>,
 ) -> anyhow::Result<GuardianReviewSession> {
-    let codex = run_codex_thread_interactive(
+    let (initial_history, prior_review_count, initial_transcript_cursor) = match fork_snapshot {
+        Some(fork_snapshot) => (
+            Some(fork_snapshot.initial_history),
+            fork_snapshot.prior_review_count,
+            fork_snapshot.last_reviewed_transcript_cursor,
+        ),
+        None => (None, 0, None),
+    };
+    let codex = Box::pin(run_codex_thread_interactive(
         spawn_config,
         params.parent_session.services.auth_manager.clone(),
         params.parent_session.services.models_manager.clone(),
@@ -459,7 +524,7 @@ async fn spawn_guardian_review_session(
         cancel_token.clone(),
         SubAgentSource::Other(GUARDIAN_REVIEWER_NAME.to_string()),
         initial_history,
-    )
+    ))
     .await?;
 
     Ok(GuardianReviewSession {
@@ -467,7 +532,11 @@ async fn spawn_guardian_review_session(
         cancel_token,
         reuse_key,
         review_lock: Mutex::new(()),
-        last_committed_rollout_items: Mutex::new(None),
+        state: Mutex::new(GuardianReviewState {
+            prior_review_count,
+            last_reviewed_transcript_cursor: initial_transcript_cursor,
+            last_committed_fork_snapshot: None,
+        }),
     })
 }
 
@@ -476,6 +545,24 @@ async fn run_review_on_session(
     params: &GuardianReviewSessionParams,
     deadline: tokio::time::Instant,
 ) -> (GuardianReviewSessionOutcome, bool) {
+    let (send_followup_reminder, prompt_mode) = {
+        let state = review_session.state.lock().await;
+
+        let send_followup_reminder = state.prior_review_count == 1;
+        let prompt_mode = if state.prior_review_count == 0 {
+            GuardianPromptMode::Full
+        } else if let Some(cursor) = state.last_reviewed_transcript_cursor {
+            GuardianPromptMode::Delta { cursor }
+        } else {
+            GuardianPromptMode::Full
+        };
+
+        (send_followup_reminder, prompt_mode)
+    };
+    if send_followup_reminder {
+        append_guardian_followup_reminder(review_session).await;
+    }
+
     let submit_result = run_before_review_deadline(
         deadline,
         params.external_cancel.as_ref(),
@@ -489,12 +576,21 @@ async fn run_review_on_session(
                 )
                 .await;
 
+            let prompt_items = build_guardian_prompt_items(
+                params.parent_session.as_ref(),
+                params.retry_reason.clone(),
+                params.request.clone(),
+                prompt_mode,
+            )
+            .await?;
+
             review_session
                 .codex
                 .submit(Op::UserTurn {
-                    items: params.prompt_items.clone(),
-                    cwd: params.parent_turn.cwd.clone(),
+                    items: prompt_items.items,
+                    cwd: params.parent_turn.cwd.to_path_buf(),
                     approval_policy: AskForApproval::Never,
+                    approvals_reviewer: None,
                     sandbox_policy: SandboxPolicy::new_read_only_policy(),
                     model: params.model.clone(),
                     effort: params.reasoning_effort,
@@ -504,7 +600,9 @@ async fn run_review_on_session(
                     collaboration_mode: None,
                     personality: params.personality,
                 })
-                .await
+                .await?;
+
+            Ok::<GuardianTranscriptCursor, anyhow::Error>(prompt_items.transcript_cursor)
         }),
     )
     .await;
@@ -512,20 +610,38 @@ async fn run_review_on_session(
         Ok(submit_result) => submit_result,
         Err(outcome) => return (outcome, false),
     };
-    if let Err(err) = submit_result {
-        return (
-            GuardianReviewSessionOutcome::Completed(Err(err.into())),
-            false,
-        );
-    }
+    let transcript_cursor = match submit_result {
+        Ok(transcript_cursor) => transcript_cursor,
+        Err(err) => {
+            return (GuardianReviewSessionOutcome::Completed(Err(err)), false);
+        }
+    };
 
-    wait_for_guardian_review(review_session, deadline, params.external_cancel.as_ref()).await
+    let outcome =
+        wait_for_guardian_review(review_session, deadline, params.external_cancel.as_ref()).await;
+    if matches!(outcome.0, GuardianReviewSessionOutcome::Completed(_)) {
+        let mut state = review_session.state.lock().await;
+        state.prior_review_count = state.prior_review_count.saturating_add(1);
+        state.last_reviewed_transcript_cursor = Some(transcript_cursor);
+    }
+    outcome
+}
+
+async fn append_guardian_followup_reminder(review_session: &GuardianReviewSession) {
+    let turn_context = review_session.codex.session.new_default_turn().await;
+    let reminder: ResponseItem =
+        DeveloperInstructions::new(GUARDIAN_FOLLOWUP_REVIEW_REMINDER).into();
+    review_session
+        .codex
+        .session
+        .record_conversation_items(turn_context.as_ref(), std::slice::from_ref(&reminder))
+        .await;
 }
 
 async fn load_rollout_items_for_fork(
     session: &Session,
 ) -> anyhow::Result<Option<Vec<RolloutItem>>> {
-    session.flush_rollout().await;
+    session.flush_rollout().await?;
     let Some(rollout_path) = session.current_rollout_path().await else {
         return Ok(None);
     };
@@ -540,6 +656,7 @@ async fn wait_for_guardian_review(
 ) -> (GuardianReviewSessionOutcome, bool) {
     let timeout = tokio::time::sleep_until(deadline);
     tokio::pin!(timeout);
+    let mut last_error_message: Option<String> = None;
 
     loop {
         tokio::select! {
@@ -561,10 +678,21 @@ async fn wait_for_guardian_review(
                 match event {
                     Ok(event) => match event.msg {
                         EventMsg::TurnComplete(turn_complete) => {
+                            if turn_complete.last_agent_message.is_none()
+                                && let Some(error_message) = last_error_message
+                            {
+                                return (
+                                    GuardianReviewSessionOutcome::Completed(Err(anyhow!(error_message))),
+                                    true,
+                                );
+                            }
                             return (
                                 GuardianReviewSessionOutcome::Completed(Ok(turn_complete.last_agent_message)),
                                 true,
                             );
+                        }
+                        EventMsg::Error(error) => {
+                            last_error_message = Some(error.message);
                         }
                         EventMsg::TurnAborted(_) => {
                             return (GuardianReviewSessionOutcome::Aborted, true);
@@ -594,8 +722,9 @@ pub(crate) fn build_guardian_review_session_config(
     guardian_config.model_reasoning_effort = reasoning_effort;
     guardian_config.developer_instructions = Some(
         parent_config
-            .guardian_developer_instructions
-            .clone()
+            .guardian_policy_config
+            .as_deref()
+            .map(guardian_policy_prompt_with_config)
             .unwrap_or_else(guardian_policy_prompt),
     );
     guardian_config.permissions.approval_policy = Constrained::allow_only(AskForApproval::Never);
@@ -619,6 +748,7 @@ pub(crate) fn build_guardian_review_session_config(
     for feature in [
         Feature::SpawnCsv,
         Feature::Collab,
+        Feature::CodexHooks,
         Feature::WebSearchRequest,
         Feature::WebSearchCached,
     ] {
@@ -693,12 +823,16 @@ async fn interrupt_and_drain_turn(codex: &Codex) -> anyhow::Result<()> {
 mod tests {
     use super::*;
 
-    #[test]
-    fn guardian_review_session_config_change_invalidates_cached_session() {
-        let parent_config = crate::config::test_config();
-        let cached_spawn_config =
-            build_guardian_review_session_config(&parent_config, None, "active-model", None)
-                .expect("cached guardian config");
+    #[tokio::test]
+    async fn guardian_review_session_config_change_invalidates_cached_session() {
+        let parent_config = crate::config::test_config().await;
+        let cached_spawn_config = build_guardian_review_session_config(
+            &parent_config,
+            /*live_network_config*/ None,
+            "active-model",
+            /*reasoning_effort*/ None,
+        )
+        .expect("cached guardian config");
         let cached_reuse_key =
             GuardianReviewSessionReuseKey::from_spawn_config(&cached_spawn_config);
 
@@ -707,9 +841,9 @@ mod tests {
             Some("https://guardian.example.invalid/v1".to_string());
         let next_spawn_config = build_guardian_review_session_config(
             &changed_parent_config,
-            None,
+            /*live_network_config*/ None,
             "active-model",
-            None,
+            /*reasoning_effort*/ None,
         )
         .expect("next guardian config");
         let next_reuse_key = GuardianReviewSessionReuseKey::from_spawn_config(&next_spawn_config);
@@ -721,11 +855,30 @@ mod tests {
         );
     }
 
+    #[tokio::test]
+    async fn guardian_review_session_config_disables_hooks() {
+        let mut parent_config = crate::config::test_config().await;
+        parent_config
+            .features
+            .enable(Feature::CodexHooks)
+            .expect("enable hooks on parent config");
+
+        let guardian_config = build_guardian_review_session_config(
+            &parent_config,
+            /*live_network_config*/ None,
+            "active-model",
+            /*reasoning_effort*/ None,
+        )
+        .expect("guardian config");
+
+        assert!(!guardian_config.features.enabled(Feature::CodexHooks));
+    }
+
     #[tokio::test(flavor = "current_thread")]
     async fn run_before_review_deadline_times_out_before_future_completes() {
         let outcome = run_before_review_deadline(
             tokio::time::Instant::now() + Duration::from_millis(10),
-            None,
+            /*external_cancel*/ None,
             async {
                 tokio::time::sleep(Duration::from_millis(50)).await;
             },
@@ -766,7 +919,7 @@ mod tests {
 
         let outcome = run_before_review_deadline_with_cancel(
             tokio::time::Instant::now() + Duration::from_millis(10),
-            None,
+            /*external_cancel*/ None,
             &cancel_token,
             async {
                 tokio::time::sleep(Duration::from_millis(50)).await;
@@ -812,7 +965,7 @@ mod tests {
 
         let outcome = run_before_review_deadline_with_cancel(
             tokio::time::Instant::now() + Duration::from_secs(1),
-            None,
+            /*external_cancel*/ None,
             &cancel_token,
             async { 42usize },
         )

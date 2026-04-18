@@ -1,15 +1,16 @@
+use super::control::clear_memory_root_contents;
 use super::storage::rebuild_raw_memories_file_from_memories;
 use super::storage::sync_rollout_summaries_from_memories;
-use crate::config::types::DEFAULT_MEMORIES_MAX_RAW_MEMORIES_FOR_CONSOLIDATION;
-use crate::memories::clear_memory_root_contents;
 use crate::memories::ensure_layout;
 use crate::memories::memory_root;
 use crate::memories::raw_memories_file;
 use crate::memories::rollout_summaries_dir;
 use chrono::TimeZone;
 use chrono::Utc;
+use codex_config::types::DEFAULT_MEMORIES_MAX_RAW_MEMORIES_FOR_CONSOLIDATION;
 use codex_protocol::ThreadId;
 use codex_state::Stage1Output;
+use codex_utils_absolute_path::AbsolutePathBuf;
 use pretty_assertions::assert_eq;
 use serde_json::Value;
 use std::path::PathBuf;
@@ -17,8 +18,7 @@ use tempfile::tempdir;
 
 #[test]
 fn memory_root_uses_shared_global_path() {
-    let dir = tempdir().expect("tempdir");
-    let codex_home = dir.path().join("codex");
+    let codex_home = AbsolutePathBuf::current_dir().expect("cwd").join("codex");
     assert_eq!(memory_root(&codex_home), codex_home.join("memories"));
 }
 
@@ -414,7 +414,6 @@ task_outcome: success
 }
 
 mod phase2 {
-    use crate::CodexAuth;
     use crate::ThreadManager;
     use crate::agent::AgentControl;
     use crate::codex::Session;
@@ -425,9 +424,13 @@ mod phase2 {
     use crate::memories::phase2;
     use crate::memories::raw_memories_file;
     use crate::memories::rollout_summaries_dir;
+    use chrono::Duration as ChronoDuration;
     use chrono::Utc;
     use codex_config::Constrained;
+    use codex_login::CodexAuth;
     use codex_protocol::ThreadId;
+    use codex_protocol::permissions::FileSystemSandboxPolicy;
+    use codex_protocol::permissions::NetworkSandboxPolicy;
     use codex_protocol::protocol::AskForApproval;
     use codex_protocol::protocol::Op;
     use codex_protocol::protocol::SandboxPolicy;
@@ -467,13 +470,17 @@ mod phase2 {
     impl DispatchHarness {
         async fn new() -> Self {
             let codex_home = tempfile::tempdir().expect("create temp codex home");
-            let mut config = test_config();
-            config.codex_home = codex_home.path().to_path_buf();
+            let mut config = test_config().await;
+            config.codex_home =
+                codex_utils_absolute_path::AbsolutePathBuf::from_absolute_path(codex_home.path())
+                    .expect("codex home is absolute");
             config.cwd = config.codex_home.clone();
+            config.permissions.file_system_sandbox_policy = FileSystemSandboxPolicy::unrestricted();
+            config.permissions.network_sandbox_policy = NetworkSandboxPolicy::Enabled;
             let config = Arc::new(config);
 
             let state_db = codex_state::StateRuntime::init(
-                config.codex_home.clone(),
+                config.codex_home.to_path_buf(),
                 config.model_provider_id.clone(),
             )
             .await
@@ -482,7 +489,10 @@ mod phase2 {
             let manager = ThreadManager::with_models_provider_and_home_for_tests(
                 CodexAuth::from_api_key("dummy"),
                 config.model_provider.clone(),
-                config.codex_home.clone(),
+                config.codex_home.to_path_buf(),
+                std::sync::Arc::new(codex_exec_server::EnvironmentManager::new(
+                    /*exec_server_url*/ None,
+                )),
             );
             let (mut session, _turn_context) = make_session_and_context().await;
             session.services.state_db = Some(Arc::clone(&state_db));
@@ -503,11 +513,12 @@ mod phase2 {
                 thread_id,
                 self.config
                     .codex_home
-                    .join(format!("rollout-{thread_id}.jsonl")),
+                    .join(format!("rollout-{thread_id}.jsonl"))
+                    .to_path_buf(),
                 Utc::now(),
                 SessionSource::Cli,
             );
-            metadata_builder.cwd = self.config.cwd.clone();
+            metadata_builder.cwd = self.config.cwd.to_path_buf();
             metadata_builder.model_provider = Some(self.config.model_provider_id.clone());
             let metadata = metadata_builder.build(&self.config.model_provider_id);
 
@@ -522,8 +533,8 @@ mod phase2 {
                     thread_id,
                     self.session.conversation_id,
                     source_updated_at,
-                    3_600,
-                    64,
+                    /*lease_seconds*/ 3_600,
+                    /*max_running_jobs*/ 64,
                 )
                 .await
                 .expect("claim stage-1 job");
@@ -539,7 +550,7 @@ mod phase2 {
                         source_updated_at,
                         "raw memory",
                         "rollout summary",
-                        None,
+                        /*rollout_slug*/ None,
                     )
                     .await
                     .expect("mark stage-1 success"),
@@ -567,24 +578,24 @@ mod phase2 {
 
     #[test]
     fn completion_watermark_never_regresses_below_claimed_input_watermark() {
-        let stage1_output = stage1_output_with_source_updated_at(123);
+        let stage1_output = stage1_output_with_source_updated_at(/*source_updated_at*/ 123);
 
-        let completion = phase2::get_watermark(1_000, &[stage1_output]);
+        let completion = phase2::get_watermark(/*claimed_watermark*/ 1_000, &[stage1_output]);
         pretty_assertions::assert_eq!(completion, 1_000);
     }
 
     #[test]
     fn completion_watermark_uses_claimed_watermark_when_there_are_no_memories() {
-        let completion = phase2::get_watermark(777, &[]);
+        let completion = phase2::get_watermark(/*claimed_watermark*/ 777, &[]);
         pretty_assertions::assert_eq!(completion, 777);
     }
 
     #[test]
     fn completion_watermark_uses_latest_memory_timestamp_when_it_is_newer() {
-        let older = stage1_output_with_source_updated_at(123);
-        let newer = stage1_output_with_source_updated_at(456);
+        let older = stage1_output_with_source_updated_at(/*source_updated_at*/ 123);
+        let newer = stage1_output_with_source_updated_at(/*source_updated_at*/ 456);
 
-        let completion = phase2::get_watermark(200, &[older, newer]);
+        let completion = phase2::get_watermark(/*claimed_watermark*/ 200, &[older, newer]);
         pretty_assertions::assert_eq!(completion, 456);
     }
 
@@ -604,12 +615,12 @@ mod phase2 {
         let harness = DispatchHarness::new().await;
         harness
             .state_db
-            .enqueue_global_consolidation(123)
+            .enqueue_global_consolidation(/*input_watermark*/ 123)
             .await
             .expect("enqueue global consolidation");
         let claimed = harness
             .state_db
-            .try_claim_global_phase2_job(ThreadId::new(), 3_600)
+            .try_claim_global_phase2_job(ThreadId::new(), /*lease_seconds*/ 3_600)
             .await
             .expect("claim running global lock");
         assert!(
@@ -621,7 +632,7 @@ mod phase2 {
 
         let running_claim = harness
             .state_db
-            .try_claim_global_phase2_job(ThreadId::new(), 3_600)
+            .try_claim_global_phase2_job(ThreadId::new(), /*lease_seconds*/ 3_600)
             .await
             .expect("claim while lock is still running");
         pretty_assertions::assert_eq!(running_claim, Phase2JobClaimOutcome::SkippedRunning);
@@ -637,7 +648,7 @@ mod phase2 {
 
         let stale_claim = harness
             .state_db
-            .try_claim_global_phase2_job(ThreadId::new(), 0)
+            .try_claim_global_phase2_job(ThreadId::new(), /*lease_seconds*/ 0)
             .await
             .expect("claim stale global lock");
         assert!(
@@ -649,7 +660,7 @@ mod phase2 {
 
         let post_dispatch_claim = harness
             .state_db
-            .try_claim_global_phase2_job(ThreadId::new(), 3_600)
+            .try_claim_global_phase2_job(ThreadId::new(), /*lease_seconds*/ 3_600)
             .await
             .expect("claim after stale lock dispatch");
         assert!(
@@ -672,24 +683,68 @@ mod phase2 {
             .expect("get consolidation thread");
         let config_snapshot = subagent.config_snapshot().await;
         pretty_assertions::assert_eq!(config_snapshot.approval_policy, AskForApproval::Never);
-        pretty_assertions::assert_eq!(config_snapshot.cwd, memory_root(&harness.config.codex_home));
-        match config_snapshot.sandbox_policy {
-            SandboxPolicy::WorkspaceWrite { writable_roots, .. } => {
-                assert!(
-                    writable_roots
-                        .iter()
-                        .any(|root| root.as_path() == harness.config.codex_home.as_path()),
-                    "consolidation subagent should have codex_home as writable root"
+        pretty_assertions::assert_eq!(
+            config_snapshot.cwd.as_path(),
+            memory_root(&harness.config.codex_home).as_path()
+        );
+        match &config_snapshot.sandbox_policy {
+            SandboxPolicy::WorkspaceWrite {
+                writable_roots,
+                network_access,
+                ..
+            } => {
+                assert!(!*network_access);
+                pretty_assertions::assert_eq!(
+                    writable_roots.as_slice(),
+                    [memory_root(&harness.config.codex_home)],
+                    "consolidation subagent should only be able to write the memory root"
                 );
             }
             other => panic!("unexpected sandbox policy: {other:?}"),
         }
+        let turn_context = subagent.codex.session.new_default_turn().await;
+        pretty_assertions::assert_eq!(
+            turn_context.file_system_sandbox_policy,
+            FileSystemSandboxPolicy::from_legacy_sandbox_policy(
+                &config_snapshot.sandbox_policy,
+                config_snapshot.cwd.as_path(),
+            ),
+            "consolidation subagent split filesystem policy should match the memory-root legacy policy"
+        );
+        assert!(
+            turn_context
+                .file_system_sandbox_policy
+                .can_write_path_with_cwd(
+                    memory_root(&harness.config.codex_home).as_path(),
+                    config_snapshot.cwd.as_path(),
+                ),
+            "consolidation subagent should be able to write the memory root"
+        );
+        assert!(
+            !turn_context
+                .file_system_sandbox_policy
+                .can_write_path_with_cwd(
+                    harness.config.codex_home.join("config.toml").as_path(),
+                    config_snapshot.cwd.as_path(),
+                ),
+            "consolidation subagent should not inherit codex_home write access"
+        );
+        pretty_assertions::assert_eq!(
+            turn_context.network_sandbox_policy,
+            NetworkSandboxPolicy::Restricted,
+            "consolidation subagent split network policy should preserve no-network sandboxing"
+        );
         subagent.codex.session.ensure_rollout_materialized().await;
-        subagent.codex.session.flush_rollout().await;
+        subagent
+            .codex
+            .session
+            .flush_rollout()
+            .await
+            .expect("subagent rollout should flush");
         let rollout_path = subagent
             .rollout_path()
             .expect("consolidation thread should have a rollout path");
-        crate::state_db::read_repair_rollout_path(
+        codex_rollout::state_db::read_repair_rollout_path(
             Some(harness.state_db.as_ref()),
             Some(thread_id),
             Some(/*archived_only*/ false),
@@ -755,7 +810,7 @@ mod phase2 {
 
         harness
             .state_db
-            .enqueue_global_consolidation(999)
+            .enqueue_global_consolidation(/*input_watermark*/ 999)
             .await
             .expect("enqueue global consolidation");
 
@@ -797,7 +852,7 @@ mod phase2 {
         );
         let next_claim = harness
             .state_db
-            .try_claim_global_phase2_job(ThreadId::new(), 3_600)
+            .try_claim_global_phase2_job(ThreadId::new(), /*lease_seconds*/ 3_600)
             .await
             .expect("claim global job after empty consolidation success");
         pretty_assertions::assert_eq!(next_claim, Phase2JobClaimOutcome::SkippedNotDirty);
@@ -813,7 +868,7 @@ mod phase2 {
         let harness = DispatchHarness::new().await;
         harness
             .state_db
-            .enqueue_global_consolidation(99)
+            .enqueue_global_consolidation(/*input_watermark*/ 99)
             .await
             .expect("enqueue global consolidation");
         let mut constrained_config = harness.config.as_ref().clone();
@@ -824,7 +879,7 @@ mod phase2 {
 
         let retry_claim = harness
             .state_db
-            .try_claim_global_phase2_job(ThreadId::new(), 3_600)
+            .try_claim_global_phase2_job(ThreadId::new(), /*lease_seconds*/ 3_600)
             .await
             .expect("claim global job after sandbox policy failure");
         pretty_assertions::assert_eq!(retry_claim, Phase2JobClaimOutcome::SkippedNotDirty);
@@ -836,7 +891,7 @@ mod phase2 {
     #[tokio::test]
     async fn dispatch_marks_job_for_retry_when_syncing_artifacts_fails() {
         let harness = DispatchHarness::new().await;
-        harness.seed_stage1_output(100).await;
+        harness.seed_stage1_output(/*source_updated_at*/ 100).await;
         let root = memory_root(&harness.config.codex_home);
         tokio::fs::write(&root, "not a directory")
             .await
@@ -846,7 +901,7 @@ mod phase2 {
 
         let retry_claim = harness
             .state_db
-            .try_claim_global_phase2_job(ThreadId::new(), 3_600)
+            .try_claim_global_phase2_job(ThreadId::new(), /*lease_seconds*/ 3_600)
             .await
             .expect("claim global job after sync failure");
         pretty_assertions::assert_eq!(retry_claim, Phase2JobClaimOutcome::SkippedNotDirty);
@@ -858,7 +913,7 @@ mod phase2 {
     #[tokio::test]
     async fn dispatch_marks_job_for_retry_when_rebuilding_raw_memories_fails() {
         let harness = DispatchHarness::new().await;
-        harness.seed_stage1_output(100).await;
+        harness.seed_stage1_output(/*source_updated_at*/ 100).await;
         let root = memory_root(&harness.config.codex_home);
         tokio::fs::create_dir_all(raw_memories_file(&root))
             .await
@@ -868,7 +923,7 @@ mod phase2 {
 
         let retry_claim = harness
             .state_db
-            .try_claim_global_phase2_job(ThreadId::new(), 3_600)
+            .try_claim_global_phase2_job(ThreadId::new(), /*lease_seconds*/ 3_600)
             .await
             .expect("claim global job after rebuild failure");
         pretty_assertions::assert_eq!(retry_claim, Phase2JobClaimOutcome::SkippedNotDirty);
@@ -880,13 +935,15 @@ mod phase2 {
     #[tokio::test]
     async fn dispatch_marks_job_for_retry_when_spawn_agent_fails() {
         let codex_home = tempfile::tempdir().expect("create temp codex home");
-        let mut config = test_config();
-        config.codex_home = codex_home.path().to_path_buf();
+        let mut config = test_config().await;
+        config.codex_home =
+            codex_utils_absolute_path::AbsolutePathBuf::from_absolute_path(codex_home.path())
+                .expect("codex home is absolute");
         config.cwd = config.codex_home.clone();
         let config = Arc::new(config);
 
         let state_db = codex_state::StateRuntime::init(
-            config.codex_home.clone(),
+            config.codex_home.to_path_buf(),
             config.model_provider_id.clone(),
         )
         .await
@@ -900,11 +957,14 @@ mod phase2 {
         let thread_id = ThreadId::new();
         let mut metadata_builder = ThreadMetadataBuilder::new(
             thread_id,
-            config.codex_home.join(format!("rollout-{thread_id}.jsonl")),
+            config
+                .codex_home
+                .join(format!("rollout-{thread_id}.jsonl"))
+                .to_path_buf(),
             Utc::now(),
             SessionSource::Cli,
         );
-        metadata_builder.cwd = config.cwd.clone();
+        metadata_builder.cwd = config.cwd.to_path_buf();
         metadata_builder.model_provider = Some(config.model_provider_id.clone());
         let metadata = metadata_builder.build(&config.model_provider_id);
         state_db
@@ -913,7 +973,13 @@ mod phase2 {
             .expect("upsert thread metadata");
 
         let claim = state_db
-            .try_claim_stage1_job(thread_id, session.conversation_id, 100, 3_600, 64)
+            .try_claim_stage1_job(
+                thread_id,
+                session.conversation_id,
+                /*source_updated_at*/ 100,
+                /*lease_seconds*/ 3_600,
+                /*max_running_jobs*/ 64,
+            )
             .await
             .expect("claim stage-1 job");
         let ownership_token = match claim {
@@ -925,26 +991,54 @@ mod phase2 {
                 .mark_stage1_job_succeeded(
                     thread_id,
                     &ownership_token,
-                    100,
+                    /*source_updated_at*/ 100,
                     "raw memory",
                     "rollout summary",
-                    None,
+                    /*rollout_slug*/ None,
                 )
                 .await
                 .expect("mark stage-1 success"),
             "stage-1 success should enqueue global consolidation"
         );
 
+        let telepathy_resources = config
+            .codex_home
+            .join("memories_extensions/telepathy/resources");
+        tokio::fs::create_dir_all(&telepathy_resources)
+            .await
+            .expect("create telepathy resources");
+        tokio::fs::write(
+            config
+                .codex_home
+                .join("memories_extensions/telepathy/instructions.md"),
+            "instructions",
+        )
+        .await
+        .expect("write telepathy instructions");
+        let old_file = telepathy_resources.join(format!(
+            "{}-abcd-10min-old.md",
+            (Utc::now() - ChronoDuration::days(8)).format("%Y-%m-%dT%H-%M-%S")
+        ));
+        tokio::fs::write(&old_file, "old resource")
+            .await
+            .expect("write old extension resource");
+
         phase2::run(&session, Arc::clone(&config)).await;
 
         let retry_claim = state_db
-            .try_claim_global_phase2_job(ThreadId::new(), 3_600)
+            .try_claim_global_phase2_job(ThreadId::new(), /*lease_seconds*/ 3_600)
             .await
             .expect("claim global job after spawn failure");
         pretty_assertions::assert_eq!(
             retry_claim,
             Phase2JobClaimOutcome::SkippedNotDirty,
             "spawn failures should leave the job in retry backoff instead of running"
+        );
+        assert!(
+            tokio::fs::try_exists(&old_file)
+                .await
+                .expect("check old extension resource"),
+            "spawn failures should not prune extension resources before retry"
         );
     }
 }

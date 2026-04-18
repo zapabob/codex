@@ -8,7 +8,7 @@ pub fn main() -> ! {
 
 /// We would prefer to return `std::process::ExitCode`, but its `exit_process()`
 /// method is still a nightly API and we want main() to return !.
-pub(crate) fn run_main() -> i32 {
+pub fn run_main() -> i32 {
     // Expect either one argument (the full apply_patch payload) or read it from stdin.
     let mut args = std::env::args_os();
     let _argv0 = args.next();
@@ -48,7 +48,31 @@ pub(crate) fn run_main() -> i32 {
 
     let mut stdout = std::io::stdout();
     let mut stderr = std::io::stderr();
-    match crate::apply_patch(&patch_arg, &mut stdout, &mut stderr) {
+    let cwd = match codex_utils_absolute_path::AbsolutePathBuf::current_dir() {
+        Ok(cwd) => cwd,
+        Err(err) => {
+            eprintln!("Error: Failed to determine current directory.\n{err}");
+            return 1;
+        }
+    };
+    let runtime = match tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+    {
+        Ok(runtime) => runtime,
+        Err(err) => {
+            eprintln!("Error: Failed to initialize runtime.\n{err}");
+            return 1;
+        }
+    };
+    match runtime.block_on(crate::apply_patch(
+        &patch_arg,
+        &cwd,
+        &mut stdout,
+        &mut stderr,
+        codex_exec_server::LOCAL_FS.as_ref(),
+        /*sandbox*/ None,
+    )) {
         Ok(()) => {
             // Flush to ensure output ordering when used in pipelines.
             let _ = stdout.flush();

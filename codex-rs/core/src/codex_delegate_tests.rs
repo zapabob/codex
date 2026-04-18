@@ -9,8 +9,9 @@ use codex_protocol::protocol::AgentStatus;
 use codex_protocol::protocol::AskForApproval;
 use codex_protocol::protocol::EventMsg;
 use codex_protocol::protocol::ExecApprovalRequestEvent;
-use codex_protocol::protocol::GuardianAssessmentEvent;
+use codex_protocol::protocol::GuardianAssessmentAction;
 use codex_protocol::protocol::GuardianAssessmentStatus;
+use codex_protocol::protocol::GuardianCommandSource;
 use codex_protocol::protocol::McpInvocation;
 use codex_protocol::protocol::RawResponseItemEvent;
 use codex_protocol::protocol::ReviewDecision;
@@ -22,10 +23,10 @@ use codex_protocol::request_permissions::RequestPermissionsResponse;
 use codex_protocol::request_user_input::RequestUserInputAnswer;
 use codex_protocol::request_user_input::RequestUserInputEvent;
 use codex_protocol::request_user_input::RequestUserInputQuestion;
+use core_test_support::PathBufExt;
+use core_test_support::test_path_buf;
 use pretty_assertions::assert_eq;
-use serde_json::json;
 use std::collections::HashMap;
-use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio::sync::watch;
@@ -52,6 +53,8 @@ async fn forward_events_cancelled_while_send_blocked_shuts_down_delegate() {
             msg: EventMsg::TurnAborted(TurnAbortedEvent {
                 turn_id: Some("turn-1".to_string()),
                 reason: TurnAbortReason::Interrupted,
+                completed_at: None,
+                duration_ms: None,
             }),
         })
         .await
@@ -280,13 +283,12 @@ async fn handle_exec_approval_uses_call_id_for_guardian_review_and_approval_id_f
                     approval_id: Some("callback-approval-1".to_string()),
                     turn_id: "child-turn-1".to_string(),
                     command: vec!["rm".to_string(), "-rf".to_string(), "tmp".to_string()],
-                    cwd: PathBuf::from("/tmp"),
+                    cwd: test_path_buf("/tmp").abs(),
                     reason: Some("unsafe subcommand".to_string()),
                     network_approval_context: None,
                     proposed_execpolicy_amendment: None,
                     proposed_network_policy_amendments: None,
                     additional_permissions: None,
-                    skill_metadata: None,
                     available_decisions: Some(vec![
                         ReviewDecision::Approved,
                         ReviewDecision::Abort,
@@ -309,22 +311,26 @@ async fn handle_exec_approval_uses_call_id_for_guardian_review_and_approval_id_f
     })
     .await
     .expect("timed out waiting for guardian assessment");
+    let expected_action = GuardianAssessmentAction::Command {
+        source: GuardianCommandSource::Shell,
+        command: "rm -rf tmp".to_string(),
+        cwd: test_path_buf("/tmp").abs(),
+    };
+    assert!(!assessment_event.id.is_empty());
     assert_eq!(
-        assessment_event,
-        GuardianAssessmentEvent {
-            id: "command-item-1".to_string(),
-            turn_id: parent_ctx.sub_id.clone(),
-            status: GuardianAssessmentStatus::InProgress,
-            risk_score: None,
-            risk_level: None,
-            rationale: None,
-            action: Some(json!({
-                "tool": "shell",
-                "command": "rm -rf tmp",
-                "cwd": "/tmp",
-            })),
-        }
+        assessment_event.target_item_id.as_deref(),
+        Some("command-item-1")
     );
+    assert_eq!(assessment_event.turn_id, parent_ctx.sub_id);
+    assert_eq!(
+        assessment_event.status,
+        GuardianAssessmentStatus::InProgress
+    );
+    assert_eq!(assessment_event.risk_level, None);
+    assert_eq!(assessment_event.user_authorization, None);
+    assert_eq!(assessment_event.rationale, None);
+    assert_eq!(assessment_event.decision_source, None);
+    assert_eq!(assessment_event.action, expected_action);
 
     cancel_token.cancel();
 

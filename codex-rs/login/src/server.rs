@@ -20,21 +20,23 @@ use std::net::TcpStream;
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::sync::LazyLock;
 use std::thread;
 use std::time::Duration;
 
+use crate::auth::AuthDotJson;
+use crate::auth::save_auth;
+use crate::default_client::originator;
 use crate::pkce::PkceCodes;
 use crate::pkce::generate_pkce;
+use crate::token_data::TokenData;
+use crate::token_data::parse_chatgpt_jwt_claims;
 use base64::Engine;
 use chrono::Utc;
 use codex_app_server_protocol::AuthMode;
 use codex_client::build_reqwest_client_with_custom_ca;
-use codex_core::auth::AuthCredentialsStoreMode;
-use codex_core::auth::AuthDotJson;
-use codex_core::auth::save_auth;
-use codex_core::default_client::originator;
-use codex_core::token_data::TokenData;
-use codex_core::token_data::parse_chatgpt_jwt_claims;
+use codex_config::types::AuthCredentialsStoreMode;
+use codex_utils_template::Template;
 use rand::RngCore;
 use serde_json::Value as JsonValue;
 use tiny_http::Header;
@@ -48,6 +50,10 @@ use tracing::warn;
 
 const DEFAULT_ISSUER: &str = "https://auth.openai.com";
 const DEFAULT_PORT: u16 = 1455;
+static LOGIN_ERROR_PAGE_TEMPLATE: LazyLock<Template> = LazyLock::new(|| {
+    Template::parse(include_str!("assets/error.html"))
+        .unwrap_or_else(|err| panic!("login error page template must parse: {err}"))
+});
 
 /// Options for launching the local login callback server.
 #[derive(Debug, Clone)]
@@ -484,10 +490,7 @@ fn build_authorize_url(
         ("id_token_add_organizations".to_string(), "true".to_string()),
         ("codex_cli_simplified_flow".to_string(), "true".to_string()),
         ("state".to_string(), state.to_string()),
-        (
-            "originator".to_string(),
-            originator().value.as_str().to_string(),
-        ),
+        ("originator".to_string(), originator().value),
     ];
     if let Some(workspace_id) = forced_chatgpt_workspace_id {
         query.push(("allowed_workspace_id".to_string(), workspace_id.to_string()));
@@ -778,6 +781,7 @@ pub(crate) async fn persist_tokens_async(
             openai_api_key: api_key,
             tokens: Some(tokens),
             last_refresh: Some(Utc::now()),
+            agent_identity: None,
         };
         save_auth(&codex_home, &auth, auth_credentials_store_mode)
     })
@@ -1004,7 +1008,6 @@ fn render_login_error_page(
     error_code: Option<&str>,
     error_description: Option<&str>,
 ) -> Vec<u8> {
-    let template = include_str!("assets/error.html");
     let code = error_code.unwrap_or("unknown_error");
     let (title, display_message, display_description, help_text) =
         if is_missing_codex_entitlement_error(code, error_description) {
@@ -1025,12 +1028,15 @@ fn render_login_error_page(
                     .to_string(),
             )
         };
-    template
-        .replace("__ERROR_TITLE__", &html_escape(&title))
-        .replace("__ERROR_MESSAGE__", &html_escape(&display_message))
-        .replace("__ERROR_CODE__", &html_escape(code))
-        .replace("__ERROR_DESCRIPTION__", &html_escape(&display_description))
-        .replace("__ERROR_HELP__", &html_escape(&help_text))
+    LOGIN_ERROR_PAGE_TEMPLATE
+        .render([
+            ("error_title", html_escape(&title)),
+            ("error_message", html_escape(&display_message)),
+            ("error_code", html_escape(code)),
+            ("error_description", html_escape(&display_description)),
+            ("error_help", html_escape(&help_text)),
+        ])
+        .unwrap_or_else(|err| panic!("login error page template must render: {err}"))
         .into_bytes()
 }
 
@@ -1090,9 +1096,12 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     use super::TokenEndpointErrorDetail;
+    use super::html_escape;
+    use super::is_missing_codex_entitlement_error;
     use super::parse_token_endpoint_error;
     use super::redact_sensitive_query_value;
     use super::redact_sensitive_url_parts;
+    use super::render_login_error_page;
     use super::sanitize_url_for_logging;
 
     #[test]
@@ -1191,5 +1200,40 @@ mod tests {
             redacted,
             "https://example.com/base?token=%3Credacted%3E&env=prod".to_string()
         );
+    }
+
+    #[test]
+    fn render_login_error_page_escapes_dynamic_fields() {
+        let body = String::from_utf8(render_login_error_page(
+            "<bad>",
+            Some("code&value"),
+            Some("\"quoted\""),
+        ))
+        .expect("login error page should be utf-8");
+
+        assert!(body.contains(&html_escape("Sign-in could not be completed")));
+        assert!(body.contains("&lt;bad&gt;"));
+        assert!(body.contains("code&amp;value"));
+        assert!(body.contains("&quot;quoted&quot;"));
+    }
+
+    #[test]
+    fn render_login_error_page_uses_entitlement_copy() {
+        let error_description = Some("missing_codex_entitlement");
+        assert!(is_missing_codex_entitlement_error(
+            "access_denied",
+            error_description
+        ));
+
+        let body = String::from_utf8(render_login_error_page(
+            "access denied",
+            Some("access_denied"),
+            error_description,
+        ))
+        .expect("login error page should be utf-8");
+
+        assert!(body.contains("You do not have access to Codex"));
+        assert!(body.contains("Contact your workspace administrator"));
+        assert!(!body.contains("missing_codex_entitlement"));
     }
 }

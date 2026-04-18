@@ -1,8 +1,8 @@
 [package]
+edition.workspace = true
+license.workspace = true
 name = "codex-cloud-tasks-client"
-version = { workspace = true }
-license = { workspace = true }
-edition = "2024"
+version.workspace = true
 
 [lib]
 name = "codex_cloud_tasks_client"
@@ -11,19 +11,12 @@ path = "src/lib.rs"
 [lints]
 workspace = true
 
-[features]
-default = ["online"]
-online = ["dep:codex-backend-client"]
-mock = []
-
 [dependencies]
-anyhow = "1"
+anyhow = { workspace = true }
 async-trait = { workspace = true }
-chrono = { version = "0.4", features = ["serde"] }
-diffy = "0.4.2"
+chrono = { workspace = true, features = ["serde"] }
+codex-backend-client = { workspace = true }
+codex-git-utils = { workspace = true }
 serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-thiserror = "2.0.17"
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls-native-roots"] }
-codex-backend-client = { path = "../backend-client", optional = true }
-codex-git = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }

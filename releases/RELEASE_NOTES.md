@@ -24,6 +24,13 @@
 - Clarified that the official Codex surfaces are the baseline product story for this fork: `codex`, `codex app`, `codex app-server`, and plugins.
 - Tightened the public explanation of what remains fork-specific and what is intentionally being retired or migrated.
 
+### Fork-only highlights
+
+- DeepResearch remains available as a plugin-facing workflow on top of the official Codex surfaces.
+- Git4D remains positioned as an optional visualization capability instead of a permanent core fork seam.
+- VR and AR remain opt-in capabilities with graceful fallback when no device or WebXR path is available.
+- Repo-local plugin marketplace support remains the main vehicle for shipping distinctive zapabob functionality without carrying a permanently divergent core.
+
 ### Release alignment
 
 - Aligned the root package manifests and release-visible metadata to `3.1.0`.

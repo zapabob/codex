@@ -130,6 +130,8 @@ impl CollaborationModeIndicator {
 /// (for example, showing `QuitShortcutReminder` only while its timer is active).
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum FooterMode {
+    /// Single-line incremental history search prompt shown while Ctrl+R search is active.
+    HistorySearch,
     /// Transient "press again to quit" reminder (Ctrl+C/Ctrl+D).
     QuitShortcutReminder,
     /// Multi-line shortcut overlay shown after pressing `?`.
@@ -179,6 +181,7 @@ pub(crate) fn reset_mode_after_activity(current: FooterMode) -> FooterMode {
         FooterMode::EscHint
         | FooterMode::ShortcutOverlay
         | FooterMode::QuitShortcutReminder
+        | FooterMode::HistorySearch
         | FooterMode::ComposerHasDraft => FooterMode::ComposerEmpty,
         other => other,
     }
@@ -188,13 +191,15 @@ pub(crate) fn footer_height(props: &FooterProps) -> u16 {
     let show_shortcuts_hint = match props.mode {
         FooterMode::ComposerEmpty => true,
         FooterMode::ComposerHasDraft => false,
-        FooterMode::QuitShortcutReminder | FooterMode::ShortcutOverlay | FooterMode::EscHint => {
-            false
-        }
+        FooterMode::HistorySearch
+        | FooterMode::QuitShortcutReminder
+        | FooterMode::ShortcutOverlay
+        | FooterMode::EscHint => false,
     };
     let show_queue_hint = match props.mode {
         FooterMode::ComposerHasDraft => props.is_task_running,
         FooterMode::QuitShortcutReminder
+        | FooterMode::HistorySearch
         | FooterMode::ComposerEmpty
         | FooterMode::ShortcutOverlay
         | FooterMode::EscHint => false,
@@ -593,6 +598,7 @@ fn footer_from_props_lines(
         FooterMode::QuitShortcutReminder => {
             vec![quit_shortcut_reminder_line(props.quit_shortcut_key)]
         }
+        FooterMode::HistorySearch => vec![Line::from("reverse-i-search: ").dim()],
         FooterMode::ComposerEmpty => {
             let state = LeftSideState {
                 hint: if show_shortcuts_hint {
@@ -666,9 +672,10 @@ pub(crate) fn shows_passive_footer_line(props: &FooterProps) -> bool {
     match props.mode {
         FooterMode::ComposerEmpty => true,
         FooterMode::ComposerHasDraft => !props.is_task_running,
-        FooterMode::QuitShortcutReminder | FooterMode::ShortcutOverlay | FooterMode::EscHint => {
-            false
-        }
+        FooterMode::HistorySearch
+        | FooterMode::QuitShortcutReminder
+        | FooterMode::ShortcutOverlay
+        | FooterMode::EscHint => false,
     }
 }
 
@@ -756,6 +763,7 @@ fn shortcut_overlay_lines(state: ShortcutsState) -> Vec<Line<'static>> {
     let mut paste_image = Line::from("");
     let mut external_editor = Line::from("");
     let mut edit_previous = Line::from("");
+    let mut history_search = Line::from("");
     let mut quit = Line::from("");
     let mut show_transcript = Line::from("");
     let mut change_mode = Line::from("");
@@ -771,6 +779,7 @@ fn shortcut_overlay_lines(state: ShortcutsState) -> Vec<Line<'static>> {
                 ShortcutId::PasteImage => paste_image = text,
                 ShortcutId::ExternalEditor => external_editor = text,
                 ShortcutId::EditPrevious => edit_previous = text,
+                ShortcutId::HistorySearch => history_search = text,
                 ShortcutId::Quit => quit = text,
                 ShortcutId::ShowTranscript => show_transcript = text,
                 ShortcutId::ChangeMode => change_mode = text,
@@ -787,6 +796,7 @@ fn shortcut_overlay_lines(state: ShortcutsState) -> Vec<Line<'static>> {
         paste_image,
         external_editor,
         edit_previous,
+        history_search,
         quit,
     ];
     if change_mode.width() > 0 {
@@ -869,6 +879,7 @@ enum ShortcutId {
     PasteImage,
     ExternalEditor,
     EditPrevious,
+    HistorySearch,
     Quit,
     ShowTranscript,
     ChangeMode,
@@ -1028,6 +1039,15 @@ const SHORTCUTS: &[ShortcutDescriptor] = &[
         label: "",
     },
     ShortcutDescriptor {
+        id: ShortcutId::HistorySearch,
+        bindings: &[ShortcutBinding {
+            key: key_hint::ctrl(KeyCode::Char('r')),
+            condition: DisplayCondition::Always,
+        }],
+        prefix: "",
+        label: " search history",
+    },
+    ShortcutDescriptor {
         id: ShortcutId::Quit,
         bindings: &[ShortcutBinding {
             key: key_hint::ctrl(KeyCode::Char('c')),
@@ -1068,7 +1088,9 @@ mod tests {
     use ratatui::backend::TestBackend;
 
     fn snapshot_footer(name: &str, props: FooterProps) {
-        snapshot_footer_with_mode_indicator(name, 80, &props, None);
+        snapshot_footer_with_mode_indicator(
+            name, /*width*/ 80, &props, /*collaboration_mode_indicator*/ None,
+        );
     }
 
     fn draw_footer_frame<B: Backend>(
@@ -1084,13 +1106,15 @@ mod tests {
                 let show_shortcuts_hint = match props.mode {
                     FooterMode::ComposerEmpty => true,
                     FooterMode::ComposerHasDraft => false,
-                    FooterMode::QuitShortcutReminder
+                    FooterMode::HistorySearch
+                    | FooterMode::QuitShortcutReminder
                     | FooterMode::ShortcutOverlay
                     | FooterMode::EscHint => false,
                 };
                 let show_queue_hint = match props.mode {
                     FooterMode::ComposerHasDraft => props.is_task_running,
-                    FooterMode::QuitShortcutReminder
+                    FooterMode::HistorySearch
+                    | FooterMode::QuitShortcutReminder
                     | FooterMode::ComposerEmpty
                     | FooterMode::ShortcutOverlay
                     | FooterMode::EscHint => false,
@@ -1135,7 +1159,10 @@ mod tests {
                 };
                 let right_line = if status_line_active {
                     let full = mode_indicator_line(collaboration_mode_indicator, show_cycle_hint);
-                    let compact = mode_indicator_line(collaboration_mode_indicator, false);
+                    let compact = mode_indicator_line(
+                        collaboration_mode_indicator,
+                        /*show_cycle_hint*/ false,
+                    );
                     let full_width = full.as_ref().map(|line| line.width() as u16).unwrap_or(0);
                     if can_show_left_with_context(area, left_width, full_width) {
                         full
@@ -1222,6 +1249,7 @@ mod tests {
                         && !matches!(
                             props.mode,
                             FooterMode::EscHint
+                                | FooterMode::HistorySearch
                                 | FooterMode::QuitShortcutReminder
                                 | FooterMode::ShortcutOverlay
                         );
@@ -1455,14 +1483,14 @@ mod tests {
 
         snapshot_footer_with_mode_indicator(
             "footer_mode_indicator_wide",
-            120,
+            /*width*/ 120,
             &props,
             Some(CollaborationModeIndicator::Plan),
         );
 
         snapshot_footer_with_mode_indicator(
             "footer_mode_indicator_narrow_overlap_hides",
-            50,
+            /*width*/ 50,
             &props,
             Some(CollaborationModeIndicator::Plan),
         );
@@ -1484,7 +1512,7 @@ mod tests {
 
         snapshot_footer_with_mode_indicator(
             "footer_mode_indicator_running_hides_hint",
-            120,
+            /*width*/ 120,
             &props,
             Some(CollaborationModeIndicator::Plan),
         );
@@ -1557,7 +1585,7 @@ mod tests {
 
         snapshot_footer_with_mode_indicator(
             "footer_status_line_enabled_mode_right",
-            120,
+            /*width*/ 120,
             &props,
             Some(CollaborationModeIndicator::Plan),
         );
@@ -1579,7 +1607,7 @@ mod tests {
 
         snapshot_footer_with_mode_indicator(
             "footer_status_line_disabled_context_right",
-            120,
+            /*width*/ 120,
             &props,
             Some(CollaborationModeIndicator::Plan),
         );
@@ -1602,9 +1630,9 @@ mod tests {
         // has status line and no collaboration mode
         snapshot_footer_with_mode_indicator(
             "footer_status_line_enabled_no_mode_right",
-            120,
+            /*width*/ 120,
             &props,
-            None,
+            /*collaboration_mode_indicator*/ None,
         );
 
         let props = FooterProps {
@@ -1626,7 +1654,7 @@ mod tests {
 
         snapshot_footer_with_mode_indicator(
             "footer_status_line_truncated_with_gap",
-            40,
+            /*width*/ 40,
             &props,
             Some(CollaborationModeIndicator::Plan),
         );
@@ -1686,8 +1714,11 @@ mod tests {
             active_agent_label: None,
         };
 
-        let screen =
-            render_footer_with_mode_indicator(80, &props, Some(CollaborationModeIndicator::Plan));
+        let screen = render_footer_with_mode_indicator(
+            /*width*/ 80,
+            &props,
+            Some(CollaborationModeIndicator::Plan),
+        );
         let collapsed = screen.split_whitespace().collect::<Vec<_>>().join(" ");
         assert!(
             collapsed.contains("Plan mode"),
