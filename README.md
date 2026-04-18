@@ -22,6 +22,7 @@ These are the pieces this fork still wants to be known for:
 - Git4D as an optional visualization path instead of a mandatory forked core experience
 - VR and AR capability as opt-in plugin surfaces with no-device and no-WebXR fallback
 - Repo-local plugin marketplace support for shipping fork-only value without permanently diverging the main product surface
+- A lightweight Git4D bridge that exposes launch, session, SSE, and capability routes for plugin-driven clients when the optional GUI service is running
 - Windows-first release operations, where packaging, overwrite install, and smoke verification are treated as product features instead of afterthoughts
 
 Current sync target:
@@ -91,7 +92,7 @@ Those paths are in migration mode and should not receive new feature work. Their
 That plugin carries forward:
 
 - DeepResearch as a plugin-facing research workflow on top of the official app and app-server model
-- Git4D as an optional plugin capability with non-visual fallback
+- Git4D as an optional plugin capability that can bridge into live launch, session, SSE, and capability routes, with non-visual fallback when that bridge is absent
 - VR and AR as optional plugin capabilities with graceful no-device and no-WebXR fallback
 
 This repository intentionally does not preserve fork-only virtual OS, custom computer-operation, or OS-control surfaces. Those are deprecated in favor of future official Codex App platform work, especially on Windows.

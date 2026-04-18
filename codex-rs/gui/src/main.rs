@@ -98,6 +98,10 @@ async fn main() -> Result<(), GuiError> {
             get(api::git4d::list_git4d_sessions),
         )
         .route(
+            "/api/visualization/git4d/capabilities/{mode}",
+            get(api::git4d::get_git4d_capabilities),
+        )
+        .route(
             "/api/visualization/git4d/{session_id}/events",
             get(api::git4d::git4d_events_stream),
         )
