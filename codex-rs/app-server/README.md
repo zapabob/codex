@@ -191,6 +191,12 @@ Example with notification opt-out:
 - `skills/config/write` — write user-level skill config by name or absolute path.
 - `plugin/install` — install a plugin from a discovered marketplace entry, rejecting marketplace entries marked unavailable for install, install MCPs if any, and return the effective plugin auth policy plus any apps that still need auth (**under development; do not call from production clients yet**).
 - `plugin/uninstall` — uninstall a plugin by id by removing its cached files and clearing its user-level config entry (**under development; do not call from production clients yet**).
+- `git4d/capabilities/read` — experimental; read Git4D mode capability and fallback metadata from the canonical app-server bridge.
+- `git4d/session/start` — experimental; start a Git4D session and return requested/effective mode plus fallback metadata.
+- `git4d/session/list` — experimental; list current Git4D sessions with platform, device, fallback, uptime, and idle metadata.
+- `git4d/session/watch` — experimental; subscribe to `git4d/session/event` notifications, optionally replaying buffered session events first.
+- `git4d/session/unwatch` — experimental; stop a prior Git4D session watch subscription.
+- `git4d/session/event` — experimental notification emitted for watched Git4D sessions with a monotonic sequence number.
 - `mcpServer/oauth/login` — start an OAuth login for a configured MCP server; returns an `authorization_url` and later emits `mcpServer/oauthLogin/completed` once the browser flow finishes.
 - `tool/requestUserInput` — prompt the user with 1–3 short questions for a tool call and return their answers (experimental).
 - `config/mcpServer/reload` — reload MCP server config from disk and queue a refresh for loaded threads (applied on each thread's next active turn); returns `{}`. Use this after editing `config.toml` without restarting the server.

@@ -2,11 +2,11 @@ use axum::body::Body;
 use axum::http::{StatusCode, header};
 use axum::{Json, extract::Path, response::Response};
 use codex_core::git4d_accelerated::{
-    DeviceAvailability, Git4DAcceleratedVisualizer, check_vr_ar_device_availability,
+    Git4DAcceleratedVisualizer, Git4DCapabilitySnapshot, Git4DMode, read_capabilities,
 };
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
-use tracing::{info, warn};
+use tracing::info;
 
 use crate::error::GuiError;
 
@@ -48,55 +48,23 @@ pub struct Git4DCapabilityResponse {
     pub transport: String,
 }
 
-fn validate_git4d_mode(mode: &str) -> Result<(), GuiError> {
-    if ["desktop", "vr", "ar"].contains(&mode) {
-        return Ok(());
-    }
-
-    Err(GuiError::Validation {
+fn parse_git4d_mode(mode: &str) -> Result<Git4DMode, GuiError> {
+    mode.parse::<Git4DMode>().map_err(|err| GuiError::Validation {
         field: "mode".to_string(),
-        message: format!("Invalid mode: {mode}. Must be one of: desktop, vr, ar"),
+        message: err.to_string(),
     })
 }
 
-fn build_capability_response(
-    requested_mode: &str,
-    device_availability: &DeviceAvailability,
-) -> Git4DCapabilityResponse {
-    match device_availability {
-        DeviceAvailability::Available {
-            platform,
-            device_name,
-        } => Git4DCapabilityResponse {
-            requested_mode: requested_mode.to_string(),
-            effective_mode: requested_mode.to_string(),
-            supported: true,
-            device_available: true,
-            platform: Some(format!("{platform:?}")),
-            device_name: device_name.clone(),
-            fallback_reason: None,
-            transport: "sse".to_string(),
-        },
-        DeviceAvailability::NotAvailable { reason } => Git4DCapabilityResponse {
-            requested_mode: requested_mode.to_string(),
-            effective_mode: "desktop".to_string(),
-            supported: true,
-            device_available: false,
-            platform: Some("Desktop".to_string()),
-            device_name: None,
-            fallback_reason: Some(reason.clone()),
-            transport: "sse".to_string(),
-        },
-        DeviceAvailability::Desktop => Git4DCapabilityResponse {
-            requested_mode: requested_mode.to_string(),
-            effective_mode: "desktop".to_string(),
-            supported: true,
-            device_available: true,
-            platform: Some("Desktop".to_string()),
-            device_name: None,
-            fallback_reason: None,
-            transport: "sse".to_string(),
-        },
+fn build_capability_response(snapshot: Git4DCapabilitySnapshot) -> Git4DCapabilityResponse {
+    Git4DCapabilityResponse {
+        requested_mode: snapshot.requested_mode.as_str().to_string(),
+        effective_mode: snapshot.effective_mode.as_str().to_string(),
+        supported: true,
+        device_available: snapshot.native_supported,
+        platform: snapshot.platform,
+        device_name: snapshot.device_name,
+        fallback_reason: snapshot.fallback_reason,
+        transport: "sse".to_string(),
     }
 }
 
@@ -105,13 +73,11 @@ pub async fn launch_git4d_visualization(
     Json(payload): Json<Git4DLaunchRequest>,
 ) -> Result<Json<Git4DLaunchResponse>, GuiError> {
     let mode = payload.mode.trim().to_ascii_lowercase();
+    let requested_mode = parse_git4d_mode(&mode)?;
     let repository_path = payload
         .repository_path
         .map(PathBuf::from)
         .unwrap_or_else(|| PathBuf::from("."));
-
-    // Validate mode
-    validate_git4d_mode(&mode)?;
 
     // Validate repository path exists
     if !repository_path.exists() {
@@ -150,35 +116,20 @@ pub async fn launch_git4d_visualization(
         }
     }
 
-    // Check VR/AR device availability (if mode is vr or ar)
-    let device_availability = if mode == "vr" || mode == "ar" {
-        check_vr_ar_device_availability(&mode)
-            .await
-            .unwrap_or_else(|e| {
-                warn!("Failed to check device availability: {}", e);
-                DeviceAvailability::NotAvailable {
-                    reason: format!("Device check failed: {}", e),
-                }
-            })
-    } else {
-        DeviceAvailability::Desktop
-    };
-
-    let capability = build_capability_response(&mode, &device_availability);
-    if let Some(reason) = capability.fallback_reason.as_deref() {
-        warn!("VR/AR device not available ({reason}), falling back to desktop mode");
-    }
-
-    // Launch Git4D visualization session
-    let session = Git4DAcceleratedVisualizer::launch_for_gui(
-        repository_path.clone(),
-        capability.effective_mode.clone(),
-    )
-    .await
-    .map_err(|e| GuiError::Validation {
-        field: "repository_path".to_string(),
-        message: format!("Failed to launch visualization: {}", e),
-    })?;
+    let session = Git4DAcceleratedVisualizer::launch_session(repository_path.clone(), requested_mode)
+        .await
+        .map_err(|e| GuiError::Validation {
+            field: "repository_path".to_string(),
+            message: format!("Failed to launch visualization: {e}"),
+        })?;
+    let capability = build_capability_response(Git4DCapabilitySnapshot {
+        requested_mode: session.requested_mode,
+        effective_mode: session.effective_mode,
+        native_supported: session.requested_mode == session.effective_mode,
+        platform: session.platform.clone(),
+        device_name: session.device_name.clone(),
+        fallback_reason: session.fallback_reason.clone(),
+    });
 
     let session_id = session.session_id.clone();
 
@@ -186,7 +137,9 @@ pub async fn launch_git4d_visualization(
         session_id = session_id.as_str(),
         mode = capability.effective_mode.as_str(),
         repository_path = ?repository_path,
-        device = ?device_availability,
+        requested_mode = capability.requested_mode.as_str(),
+        platform = ?capability.platform,
+        fallback_reason = ?capability.fallback_reason,
         "Git4D visualization session started"
     );
 
@@ -241,22 +194,15 @@ pub async fn get_git4d_capabilities(
     Path(mode): Path<String>,
 ) -> Result<Json<Git4DCapabilityResponse>, GuiError> {
     let mode = mode.trim().to_ascii_lowercase();
-    validate_git4d_mode(&mode)?;
+    let requested_mode = parse_git4d_mode(&mode)?;
+    let capability = read_capabilities(requested_mode)
+        .await
+        .map_err(|e| GuiError::Validation {
+            field: "mode".to_string(),
+            message: format!("Failed to read Git4D capabilities: {e}"),
+        })?;
 
-    let device_availability = if mode == "vr" || mode == "ar" {
-        check_vr_ar_device_availability(&mode)
-            .await
-            .unwrap_or_else(|e| {
-                warn!("Failed to check device availability: {}", e);
-                DeviceAvailability::NotAvailable {
-                    reason: format!("Device check failed: {}", e),
-                }
-            })
-    } else {
-        DeviceAvailability::Desktop
-    };
-
-    Ok(Json(build_capability_response(&mode, &device_availability)))
+    Ok(Json(build_capability_response(capability)))
 }
 
 // Git4D Session List API
@@ -274,18 +220,18 @@ pub struct Git4DSessionInfo {
 
 #[axum::debug_handler]
 pub async fn list_git4d_sessions() -> Json<Vec<Git4DSessionInfo>> {
-    let sessions = Git4DAcceleratedVisualizer::list_sessions();
+    let sessions = Git4DAcceleratedVisualizer::list_session_snapshots();
 
     let session_infos: Vec<Git4DSessionInfo> = sessions
         .into_iter()
         .map(|session| {
-            let session_id = session.session_id;
+            let session_id = session.session_id.clone();
             Git4DSessionInfo {
-                mode: session.mode,
+                mode: session.effective_mode.as_str().to_string(),
                 repository_path: session.repository_path.to_string_lossy().to_string(),
-                status: format!("{:?}", session.status),
-                created_at: format!("{:?}", session.created_at.elapsed()),
-                last_activity: format!("{:?}", session.last_activity.elapsed()),
+                status: session.status.as_str().to_string(),
+                created_at: format!("{}ms", session.uptime_ms),
+                last_activity: format!("{}ms", session.idle_ms),
                 events_path: format!("/api/visualization/git4d/{session_id}/events"),
                 session_id,
             }
@@ -311,15 +257,17 @@ pub async fn git4d_events_stream(Path(session_id): Path<String>) -> Result<Respo
 
     // Convert broadcast receiver to SSE stream
     let stream = BroadcastStream::new(receiver).map(|msg| {
-        let event_data = match msg {
-            Ok(event) => serde_json::to_string(&event).unwrap_or_else(|_| {
-                r#"{"type":"error","message":"serialization_failed"}"#.to_string()
-            }),
-            Err(_) => r#"{"type":"error","message":"receive_failed"}"#.to_string(),
+        let frame = match msg {
+            Ok(event) => {
+                let event_data = serde_json::to_string(&event.event).unwrap_or_else(|_| {
+                    r#"{"type":"error","message":"serialization_failed"}"#.to_string()
+                });
+                format!("id: {}\ndata: {}\n\n", event.sequence, event_data)
+            }
+            Err(_) => "data: {\"type\":\"error\",\"message\":\"receive_failed\"}\n\n".to_string(),
         };
 
-        // Format as SSE event: "data: {json}\n\n"
-        Ok::<_, axum::Error>(format!("data: {}\n\n", event_data))
+        Ok::<_, axum::Error>(frame)
     });
 
     // Create SSE response with proper headers
@@ -338,11 +286,19 @@ pub async fn git4d_events_stream(Path(session_id): Path<String>) -> Result<Respo
 #[cfg(test)]
 mod tests {
     use super::build_capability_response;
-    use codex_core::git4d_accelerated::DeviceAvailability;
+    use codex_core::git4d_accelerated::Git4DCapabilitySnapshot;
+    use codex_core::git4d_accelerated::Git4DMode;
 
     #[test]
     fn capability_response_keeps_desktop_mode_when_requested() {
-        let response = build_capability_response("desktop", &DeviceAvailability::Desktop);
+        let response = build_capability_response(Git4DCapabilitySnapshot {
+            requested_mode: Git4DMode::Desktop,
+            effective_mode: Git4DMode::Desktop,
+            native_supported: true,
+            platform: Some("Desktop".to_string()),
+            device_name: None,
+            fallback_reason: None,
+        });
 
         assert_eq!(response.requested_mode, "desktop");
         assert_eq!(response.effective_mode, "desktop");
@@ -353,12 +309,14 @@ mod tests {
 
     #[test]
     fn capability_response_falls_back_to_desktop_when_device_is_missing() {
-        let response = build_capability_response(
-            "ar",
-            &DeviceAvailability::NotAvailable {
-                reason: "OpenXR runtime missing".to_string(),
-            },
-        );
+        let response = build_capability_response(Git4DCapabilitySnapshot {
+            requested_mode: Git4DMode::Ar,
+            effective_mode: Git4DMode::Desktop,
+            native_supported: false,
+            platform: Some("Desktop".to_string()),
+            device_name: None,
+            fallback_reason: Some("OpenXR runtime missing".to_string()),
+        });
 
         assert_eq!(response.requested_mode, "ar");
         assert_eq!(response.effective_mode, "desktop");

@@ -135,6 +135,7 @@ releases/*.tar.gz
 !scripts/resolve_merge_conflicts.py
 !scripts/upstream_sync.py
 !plugins/zapabob-legacy-suite/servers/legacy_suite_mcp.py
+!plugins/zapabob-legacy-suite/servers/test_legacy_suite_mcp.py
 C:\Users\downl\Desktop\codex-main\.specstory\history\2026-01-16_05-43Z-未来のai開発と統合エコシステム.md
 codex-rs/build_error.txt
 codex-rs/build_error.txt

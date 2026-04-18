@@ -52,6 +52,7 @@ TOOLS = [
                     "enum": ["desktop", "vr", "ar"],
                 },
                 "launch": {"type": "boolean"},
+                "appServerWsUrl": {"type": "string"},
                 "guiBaseUrl": {"type": "string"},
             },
             "additionalProperties": False,
@@ -76,6 +77,7 @@ TOOLS = [
                     "enum": ["webxr", "vrchat", "generic"],
                 },
                 "projectPath": {"type": "string"},
+                "appServerWsUrl": {"type": "string"},
                 "guiBaseUrl": {"type": "string"},
             },
             "additionalProperties": False,
@@ -151,6 +153,14 @@ def gui_base_url(arguments: dict[str, Any]) -> str:
     return f"http://127.0.0.1:{port}"
 
 
+def app_server_ws_url(arguments: dict[str, Any]) -> str:
+    explicit = str(arguments.get("appServerWsUrl", "") or "").strip()
+    if explicit:
+        return explicit
+
+    return str(os.environ.get("CODEX_APP_SERVER_WS_URL", "") or "").strip()
+
+
 def http_json(
     method: str,
     url: str,
@@ -205,6 +215,111 @@ def http_json(
         }
 
 
+class AppServerRpcClient:
+    def __init__(self, ws_url: str, *, timeout: float = 5.0):
+        self.ws_url = ws_url
+        self.timeout = timeout
+        self._connection: Any | None = None
+        self._backend = "uninitialized"
+        self._next_id = 1
+
+    def __enter__(self) -> "AppServerRpcClient":
+        self._connection, self._backend = self._open_connection()
+        self.request(
+            "initialize",
+            {
+                "clientInfo": {
+                    "name": "zapabob-legacy-suite",
+                    "version": "1.2.0",
+                },
+                "capabilities": {
+                    "experimentalApi": True,
+                },
+            },
+        )
+        self.notify("initialized")
+        return self
+
+    def __exit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
+        if self._connection is not None:
+            self._connection.close()
+            self._connection = None
+
+    def _open_connection(self) -> tuple[Any, str]:
+        try:
+            from websocket import create_connection  # type: ignore
+
+            return create_connection(self.ws_url, timeout=self.timeout), "websocket-client"
+        except ImportError:
+            pass
+
+        try:
+            from websockets.sync.client import connect  # type: ignore
+
+            return (
+                connect(
+                    self.ws_url,
+                    open_timeout=self.timeout,
+                    close_timeout=self.timeout,
+                ),
+                "websockets-sync",
+            )
+        except ImportError as err:
+            raise RuntimeError(
+                "No websocket client library available for CODEX_APP_SERVER_WS_URL; "
+                "install websocket-client or websockets."
+            ) from err
+
+    def notify(self, method: str, params: dict[str, Any] | None = None) -> None:
+        self._send(
+            {
+                "jsonrpc": "2.0",
+                "method": method,
+                "params": params or {},
+            }
+        )
+
+    def request(self, method: str, params: dict[str, Any]) -> dict[str, Any]:
+        request_id = self._next_id
+        self._next_id += 1
+        self._send(
+            {
+                "jsonrpc": "2.0",
+                "id": request_id,
+                "method": method,
+                "params": params,
+            }
+        )
+
+        while True:
+            message = self._recv_json()
+            if message.get("id") != request_id:
+                continue
+            if "error" in message:
+                error_payload = message.get("error") or {}
+                raise RuntimeError(
+                    f"{method} failed: {error_payload.get('message', 'unknown error')}"
+                )
+            result = message.get("result")
+            return result if isinstance(result, dict) else {}
+
+    def _send(self, payload: dict[str, Any]) -> None:
+        if self._connection is None:
+            raise RuntimeError("app-server websocket is not connected")
+        self._connection.send(json.dumps(payload))
+
+    def _recv_json(self) -> dict[str, Any]:
+        if self._connection is None:
+            raise RuntimeError("app-server websocket is not connected")
+        raw = self._connection.recv()
+        if isinstance(raw, bytes):
+            raw = raw.decode("utf-8", errors="replace")
+        message = json.loads(raw)
+        if not isinstance(message, dict):
+            raise RuntimeError("app-server websocket returned a non-object payload")
+        return message
+
+
 def fetch_git4d_capabilities(base_url: str, mode: str) -> dict[str, Any]:
     return http_json("GET", f"{base_url}/api/visualization/git4d/capabilities/{mode}")
 
@@ -224,19 +339,131 @@ def launch_git4d_session(base_url: str, repo_path: Path, mode: str) -> dict[str,
     )
 
 
-def summarize_bridge_response(base_url: str, response_payload: dict[str, Any]) -> dict[str, Any]:
+def summarize_bridge_response(endpoint: str, response_payload: dict[str, Any]) -> dict[str, Any]:
     if response_payload.get("ok"):
         return {
             "available": True,
-            "baseUrl": base_url,
+            "endpoint": endpoint,
             "status": response_payload.get("status"),
             "error": None,
         }
     return {
         "available": False,
-        "baseUrl": base_url,
+        "endpoint": endpoint,
         "status": response_payload.get("status"),
         "error": response_payload.get("error") or "bridge unavailable",
+    }
+
+
+def normalize_app_server_capability(body: dict[str, Any], requested_mode: str) -> dict[str, Any]:
+    return {
+        "requestedMode": str(body.get("requestedMode", requested_mode)),
+        "effectiveMode": str(body.get("effectiveMode", "desktop")),
+        "deviceAvailable": bool(body.get("nativeSupported")),
+        "platform": body.get("platform"),
+        "deviceName": body.get("deviceName"),
+        "fallbackReason": body.get("fallbackReason"),
+        "transport": "app-server-json-rpc",
+    }
+
+
+def normalize_app_server_session(body: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "sessionId": body.get("sessionId"),
+        "repositoryPath": body.get("repositoryPath"),
+        "requestedMode": body.get("requestedMode"),
+        "effectiveMode": body.get("effectiveMode"),
+        "mode": body.get("effectiveMode"),
+        "status": body.get("status"),
+        "platform": body.get("platform"),
+        "deviceName": body.get("deviceName"),
+        "fallbackReason": body.get("fallbackReason"),
+        "uptimeMs": body.get("uptimeMs"),
+        "idleMs": body.get("idleMs"),
+        "transport": "app-server-json-rpc",
+    }
+
+
+def fetch_git4d_state_from_app_server(
+    ws_url: str,
+    repo_path: Path,
+    requested_mode: str,
+    should_launch: bool,
+) -> dict[str, Any]:
+    try:
+        with AppServerRpcClient(ws_url) as client:
+            capability_result = client.request(
+                "git4d/capabilities/read",
+                {"mode": requested_mode},
+            )
+            session_list_result = client.request("git4d/session/list", {})
+            launch_result = (
+                client.request(
+                    "git4d/session/start",
+                    {
+                        "repositoryPath": str(repo_path),
+                        "mode": requested_mode,
+                    },
+                )
+                if should_launch
+                else None
+            )
+    except (OSError, RuntimeError, json.JSONDecodeError) as err:
+        return {
+            "ok": False,
+            "status": None,
+            "error": str(err),
+            "body": None,
+        }
+
+    sessions = session_list_result.get("sessions")
+    normalized_sessions = []
+    if isinstance(sessions, list):
+        normalized_sessions = [
+            normalize_app_server_session(session)
+            for session in sessions
+            if isinstance(session, dict)
+            and same_resolved_path(session.get("repositoryPath", ""), str(repo_path))
+        ]
+
+    normalized_launch = None
+    if isinstance(launch_result, dict):
+        launch_session = launch_result.get("session")
+        if isinstance(launch_session, dict):
+            normalized_launch = normalize_app_server_session(launch_session)
+
+    return {
+        "ok": True,
+        "status": "jsonrpc",
+        "error": None,
+        "body": {
+            "capability": normalize_app_server_capability(capability_result, requested_mode),
+            "sessions": normalized_sessions,
+            "launch": normalized_launch,
+        },
+    }
+
+
+def fetch_git4d_capability_from_app_server(ws_url: str, requested_mode: str) -> dict[str, Any]:
+    try:
+        with AppServerRpcClient(ws_url) as client:
+            capability_result = client.request(
+                "git4d/capabilities/read",
+                {"mode": requested_mode},
+            )
+    except (OSError, RuntimeError, json.JSONDecodeError) as err:
+        return {
+            "ok": False,
+            "status": None,
+            "error": str(err),
+            "body": None,
+        }
+
+    return {
+        "ok": True,
+        "status": "jsonrpc",
+        "error": None,
+        "body": normalize_app_server_capability(capability_result, requested_mode),
     }
 
 
@@ -296,6 +523,7 @@ def handle_git4d_repo_summary(arguments: dict[str, Any]) -> dict[str, Any]:
 
     requested_mode = resolve_mode(arguments, default="desktop")
     should_launch = bool_argument(arguments, "launch", False)
+    ws_url = app_server_ws_url(arguments)
     base_url = gui_base_url(arguments)
 
     try:
@@ -309,43 +537,101 @@ def handle_git4d_repo_summary(arguments: dict[str, Any]) -> dict[str, Any]:
             {"ok": False, "repoPath": str(repo_path)},
         )
 
-    sessions_resp = fetch_git4d_sessions(base_url)
-    capability_resp = fetch_git4d_capabilities(base_url, requested_mode)
-    launch_resp = (
-        launch_git4d_session(base_url, repo_path, requested_mode) if should_launch else None
+    app_server_resp = (
+        fetch_git4d_state_from_app_server(ws_url, repo_path, requested_mode, should_launch)
+        if ws_url
+        else {
+            "ok": False,
+            "status": None,
+            "error": "CODEX_APP_SERVER_WS_URL is not set",
+            "body": None,
+        }
     )
+    app_server_status = summarize_bridge_response(ws_url or "app-server disabled", app_server_resp)
 
-    bridge_status = summarize_bridge_response(base_url, sessions_resp)
-    capability_status = summarize_bridge_response(base_url, capability_resp)
-    launch_status = (
-        summarize_bridge_response(base_url, launch_resp) if launch_resp is not None else None
+    gui_sessions_resp = {
+        "ok": False,
+        "status": None,
+        "error": "not attempted",
+        "body": None,
+    }
+    gui_capability_resp = {
+        "ok": False,
+        "status": None,
+        "error": "not attempted",
+        "body": None,
+    }
+    gui_launch_resp = None
+    gui_status = summarize_bridge_response(base_url, gui_sessions_resp)
+
+    live_source = "local"
+    capability_body = None
+    live_sessions: list[dict[str, Any]] = []
+    launch_body = None
+    launch_status = None
+
+    app_server_body = app_server_resp.get("body")
+    if app_server_resp.get("ok") and isinstance(app_server_body, dict):
+        capability_body = app_server_body.get("capability")
+        sessions_body = app_server_body.get("sessions")
+        if isinstance(sessions_body, list):
+            live_sessions = [session for session in sessions_body if isinstance(session, dict)]
+        launch_body = app_server_body.get("launch")
+        live_source = "app-server"
+        launch_status = summarize_bridge_response(ws_url, {"ok": True, "status": "jsonrpc"})
+    else:
+        gui_sessions_resp = fetch_git4d_sessions(base_url)
+        gui_capability_resp = fetch_git4d_capabilities(base_url, requested_mode)
+        gui_launch_resp = (
+            launch_git4d_session(base_url, repo_path, requested_mode) if should_launch else None
+        )
+        gui_status = summarize_bridge_response(base_url, gui_sessions_resp)
+        capability_status = summarize_bridge_response(
+            f"{base_url}/api/visualization/git4d/capabilities/{requested_mode}",
+            gui_capability_resp,
+        )
+        launch_status = (
+            summarize_bridge_response(f"{base_url}/api/visualization/git4d", gui_launch_resp)
+            if gui_launch_resp is not None
+            else None
+        )
+
+        sessions_body = gui_sessions_resp.get("body")
+        if isinstance(sessions_body, list):
+            live_sessions = [
+                session
+                for session in sessions_body
+                if same_resolved_path(session.get("repositoryPath", ""), str(repo_path))
+            ]
+
+        capability_body = gui_capability_resp.get("body")
+        launch_body = gui_launch_resp.get("body") if gui_launch_resp is not None else None
+        if isinstance(capability_body, dict) or live_sessions or isinstance(launch_body, dict):
+            live_source = "gui"
+    capability_status = summarize_bridge_response(
+        live_source if live_source != "local" else "local fallback",
+        {"ok": live_source != "local", "status": None, "error": None},
     )
-
-    sessions_body = sessions_resp.get("body")
-    live_sessions = []
-    if isinstance(sessions_body, list):
-        live_sessions = [
-            session
-            for session in sessions_body
-            if same_resolved_path(session.get("repositoryPath", ""), str(repo_path))
-        ]
-
-    capability_body = capability_resp.get("body")
-    launch_body = launch_resp.get("body") if launch_resp is not None else None
 
     status_lines = status.splitlines()[:12] if status else []
-    status_text = "\n".join(f"- {line}" for line in status_lines) if status_lines else "- working tree clean"
+    status_text = (
+        "\n".join(f"- {line}" for line in status_lines)
+        if status_lines
+        else "- working tree clean"
+    )
     log_lines = log_output.splitlines()
     log_text = "\n".join(f"- {line}" for line in log_lines) if log_lines else "- no commits found"
 
-    capability_text = "- GUI bridge unavailable"
+    capability_text = "- live bridge unavailable; using repository-only fallback"
     if isinstance(capability_body, dict):
         capability_text = "\n".join(
             [
+                f"- live source: {live_source}",
                 f"- requested mode: {capability_body.get('requestedMode', requested_mode)}",
                 f"- effective mode: {capability_body.get('effectiveMode', 'desktop')}",
                 f"- device available: {capability_body.get('deviceAvailable', False)}",
                 f"- platform: {capability_body.get('platform', 'unknown')}",
+                f"- transport: {capability_body.get('transport', live_source)}",
                 (
                     f"- fallback reason: {capability_body.get('fallbackReason')}"
                     if capability_body.get("fallbackReason")
@@ -359,7 +645,8 @@ def handle_git4d_repo_summary(arguments: dict[str, Any]) -> dict[str, Any]:
         session_text = "\n".join(
             (
                 f"- {session.get('sessionId')} [{session.get('status')}] "
-                f"mode={session.get('mode')} events={session.get('eventsPath')}"
+                f"mode={session.get('mode')} transport={session.get('transport', live_source)} "
+                f"events={session.get('eventsPath') or 'git4d/session/watch'}"
             )
             for session in live_sessions
         )
@@ -368,15 +655,16 @@ def handle_git4d_repo_summary(arguments: dict[str, Any]) -> dict[str, Any]:
     if isinstance(launch_body, dict):
         launch_text = "\n".join(
             [
+                f"- transport: {launch_body.get('transport', live_source)}",
                 f"- status: {launch_body.get('status', 'unknown')}",
                 f"- session: {launch_body.get('sessionId', 'n/a')}",
                 f"- effective mode: {launch_body.get('effectiveMode', requested_mode)}",
-                f"- events: {launch_body.get('eventsPath', 'n/a')}",
+                f"- events: {launch_body.get('eventsPath', 'git4d/session/watch')}",
             ]
         )
         if launch_body.get("fallbackReason"):
             launch_text += f"\n- fallback reason: {launch_body.get('fallbackReason')}"
-    elif launch_resp is not None and launch_status is not None:
+    elif should_launch and launch_status is not None:
         launch_text = f"- launch failed: {launch_status.get('error')}"
 
     body = (
@@ -385,9 +673,13 @@ def handle_git4d_repo_summary(arguments: dict[str, Any]) -> dict[str, Any]:
         f"Branch: {branch}\n"
         f"HEAD: {head}\n"
         f"Requested mode: {requested_mode}\n\n"
-        f"Bridge status:\n- GUI bridge available: {bridge_status.get('available')}\n"
-        f"- GUI base URL: {base_url}\n"
-        f"- Capability endpoint available: {capability_status.get('available')}\n"
+        "Bridge status:\n"
+        f"- live source: {live_source}\n"
+        f"- app-server available: {app_server_status.get('available')}\n"
+        f"- app-server endpoint: {ws_url or 'not configured'}\n"
+        f"- gui bridge available: {gui_status.get('available')}\n"
+        f"- gui base URL: {base_url}\n"
+        f"- capability available: {capability_status.get('available')}\n"
         f"- Launch attempted: {should_launch}\n\n"
         f"Live capability:\n{capability_text}\n\n"
         f"Active sessions:\n{session_text}\n\n"
@@ -404,9 +696,12 @@ def handle_git4d_repo_summary(arguments: dict[str, Any]) -> dict[str, Any]:
             "branch": branch,
             "head": head,
             "requestedMode": requested_mode,
+            "liveSource": live_source,
             "recentCommits": log_lines,
             "workingTree": status_lines,
-            "bridgeStatus": bridge_status,
+            "bridgeStatus": capability_status,
+            "appServerStatus": app_server_status,
+            "guiStatus": gui_status,
             "capabilityStatus": capability_status,
             "launchStatus": launch_status,
             "capability": capability_body,
@@ -419,6 +714,7 @@ def handle_git4d_repo_summary(arguments: dict[str, Any]) -> dict[str, Any]:
 def handle_vr_ar_capability_report(arguments: dict[str, Any]) -> dict[str, Any]:
     mode = resolve_mode(arguments, default="vr")
     project_path = Path(str(arguments.get("projectPath", ".") or ".")).expanduser().resolve()
+    ws_url = app_server_ws_url(arguments)
     base_url = gui_base_url(arguments)
 
     openxr_runtime = os.environ.get("OPENXR_RUNTIME_JSON")
@@ -426,9 +722,34 @@ def handle_vr_ar_capability_report(arguments: dict[str, Any]) -> dict[str, Any]:
     webxr_hint = (project_path / "package.json").is_file() or (project_path / "web").is_dir()
     vrchat_hint = (project_path / "Packages").is_dir() or (project_path / "Assets").is_dir()
 
-    capability_resp = fetch_git4d_capabilities(base_url, mode)
-    capability_body = capability_resp.get("body")
-    bridge_status = summarize_bridge_response(base_url, capability_resp)
+    app_server_resp = (
+        fetch_git4d_capability_from_app_server(ws_url, mode)
+        if ws_url
+        else {
+            "ok": False,
+            "status": None,
+            "error": "CODEX_APP_SERVER_WS_URL is not set",
+            "body": None,
+        }
+    )
+    app_server_status = summarize_bridge_response(ws_url or "app-server disabled", app_server_resp)
+
+    gui_capability_resp = {
+        "ok": False,
+        "status": None,
+        "error": "not attempted",
+        "body": None,
+    }
+    gui_status = summarize_bridge_response(base_url, gui_capability_resp)
+
+    capability_body = app_server_resp.get("body") if app_server_resp.get("ok") else None
+    live_source = "app-server" if isinstance(capability_body, dict) else "local"
+    if not isinstance(capability_body, dict):
+        gui_capability_resp = fetch_git4d_capabilities(base_url, mode)
+        gui_status = summarize_bridge_response(base_url, gui_capability_resp)
+        capability_body = gui_capability_resp.get("body")
+        if isinstance(capability_body, dict):
+            live_source = "gui"
 
     if isinstance(capability_body, dict):
         recommended_mode = str(capability_body.get("effectiveMode", "desktop"))
@@ -438,7 +759,9 @@ def handle_vr_ar_capability_report(arguments: dict[str, Any]) -> dict[str, Any]:
     else:
         device_available = bool(openxr_runtime)
         recommended_mode = mode if device_available else "desktop"
-        fallback_reason = None if device_available else "GUI bridge unavailable; using local fallback"
+        fallback_reason = (
+            None if device_available else "No live bridge available; using local fallback"
+        )
         platform_name = "OpenXR" if device_available else "Desktop"
 
     body = (
@@ -446,7 +769,10 @@ def handle_vr_ar_capability_report(arguments: dict[str, Any]) -> dict[str, Any]:
         f"Mode: {mode}\n"
         f"Project path: {project_path}\n"
         f"Platform: {platform.system()} {platform.release()}\n"
-        f"GUI bridge available: {bridge_status.get('available')}\n"
+        f"Live source: {live_source}\n"
+        f"App-server available: {app_server_status.get('available')}\n"
+        f"App-server endpoint: {ws_url or 'not configured'}\n"
+        f"GUI bridge available: {gui_status.get('available')}\n"
         f"GUI base URL: {base_url}\n"
         f"OpenXR runtime configured: {'yes' if openxr_runtime else 'no'}\n"
         f"Python available: {'yes' if python_available else 'no'}\n"
@@ -464,7 +790,10 @@ def handle_vr_ar_capability_report(arguments: dict[str, Any]) -> dict[str, Any]:
             "ok": True,
             "mode": mode,
             "projectPath": str(project_path),
-            "bridgeStatus": bridge_status,
+            "liveSource": live_source,
+            "bridgeStatus": gui_status if live_source == "gui" else app_server_status,
+            "appServerStatus": app_server_status,
+            "guiStatus": gui_status,
             "capability": capability_body,
             "openxrConfigured": bool(openxr_runtime),
             "pythonAvailable": python_available,

@@ -37,6 +37,11 @@ use codex_app_server_protocol::FsWriteFileParams;
 use codex_app_server_protocol::GetAccountParams;
 use codex_app_server_protocol::GetAuthStatusParams;
 use codex_app_server_protocol::GetConversationSummaryParams;
+use codex_app_server_protocol::Git4DCapabilitiesReadParams;
+use codex_app_server_protocol::Git4DSessionListParams;
+use codex_app_server_protocol::Git4DSessionStartParams;
+use codex_app_server_protocol::Git4DSessionUnwatchParams;
+use codex_app_server_protocol::Git4DSessionWatchParams;
 use codex_app_server_protocol::InitializeCapabilities;
 use codex_app_server_protocol::InitializeParams;
 use codex_app_server_protocol::JSONRPCError;
@@ -568,6 +573,51 @@ impl McpProcess {
     ) -> anyhow::Result<i64> {
         let params = Some(serde_json::to_value(params)?);
         self.send_request("plugin/read", params).await
+    }
+
+    /// Send a `git4d/capabilities/read` JSON-RPC request.
+    pub async fn send_git4d_capabilities_read_request(
+        &mut self,
+        params: Git4DCapabilitiesReadParams,
+    ) -> anyhow::Result<i64> {
+        let params = Some(serde_json::to_value(params)?);
+        self.send_request("git4d/capabilities/read", params).await
+    }
+
+    /// Send a `git4d/session/start` JSON-RPC request.
+    pub async fn send_git4d_session_start_request(
+        &mut self,
+        params: Git4DSessionStartParams,
+    ) -> anyhow::Result<i64> {
+        let params = Some(serde_json::to_value(params)?);
+        self.send_request("git4d/session/start", params).await
+    }
+
+    /// Send a `git4d/session/list` JSON-RPC request.
+    pub async fn send_git4d_session_list_request(
+        &mut self,
+        params: Git4DSessionListParams,
+    ) -> anyhow::Result<i64> {
+        let params = Some(serde_json::to_value(params)?);
+        self.send_request("git4d/session/list", params).await
+    }
+
+    /// Send a `git4d/session/watch` JSON-RPC request.
+    pub async fn send_git4d_session_watch_request(
+        &mut self,
+        params: Git4DSessionWatchParams,
+    ) -> anyhow::Result<i64> {
+        let params = Some(serde_json::to_value(params)?);
+        self.send_request("git4d/session/watch", params).await
+    }
+
+    /// Send a `git4d/session/unwatch` JSON-RPC request.
+    pub async fn send_git4d_session_unwatch_request(
+        &mut self,
+        params: Git4DSessionUnwatchParams,
+    ) -> anyhow::Result<i64> {
+        let params = Some(serde_json::to_value(params)?);
+        self.send_request("git4d/session/unwatch", params).await
     }
 
     /// Send an `mcpServerStatus/list` JSON-RPC request.

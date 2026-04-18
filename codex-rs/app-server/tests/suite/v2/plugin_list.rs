@@ -901,13 +901,15 @@ async fn plugin_list_surfaces_legacy_suite_metadata() -> Result<()> {
   "description": "Migrates fork-only DeepResearch, Git4D, and VR or AR affordances onto the official Codex app and plugin seams.",
   "interface": {
     "displayName": "Zapabob Legacy Suite",
-    "shortDescription": "Repo-local DeepResearch, Git4D, and VR or AR migration bundle.",
+    "shortDescription": "Repo-local DeepResearch, Git4D, and VR or AR bridge bundle.",
     "developerName": "zapabob",
     "category": "Research",
     "capabilities": ["DeepResearch", "Git4D", "VR/AR", "Migration"],
     "defaultPrompt": [
       "Use this plugin when the user asks for DeepResearch, Git4D, or VR or AR capabilities that used to live in the legacy GUI.",
-      "Prefer official app-server plugin APIs such as plugin/list, plugin/read, and plugin/install before suggesting any legacy GUI path."
+      "Prefer official app-server plugin APIs such as plugin/list, plugin/read, and plugin/install before suggesting any legacy GUI path.",
+      "Prefer app-server Git4D methods such as git4d/capabilities/read, git4d/session/start, git4d/session/list, and git4d/session/watch before using the GUI compatibility adapter.",
+      "Use the lightweight Git4D GUI bridge only as a compatibility adapter before falling back to text-only summaries."
     ],
     "brandColor": "#1F6F5F"
   }
@@ -958,6 +960,8 @@ async fn plugin_list_surfaces_legacy_suite_metadata() -> Result<()> {
         Some(vec![
             "Use this plugin when the user asks for DeepResearch, Git4D, or VR or AR capabilities that used to live in the legacy GUI.".to_string(),
             "Prefer official app-server plugin APIs such as plugin/list, plugin/read, and plugin/install before suggesting any legacy GUI path.".to_string(),
+            "Prefer app-server Git4D methods such as git4d/capabilities/read, git4d/session/start, git4d/session/list, and git4d/session/watch before using the GUI compatibility adapter.".to_string(),
+            "Use the lightweight Git4D GUI bridge only as a compatibility adapter before falling back to text-only summaries.".to_string(),
         ])
     );
     Ok(())

@@ -148,6 +148,12 @@ For rich clients, start `codex app` or `codex app-server` and then discover the 
 
 This repository is actively being reorganized toward official Codex layout and APIs. Cleanup and deletion of legacy GUI trees is deferred until plugin parity is verified.
 
+The current migration path for Git4D and VR/AR is:
+
+- `codex app-server` as the canonical live bridge
+- `codex-rs/gui` as a compatibility adapter that preserves legacy HTTP route names
+- `plugins/zapabob-legacy-suite` as the user-facing entrypoint and fallback policy carrier
+
 Phase 2 closeout status:
 
 - Windows install and runtime smoke are complete on native Windows

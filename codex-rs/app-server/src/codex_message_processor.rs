@@ -10,6 +10,7 @@ use crate::error_code::INVALID_REQUEST_ERROR_CODE;
 use crate::fuzzy_file_search::FuzzyFileSearchSession;
 use crate::fuzzy_file_search::run_fuzzy_file_search;
 use crate::fuzzy_file_search::start_fuzzy_file_search_session;
+use crate::git4d_bridge::Git4DBridge;
 use crate::models::supported_models;
 use crate::outgoing_message::ConnectionId;
 use crate::outgoing_message::ConnectionRequestId;
@@ -70,6 +71,11 @@ use codex_app_server_protocol::GetAuthStatusParams;
 use codex_app_server_protocol::GetAuthStatusResponse;
 use codex_app_server_protocol::GetConversationSummaryParams;
 use codex_app_server_protocol::GetConversationSummaryResponse;
+use codex_app_server_protocol::Git4DCapabilitiesReadParams;
+use codex_app_server_protocol::Git4DSessionListParams;
+use codex_app_server_protocol::Git4DSessionStartParams;
+use codex_app_server_protocol::Git4DSessionUnwatchParams;
+use codex_app_server_protocol::Git4DSessionWatchParams;
 use codex_app_server_protocol::GitDiffToRemoteResponse;
 use codex_app_server_protocol::GitInfo as ApiGitInfo;
 use codex_app_server_protocol::JSONRPCErrorError;
@@ -466,6 +472,7 @@ pub(crate) struct CodexMessageProcessor {
     thread_state_manager: ThreadStateManager,
     thread_watch_manager: ThreadWatchManager,
     command_exec_manager: CommandExecManager,
+    git4d_bridge: Git4DBridge,
     pending_fuzzy_searches: Arc<Mutex<HashMap<String, Arc<AtomicBool>>>>,
     fuzzy_search_sessions: Arc<Mutex<HashMap<String, FuzzyFileSearchSession>>>,
     background_tasks: TaskTracker,
@@ -718,6 +725,7 @@ impl CodexMessageProcessor {
             thread_state_manager: ThreadStateManager::new(),
             thread_watch_manager: ThreadWatchManager::new_with_outgoing(outgoing),
             command_exec_manager: CommandExecManager::default(),
+            git4d_bridge: Git4DBridge::new(outgoing.clone()),
             pending_fuzzy_searches: Arc::new(Mutex::new(HashMap::new())),
             fuzzy_search_sessions: Arc::new(Mutex::new(HashMap::new())),
             background_tasks: TaskTracker::new(),
@@ -969,6 +977,26 @@ impl CodexMessageProcessor {
             }
             ClientRequest::PluginRead { request_id, params } => {
                 self.plugin_read(to_connection_request_id(request_id), params)
+                    .await;
+            }
+            ClientRequest::Git4DCapabilitiesRead { request_id, params } => {
+                self.git4d_capabilities_read(to_connection_request_id(request_id), params)
+                    .await;
+            }
+            ClientRequest::Git4DSessionStart { request_id, params } => {
+                self.git4d_session_start(to_connection_request_id(request_id), params)
+                    .await;
+            }
+            ClientRequest::Git4DSessionList { request_id, params } => {
+                self.git4d_session_list(to_connection_request_id(request_id), params)
+                    .await;
+            }
+            ClientRequest::Git4DSessionWatch { request_id, params } => {
+                self.git4d_session_watch(to_connection_request_id(request_id), params)
+                    .await;
+            }
+            ClientRequest::Git4DSessionUnwatch { request_id, params } => {
+                self.git4d_session_unwatch(to_connection_request_id(request_id), params)
                     .await;
             }
             ClientRequest::AppsList { request_id, params } => {
@@ -2335,6 +2363,7 @@ impl CodexMessageProcessor {
     }
 
     pub(crate) async fn drain_background_tasks(&self) {
+        self.git4d_bridge.shutdown().await;
         self.background_tasks.close();
         if tokio::time::timeout(Duration::from_secs(10), self.background_tasks.wait())
             .await
@@ -4009,6 +4038,7 @@ impl CodexMessageProcessor {
         self.command_exec_manager
             .connection_closed(connection_id)
             .await;
+        self.git4d_bridge.connection_closed(connection_id).await;
         let thread_ids = self
             .thread_state_manager
             .remove_connection(connection_id)
@@ -6279,6 +6309,48 @@ impl CodexMessageProcessor {
         self.outgoing
             .send_response(request_id, SkillsListResponse { data })
             .await;
+    }
+
+    async fn git4d_capabilities_read(
+        &self,
+        request_id: ConnectionRequestId,
+        params: Git4DCapabilitiesReadParams,
+    ) {
+        self.git4d_bridge
+            .capabilities_read(request_id, params)
+            .await;
+    }
+
+    async fn git4d_session_start(
+        &self,
+        request_id: ConnectionRequestId,
+        params: Git4DSessionStartParams,
+    ) {
+        self.git4d_bridge.session_start(request_id, params).await;
+    }
+
+    async fn git4d_session_list(
+        &self,
+        request_id: ConnectionRequestId,
+        params: Git4DSessionListParams,
+    ) {
+        self.git4d_bridge.session_list(request_id, params).await;
+    }
+
+    async fn git4d_session_watch(
+        &self,
+        request_id: ConnectionRequestId,
+        params: Git4DSessionWatchParams,
+    ) {
+        self.git4d_bridge.session_watch(request_id, params).await;
+    }
+
+    async fn git4d_session_unwatch(
+        &self,
+        request_id: ConnectionRequestId,
+        params: Git4DSessionUnwatchParams,
+    ) {
+        self.git4d_bridge.session_unwatch(request_id, params).await;
     }
 
     async fn plugin_list(&self, request_id: ConnectionRequestId, params: PluginListParams) {

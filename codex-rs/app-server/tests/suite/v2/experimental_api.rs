@@ -5,6 +5,8 @@ use app_test_support::create_mock_responses_server_sequence_unchecked;
 use app_test_support::to_response;
 use codex_app_server_protocol::AskForApproval;
 use codex_app_server_protocol::ClientInfo;
+use codex_app_server_protocol::Git4DMode;
+use codex_app_server_protocol::Git4DSessionStartParams;
 use codex_app_server_protocol::InitializeCapabilities;
 use codex_app_server_protocol::JSONRPCError;
 use codex_app_server_protocol::JSONRPCMessage;
@@ -123,6 +125,39 @@ async fn thread_memory_mode_set_requires_experimental_api_capability() -> Result
     )
     .await??;
     assert_experimental_capability_error(error, "thread/memoryMode/set");
+    Ok(())
+}
+
+#[tokio::test]
+async fn git4d_session_start_requires_experimental_api_capability() -> Result<()> {
+    let codex_home = TempDir::new()?;
+    let mut mcp = McpProcess::new(codex_home.path()).await?;
+
+    let init = mcp
+        .initialize_with_capabilities(
+            default_client_info(),
+            Some(InitializeCapabilities {
+                experimental_api: false,
+                opt_out_notification_methods: None,
+            }),
+        )
+        .await?;
+    let JSONRPCMessage::Response(_) = init else {
+        anyhow::bail!("expected initialize response, got {init:?}");
+    };
+
+    let request_id = mcp
+        .send_git4d_session_start_request(Git4DSessionStartParams {
+            repository_path: None,
+            mode: Git4DMode::Desktop,
+        })
+        .await?;
+    let error = timeout(
+        DEFAULT_TIMEOUT,
+        mcp.read_stream_until_error_message(RequestId::Integer(request_id)),
+    )
+    .await??;
+    assert_experimental_capability_error(error, "git4d/session/start");
     Ok(())
 }
 

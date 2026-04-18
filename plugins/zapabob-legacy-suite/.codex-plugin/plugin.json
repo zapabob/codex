@@ -19,7 +19,8 @@
     "defaultPrompt": [
       "Use this plugin when the user asks for DeepResearch, Git4D, or VR or AR capabilities that used to live in the legacy GUI.",
       "Prefer official app-server plugin APIs such as plugin/list, plugin/read, and plugin/install before suggesting any legacy GUI path.",
-      "When the lightweight Git4D bridge is running, prefer its live launch, session, SSE, and capability routes before falling back to text-only summaries."
+      "Prefer app-server Git4D methods such as git4d/capabilities/read, git4d/session/start, git4d/session/list, and git4d/session/watch before using the GUI compatibility adapter.",
+      "Use the lightweight Git4D GUI bridge only as a compatibility adapter before falling back to text-only summaries."
     ],
     "brandColor": "#1F6F5F"
   }

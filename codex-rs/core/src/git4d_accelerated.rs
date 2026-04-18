@@ -7,22 +7,58 @@ use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::path::{Path, PathBuf};
+use std::str::FromStr;
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::Instant;
 use tokio::sync::{broadcast, mpsc};
 use tokio::time::{self, Duration};
 
+const SESSION_EVENT_REPLAY_LIMIT: usize = 64;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Git4DMode {
+    Desktop,
+    Vr,
+    Ar,
+}
+
+impl Git4DMode {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Desktop => "desktop",
+            Self::Vr => "vr",
+            Self::Ar => "ar",
+        }
+    }
+}
+
+impl FromStr for Git4DMode {
+    type Err = anyhow::Error;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        match value.trim().to_ascii_lowercase().as_str() {
+            "desktop" => Ok(Self::Desktop),
+            "vr" => Ok(Self::Vr),
+            "ar" => Ok(Self::Ar),
+            other => Err(anyhow::anyhow!(
+                "Invalid Git4D mode: {other}. Must be one of: desktop, vr, ar"
+            )),
+        }
+    }
+}
+
 /// Detect VirtualDesktop connection
 ///
 /// Checks for VirtualDesktop streamer process and environment variables
 fn detect_virtual_desktop() -> bool {
-    // 1. 環境変数チェック
+    // 1. 迺ｰ蠅・､画焚繝√ぉ繝・け
     if std::env::var("VIRTUAL_DESKTOP_STREAMER").is_ok() {
         tracing::debug!("VirtualDesktop detected via environment variable");
         return true;
     }
 
-    // 2. プロセスチェック（Windows）
+    // 2. 繝励Ο繧ｻ繧ｹ繝√ぉ繝・け・・indows・・    #[cfg(windows)]
     #[cfg(windows)]
     {
         use std::process::Command;
@@ -39,10 +75,9 @@ fn detect_virtual_desktop() -> bool {
         }
     }
 
-    // 3. レジストリチェック（Windows、オプション）
-    #[cfg(windows)]
+    // 3. 繝ｬ繧ｸ繧ｹ繝医Μ繝√ぉ繝・け・・indows縲√が繝励す繝ｧ繝ｳ・・    #[cfg(windows)]
     {
-        // VirtualDesktopのインストールパスをチェック
+        // VirtualDesktop縺ｮ繧､繝ｳ繧ｹ繝医・繝ｫ繝代せ繧偵メ繧ｧ繝・け
         let local_app_data = std::env::var("LOCALAPPDATA");
         if let Ok(local_app_data) = local_app_data {
             let vd_path = PathBuf::from(local_app_data)
@@ -127,6 +162,16 @@ pub enum DeviceAvailability {
     Desktop,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Git4DCapabilitySnapshot {
+    pub requested_mode: Git4DMode,
+    pub effective_mode: Git4DMode,
+    pub native_supported: bool,
+    pub platform: Option<String>,
+    pub device_name: Option<String>,
+    pub fallback_reason: Option<String>,
+}
+
 /// Session status
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SessionStatus {
@@ -138,6 +183,40 @@ pub enum SessionStatus {
     Error,
 }
 
+impl SessionStatus {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Starting => "starting",
+            Self::Active => "active",
+            Self::Paused => "paused",
+            Self::Stopping => "stopping",
+            Self::Stopped => "stopped",
+            Self::Error => "error",
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Git4DSessionSnapshot {
+    pub session_id: String,
+    pub repository_path: PathBuf,
+    pub requested_mode: Git4DMode,
+    pub effective_mode: Git4DMode,
+    pub status: SessionStatus,
+    pub platform: Option<String>,
+    pub device_name: Option<String>,
+    pub fallback_reason: Option<String>,
+    pub uptime_ms: u64,
+    pub idle_ms: u64,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Git4DSequencedEvent {
+    pub sequence: u64,
+    pub event: Git4DEvent,
+}
+
 /// Git4D Visualization Session
 ///
 /// Represents an active visualization session started from GUI
@@ -146,16 +225,72 @@ pub struct Git4DVisualizationSession {
     pub session_id: String,
     pub repository_path: PathBuf,
     pub mode: String,
+    pub requested_mode: Git4DMode,
+    pub effective_mode: Git4DMode,
     pub config: Git4DVisualizationConfig,
     pub created_at: Instant,
     pub status: SessionStatus,
     pub last_activity: Instant,
-    pub event_sender: Option<Arc<broadcast::Sender<Git4DEvent>>>,
+    pub platform: Option<String>,
+    pub device_name: Option<String>,
+    pub fallback_reason: Option<String>,
+    pub event_sender: Option<Arc<broadcast::Sender<Git4DSequencedEvent>>>,
+    next_event_sequence: u64,
+    replay_buffer: VecDeque<Git4DSequencedEvent>,
 }
 
 /// Global session storage
 static SESSIONS: Lazy<Arc<RwLock<HashMap<String, Git4DVisualizationSession>>>> =
     Lazy::new(|| Arc::new(RwLock::new(HashMap::new())));
+
+struct ResolvedModeDetails {
+    snapshot: Git4DCapabilitySnapshot,
+    vr_platform: Option<XRPlatform>,
+}
+
+fn build_capability_snapshot(
+    requested_mode: Git4DMode,
+    device_availability: &DeviceAvailability,
+) -> ResolvedModeDetails {
+    match device_availability {
+        DeviceAvailability::Available {
+            platform,
+            device_name,
+        } => ResolvedModeDetails {
+            snapshot: Git4DCapabilitySnapshot {
+                requested_mode,
+                effective_mode: requested_mode,
+                native_supported: true,
+                platform: Some(format!("{platform:?}")),
+                device_name: device_name.clone(),
+                fallback_reason: None,
+            },
+            vr_platform: Some(platform.clone()),
+        },
+        DeviceAvailability::NotAvailable { reason } => ResolvedModeDetails {
+            snapshot: Git4DCapabilitySnapshot {
+                requested_mode,
+                effective_mode: Git4DMode::Desktop,
+                native_supported: false,
+                platform: Some("Desktop".to_string()),
+                device_name: None,
+                fallback_reason: Some(reason.clone()),
+            },
+            vr_platform: None,
+        },
+        DeviceAvailability::Desktop => ResolvedModeDetails {
+            snapshot: Git4DCapabilitySnapshot {
+                requested_mode,
+                effective_mode: Git4DMode::Desktop,
+                native_supported: true,
+                platform: Some("Desktop".to_string()),
+                device_name: None,
+                fallback_reason: None,
+            },
+            vr_platform: None,
+        },
+    }
+}
 
 /// Check VR/AR device availability for Git4D visualization
 ///
@@ -166,65 +301,52 @@ pub async fn check_vr_ar_device_availability(mode: &str) -> anyhow::Result<Devic
         return Ok(DeviceAvailability::Desktop);
     }
 
-    // VRモード時はVirtualDesktopを優先的に検出
-    if mode == "vr" {
-        if detect_virtual_desktop() {
-            tracing::info!("VirtualDesktop detected for VR mode");
-            // VirtualDesktopプラットフォームとして初期化を試みる
-            match VRARIntegration::new() {
-                Ok(mut vr_integration) => {
-                    match vr_integration
-                        .initialize_platform(XRPlatform::VirtualDesktop)
-                        .await
-                    {
-                        Ok(_) => {
-                            tracing::info!("VirtualDesktop platform initialized successfully");
-                            return Ok(DeviceAvailability::Available {
-                                platform: XRPlatform::VirtualDesktop,
-                                device_name: Some("VirtualDesktop Streamer".to_string()),
-                            });
-                        }
-                        Err(e) => {
-                            tracing::warn!(
-                                "VirtualDesktop initialization failed: {}, falling back to WebXR",
-                                e
-                            );
-                            // VirtualDesktop初期化に失敗した場合はWebXRにフォールバック
-                        }
+    if mode == "vr" && detect_virtual_desktop() {
+        tracing::info!("VirtualDesktop detected for VR mode");
+        match VRARIntegration::new() {
+            Ok(mut vr_integration) => {
+                match vr_integration
+                    .initialize_platform(XRPlatform::VirtualDesktop)
+                    .await
+                {
+                    Ok(_) => {
+                        tracing::info!("VirtualDesktop platform initialized successfully");
+                        return Ok(DeviceAvailability::Available {
+                            platform: XRPlatform::VirtualDesktop,
+                            device_name: Some("VirtualDesktop Streamer".to_string()),
+                        });
+                    }
+                    Err(e) => {
+                        tracing::warn!(
+                            "VirtualDesktop initialization failed: {}, falling back to WebXR",
+                            e
+                        );
                     }
                 }
-                Err(e) => {
-                    tracing::warn!(
-                        "VR/AR integration not available: {}, falling back to WebXR",
-                        e
-                    );
-                }
+            }
+            Err(e) => {
+                tracing::warn!(
+                    "VR/AR integration not available: {}, falling back to WebXR",
+                    e
+                );
             }
         }
     }
 
-    // Try to initialize VR/AR integration to check device availability
     match VRARIntegration::new() {
         Ok(mut vr_integration) => {
-            // Determine platform based on mode
-            let platform = if mode == "vr" {
-                // VirtualDesktopが検出されなかった場合、WebXRを試す
-                XRPlatform::WebXR
-            } else if mode == "ar" {
-                // Try WebXR for AR (browser-based AR)
+            let platform = if mode == "vr" || mode == "ar" {
                 XRPlatform::WebXR
             } else {
                 return Ok(DeviceAvailability::Desktop);
             };
 
-            // Try to initialize the platform
             match vr_integration.initialize_platform(platform.clone()).await {
                 Ok(_) => {
                     tracing::info!("VR/AR device available: {:?}", platform);
-                    let platform_clone = platform.clone();
                     Ok(DeviceAvailability::Available {
                         platform,
-                        device_name: Some(format!("{:?}", platform_clone)),
+                        device_name: Some(format!("{platform:?}")),
                     })
                 }
                 Err(e) => {
@@ -242,6 +364,16 @@ pub async fn check_vr_ar_device_availability(mode: &str) -> anyhow::Result<Devic
             })
         }
     }
+}
+
+pub async fn read_capabilities(mode: Git4DMode) -> anyhow::Result<Git4DCapabilitySnapshot> {
+    let device_availability = if matches!(mode, Git4DMode::Vr | Git4DMode::Ar) {
+        check_vr_ar_device_availability(mode.as_str()).await?
+    } else {
+        DeviceAvailability::Desktop
+    };
+
+    Ok(build_capability_snapshot(mode, &device_availability).snapshot)
 }
 
 impl Git4DAcceleratedVisualizer {
@@ -311,37 +443,47 @@ impl Git4DAcceleratedVisualizer {
         }
     }
 
-    /// Launch Git4D visualization for GUI
-    ///
-    /// Creates a new visualization session from GUI request
-    pub async fn launch_for_gui(
+    fn record_event_locked(
+        session: &mut Git4DVisualizationSession,
+        event: Git4DEvent,
+    ) -> Git4DSequencedEvent {
+        let sequenced_event = Git4DSequencedEvent {
+            sequence: session.next_event_sequence,
+            event: event.clone(),
+        };
+        session.next_event_sequence += 1;
+        session.last_activity = Instant::now();
+        session.replay_buffer.push_back(sequenced_event.clone());
+        if session.replay_buffer.len() > SESSION_EVENT_REPLAY_LIMIT {
+            session.replay_buffer.pop_front();
+        }
+        if let Some(event_sender) = session.event_sender.as_ref() {
+            let _ = event_sender.send(sequenced_event.clone());
+        }
+        sequenced_event
+    }
+
+    fn build_session_snapshot(session: &Git4DVisualizationSession) -> Git4DSessionSnapshot {
+        Git4DSessionSnapshot {
+            session_id: session.session_id.clone(),
+            repository_path: session.repository_path.clone(),
+            requested_mode: session.requested_mode,
+            effective_mode: session.effective_mode,
+            status: session.status,
+            platform: session.platform.clone(),
+            device_name: session.device_name.clone(),
+            fallback_reason: session.fallback_reason.clone(),
+            uptime_ms: session.created_at.elapsed().as_millis() as u64,
+            idle_ms: session.last_activity.elapsed().as_millis() as u64,
+        }
+    }
+
+    pub async fn launch_session(
         repository_path: PathBuf,
-        mode: String,
+        requested_mode: Git4DMode,
     ) -> anyhow::Result<Git4DVisualizationSession> {
         use uuid::Uuid;
 
-        let session_id = Uuid::new_v4().to_string();
-
-        // Determine visualization mode settings
-        let enable_vr_ar = mode == "vr" || mode == "ar";
-        let vr_platform = if enable_vr_ar {
-            Some(XRPlatform::WebXR) // Default to WebXR for browser-based VR/AR
-        } else {
-            None
-        };
-
-        let config = Git4DVisualizationConfig {
-            enable_cuda: true, // Try to enable CUDA if available
-            enable_vr_ar,
-            vr_platform,
-            max_commits: 10000,
-            time_compression: 1.0,
-            branch_spread: 2.0,
-            render_width: 1920,
-            render_height: 1080,
-        };
-
-        // Verify repository exists
         if !repository_path.exists() {
             return Err(anyhow::anyhow!(
                 "Repository path does not exist: {}",
@@ -349,70 +491,102 @@ impl Git4DAcceleratedVisualizer {
             ));
         }
 
-        // Check device availability if VR/AR mode
-        let device_availability = if mode == "vr" || mode == "ar" {
-            check_vr_ar_device_availability(&mode).await?
+        let repository_path = repository_path
+            .canonicalize()
+            .with_context(|| format!("Failed to canonicalize {}", repository_path.display()))?;
+        let device_availability = if matches!(requested_mode, Git4DMode::Vr | Git4DMode::Ar) {
+            check_vr_ar_device_availability(requested_mode.as_str()).await?
         } else {
             DeviceAvailability::Desktop
         };
-
-        // If device is not available, fall back to desktop mode
-        let (effective_mode, device_availability_for_log) = match &device_availability {
-            DeviceAvailability::Available { .. } => {
-                (mode.clone(), format!("{:?}", device_availability))
-            }
-            DeviceAvailability::NotAvailable { reason } => {
-                tracing::warn!(
-                    "VR/AR device not available ({}), falling back to desktop mode",
-                    reason
-                );
-                ("desktop".to_string(), format!("NotAvailable: {}", reason))
-            }
-            DeviceAvailability::Desktop => ("desktop".to_string(), "Desktop".to_string()),
+        let resolved_mode = build_capability_snapshot(requested_mode, &device_availability);
+        let config = Git4DVisualizationConfig {
+            enable_cuda: true,
+            enable_vr_ar: !matches!(resolved_mode.snapshot.effective_mode, Git4DMode::Desktop),
+            vr_platform: resolved_mode.vr_platform,
+            max_commits: 10000,
+            time_compression: 1.0,
+            branch_spread: 2.0,
+            render_width: 1920,
+            render_height: 1080,
         };
 
-        // Update config if mode changed
-        let mut effective_config = config.clone();
-        if effective_mode != mode {
-            effective_config.enable_vr_ar = false;
-            effective_config.vr_platform = None;
-        }
+        let _visualizer = Self::new(&repository_path, config.clone())?;
 
-        // Create visualizer to verify it can be initialized
-        let _visualizer = Self::new(&repository_path, effective_config.clone())?;
-
-        // Create event sender for this session
+        let session_id = Uuid::new_v4().to_string();
         let (event_sender, _) = broadcast::channel(100);
-        let event_sender_arc = Arc::new(event_sender);
-
         let session = Git4DVisualizationSession {
             session_id: session_id.clone(),
             repository_path: repository_path.clone(),
-            mode: effective_mode.clone(),
-            config: effective_config,
+            mode: resolved_mode.snapshot.effective_mode.as_str().to_string(),
+            requested_mode,
+            effective_mode: resolved_mode.snapshot.effective_mode,
+            config,
             created_at: Instant::now(),
             status: SessionStatus::Starting,
             last_activity: Instant::now(),
-            event_sender: Some(event_sender_arc),
+            platform: resolved_mode.snapshot.platform.clone(),
+            device_name: resolved_mode.snapshot.device_name.clone(),
+            fallback_reason: resolved_mode.snapshot.fallback_reason.clone(),
+            event_sender: Some(Arc::new(event_sender)),
+            next_event_sequence: 1,
+            replay_buffer: VecDeque::new(),
         };
 
-        // Store session in global storage
         {
             let mut sessions = SESSIONS.write().map_err(|e| {
                 anyhow::anyhow!("Failed to acquire write lock for session storage: {}", e)
             })?;
-            sessions.insert(session_id.clone(), session.clone());
+            sessions.insert(session_id.clone(), session);
+            let session = sessions
+                .get_mut(&session_id)
+                .expect("session should exist immediately after insert");
+            Self::record_event_locked(
+                session,
+                Git4DEvent::SessionStatusChanged {
+                    status: SessionStatus::Starting.as_str().to_string(),
+                },
+            );
         }
 
         tracing::info!(
-            "Created Git4D visualization session: id={}, mode={}, path={:?}, device={}",
-            session_id,
-            effective_mode,
-            repository_path,
-            device_availability_for_log
+            session_id = session_id.as_str(),
+            requested_mode = requested_mode.as_str(),
+            effective_mode = resolved_mode.snapshot.effective_mode.as_str(),
+            repository_path = ?repository_path,
+            platform = ?resolved_mode.snapshot.platform,
+            fallback_reason = ?resolved_mode.snapshot.fallback_reason,
+            "Created Git4D visualization session"
         );
 
-        Ok(session)
+        let session_id_for_activation = session_id.clone();
+        tokio::spawn(async move {
+            time::sleep(Duration::from_millis(25)).await;
+            if let Err(err) = Git4DAcceleratedVisualizer::update_session_status(
+                &session_id_for_activation,
+                SessionStatus::Active,
+            ) {
+                tracing::debug!(
+                    session_id = session_id_for_activation.as_str(),
+                    error = %err,
+                    "failed to activate Git4D session"
+                );
+            }
+        });
+
+        Self::get_session(&session_id)
+            .ok_or_else(|| anyhow::anyhow!("Session disappeared after creation: {session_id}"))
+    }
+
+    /// Launch Git4D visualization for GUI
+    ///
+    /// Creates a new visualization session from GUI request
+    pub async fn launch_for_gui(
+        repository_path: PathBuf,
+        mode: String,
+    ) -> anyhow::Result<Git4DVisualizationSession> {
+        let requested_mode = Git4DMode::from_str(&mode)?;
+        Self::launch_session(repository_path, requested_mode).await
     }
 
     /// Get session by ID
@@ -439,6 +613,37 @@ impl Git4DAcceleratedVisualizer {
         sessions.values().cloned().collect()
     }
 
+    pub fn get_session_snapshot(session_id: &str) -> Option<Git4DSessionSnapshot> {
+        Self::get_session(session_id).map(|session| Self::build_session_snapshot(&session))
+    }
+
+    pub fn list_session_snapshots() -> Vec<Git4DSessionSnapshot> {
+        let mut snapshots = Self::list_sessions()
+            .into_iter()
+            .map(|session| Self::build_session_snapshot(&session))
+            .collect::<Vec<_>>();
+        snapshots.sort_by(|left, right| left.session_id.cmp(&right.session_id));
+        snapshots
+    }
+
+    pub fn get_session_replay_events(session_id: &str) -> Option<Vec<Git4DSequencedEvent>> {
+        Self::get_session(session_id).map(|session| session.replay_buffer.into_iter().collect())
+    }
+
+    pub fn record_session_event(
+        session_id: &str,
+        event: Git4DEvent,
+    ) -> anyhow::Result<Git4DSequencedEvent> {
+        let mut sessions = SESSIONS.write().map_err(|e| {
+            anyhow::anyhow!("Failed to acquire write lock for session storage: {}", e)
+        })?;
+        if let Some(session) = sessions.get_mut(session_id) {
+            Ok(Self::record_event_locked(session, event))
+        } else {
+            Err(anyhow::anyhow!("Session not found: {}", session_id))
+        }
+    }
+
     /// Update session status
     pub fn update_session_status(session_id: &str, status: SessionStatus) -> anyhow::Result<()> {
         let mut sessions = SESSIONS.write().map_err(|e| {
@@ -446,7 +651,12 @@ impl Git4DAcceleratedVisualizer {
         })?;
         if let Some(session) = sessions.get_mut(session_id) {
             session.status = status;
-            session.last_activity = Instant::now();
+            Self::record_event_locked(
+                session,
+                Git4DEvent::SessionStatusChanged {
+                    status: status.as_str().to_string(),
+                },
+            );
             Ok(())
         } else {
             Err(anyhow::anyhow!("Session not found: {}", session_id))
@@ -454,7 +664,9 @@ impl Git4DAcceleratedVisualizer {
     }
 
     /// Get session event receiver
-    pub fn get_session_event_receiver(session_id: &str) -> Option<broadcast::Receiver<Git4DEvent>> {
+    pub fn get_session_event_receiver(
+        session_id: &str,
+    ) -> Option<broadcast::Receiver<Git4DSequencedEvent>> {
         let sessions = SESSIONS
             .read()
             .map_err(|e| {
