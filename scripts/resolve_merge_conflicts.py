@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import re
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 @dataclass(frozen=True)
@@ -17,10 +17,20 @@ class Rule:
 
 
 DEFAULT_RULES = [
-    Rule("codex-rs/**", "upstream-reinject"),
-    Rule("codex-rs/gui/**", "upstream-reinject"),
-    Rule("codex-gui-x/**", "custom"),
-    Rule("extensions/**", "custom"),
+    Rule("codex-rs/deep-research/**", "upstream-plus-reinject"),
+    Rule("codex-rs/core/src/agents/**", "upstream-plus-reinject"),
+    Rule("codex-rs/core/src/orchestration/**", "upstream-plus-reinject"),
+    Rule("codex-rs/core/src/plan/**", "upstream-plus-reinject"),
+    Rule("gui/**", "plugin-migrate"),
+    Rule("codex-gui-x/**", "plugin-migrate"),
+    Rule("codex-rs/gui/**", "plugin-migrate"),
+    Rule("codex-rs/tauri-gui/**", "plugin-migrate"),
+    Rule("gui/src/app/virtual-os/**", "retire-after-parity"),
+    Rule("gui/src/components/virtual-os/**", "retire-after-parity"),
+    Rule("codex-rs/**/virtual-os/**", "retire-after-parity"),
+    Rule(".agents/plugins/**", "upstream"),
+    Rule("plugins/**", "upstream"),
+    Rule("codex-rs/**", "upstream"),
     Rule("docs/**", "upstream"),
     Rule("CHANGELOG.md", "upstream-reinject"),
     Rule("justfile", "upstream-reinject"),
@@ -37,6 +47,11 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Resolve merge conflicts with upstream-first reinjection rules")
     parser.add_argument("paths", nargs="+", help="Conflicted paths to resolve")
     parser.add_argument("--rule", action="append", default=[], help="Extra rule in glob=strategy form")
+    parser.add_argument(
+        "--repo-root",
+        type=Path,
+        help="Repository/worktree root used to resolve conflicted paths (defaults to current working directory)",
+    )
     return parser.parse_args()
 
 
@@ -54,7 +69,7 @@ def choose_strategy(path: str, rules: list[Rule]) -> str:
     for rule in rules:
         if fnmatch.fnmatch(path, rule.pattern):
             return rule.strategy
-    return "upstream-reinject"
+    return "upstream-plus-reinject"
 
 
 def unique_local_lines(local: str, upstream: str) -> list[str]:
@@ -73,8 +88,10 @@ def unique_local_lines(local: str, upstream: str) -> list[str]:
 def resolve_block(local: str, upstream: str, strategy: str) -> str:
     if strategy == "custom":
         return local
-    if strategy == "upstream":
+    if strategy in {"upstream", "plugin-migrate", "retire-after-parity"}:
         return upstream
+    if strategy == "upstream-plus-reinject":
+        strategy = "upstream-reinject"
     reinjected = unique_local_lines(local, upstream)
     if not reinjected:
         return upstream
@@ -86,9 +103,8 @@ def resolve_block(local: str, upstream: str, strategy: str) -> str:
     return body + trailer
 
 
-def resolve_file(path: Path, rules: list[Rule]) -> None:
+def resolve_file(path: Path, relative: str, rules: list[Rule]) -> None:
     text = path.read_text(encoding="utf-8")
-    relative = path.relative_to(REPO_ROOT).as_posix()
     strategy = choose_strategy(relative, rules)
 
     def repl(match: re.Match[str]) -> str:
@@ -105,11 +121,24 @@ def resolve_file(path: Path, rules: list[Rule]) -> None:
 def main() -> int:
     args = parse_args()
     rules = load_rules(args.rule)
+    repo_root = (args.repo_root or Path.cwd()).resolve()
     for raw_path in args.paths:
-        path = (REPO_ROOT / raw_path).resolve()
+        path = (repo_root / raw_path).resolve()
         if not path.exists():
-            raise SystemExit(f"Missing conflicted file: {raw_path}")
-        resolve_file(path, rules)
+            fallback = (DEFAULT_REPO_ROOT / raw_path).resolve()
+            if fallback.exists():
+                path = fallback
+            else:
+                print(f"skip {raw_path}: conflicted path not found in {repo_root}")
+                continue
+        try:
+            relative = path.relative_to(repo_root).as_posix()
+        except ValueError:
+            try:
+                relative = path.relative_to(DEFAULT_REPO_ROOT).as_posix()
+            except ValueError:
+                relative = raw_path.replace("\\", "/")
+        resolve_file(path, relative, rules)
     return 0
 
 

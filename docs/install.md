@@ -8,6 +8,15 @@
 | Git (optional, recommended) | 2.23+ for built-in PR helpers                                   |
 | RAM                         | 4-GB minimum (8-GB recommended)                                 |
 
+### Native Windows validation note
+
+This fork also carries a native Windows install-and-verify path for Phase 2 closeout:
+
+- `scripts/upstream_sync.py --windows-install` can overwrite-install `codex.exe` and verify runtime smoke on native Windows.
+- `codex --version` and `codex app-server --help` are expected to work without elevated privileges.
+- Full `cargo test --workspace` on native Windows requires Developer Mode or equivalent symlink privilege because the `v8` build script creates symlinks.
+- If that privilege is unavailable, complete install and smoke verification locally, then resume the full workspace test in WSL2 or in a privileged native Windows session.
+
 ### DotSlash
 
 The GitHub Release also contains a [DotSlash](https://dotslash-cli.com/) file for the Codex CLI named `codex`. Using a DotSlash file makes it possible to make a lightweight commit to source control to ensure all contributors use the same version of an executable, regardless of what platform they use for development.

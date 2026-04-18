@@ -135,7 +135,7 @@ impl GeminiSearchProvider {
 
         // Call the Gemini googleSearch MCP tool
         let result = client
-            .call_tool("googleSearch".to_string(), Some(arguments), None)
+            .call_tool("googleSearch".to_string(), Some(arguments), None, None)
             .await
             .map_err(|e| anyhow::anyhow!("Failed to call Gemini googleSearch tool: {}", e))?;
 

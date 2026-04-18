@@ -237,15 +237,8 @@ Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
 # Step 1: プロセスキル
-Write-Status "Step 1/5: Stopping running codex processes..."
-$CodexProcesses = Get-Process codex -ErrorAction SilentlyContinue
-if ($CodexProcesses) {
-    $CodexProcesses | Stop-Process -Force -ErrorAction SilentlyContinue
-    Start-Sleep -Seconds 1
-    Write-Success "Stopped $($CodexProcesses.Count) process(es)"
-} else {
-    Write-Success "No running processes found"
-}
+Write-Status "Step 1/5: Preserving CodexApp and stopping build tooling only..."
+Write-Success "Standalone codex.exe processes will be handled during install"
 
 # 追加: ビルドツールの残骸を掃除（ロック回避）
 Stop-BuildToolingProcesses -WaitSeconds 2
@@ -279,7 +272,7 @@ $buildStart = Get-Date
             Set-Location $Path
             $env:CARGO_TERM_PROGRESS_WHEN = "always"
             $env:CARGO_TERM_PROGRESS_WIDTH = "80"
-            cargo build --release -p codex-cli --features custom-features 2>&1
+            cargo build --release -p codex-cli 2>&1
         } -ArgumentList $codexRsPath
 
         # 進捗モニタリング（cargo出力をリアルタイムでパース）
@@ -337,31 +330,14 @@ $InstallDir = Split-Path $InstallPath -Parent
 Write-Status "Install path: $InstallPath"
 
 # Step 5: コピーアンドペーストで上書きインストール
-Write-Status "Step 5/5: Installing binary (copy & paste overwrite)..."
-
-# インストールディレクトリ作成
-if (-not (Test-Path $InstallDir)) {
-    New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
-    Write-Success "Created install directory: $InstallDir"
-}
-
-# 実行中のプロセスを再度確認・終了
-Get-Process | Where-Object { $_.Path -eq $InstallPath } | Stop-Process -Force -ErrorAction SilentlyContinue
-Start-Sleep -Seconds 1
-
-# コピーアンドペーストで上書き
-try {
-    Copy-Item -Path $binaryPath -Destination $InstallPath -Force
-    Write-Success "Binary installed successfully"
-    
-    $installedInfo = Get-Item $InstallPath
-    Write-Host "   Installed size: $([math]::Round($installedInfo.Length / 1MB, 2)) MB" -ForegroundColor Gray
-    Write-Host "   Install path: $InstallPath" -ForegroundColor Gray
-} catch {
-    Write-ErrorMsg "Failed to copy binary: $_"
-    Write-Host "Binary may be in use. Please check processes." -ForegroundColor Yellow
-    exit 1
-}
+Write-Status "Step 5/5: Installing binary via path-aware helper..."
+$installHelper = Join-Path (Split-Path -Parent $codexRsPath) "scripts\install_with_kill.ps1"
+& $installHelper `
+    -SourcePath $binaryPath `
+    -TargetPath $InstallPath `
+    -ProcessNames @("codex", "codex-tui", "codex-gui", "opencode") `
+    -ExcludePathPrefixes @("C:\Program Files\WindowsApps\OpenAI.Codex_") `
+    -Force
 
 # 検証
 Write-Status "Verifying installation..."

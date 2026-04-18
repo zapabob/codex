@@ -1,484 +1,509 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-高速差分ビルド・プロセスキル・上書きインストールスクリプト
-tqdm風の進捗表示で残り時間と経過時間を可視化
-実装ログを自動保存する機能付き
-"""
+from __future__ import annotations
 
+import argparse
+import hashlib
+import json
+import logging
+import os
+import shutil
 import subprocess
 import sys
-import re
-import time
-import os
-import json
-from datetime import datetime
+import tempfile
+from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
-# MCPサーバーから現在日時を取得する関数
-def get_current_datetime_from_mcp():
-    """現在日時を取得（Python標準機能を使用）"""
-    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+from tqdm import tqdm
 
-def save_implementation_log(log_content, feature_name="高速差分ビルド"):
-    """実装ログを_docs/ディレクトリに保存"""
+REPO_ROOT = Path(__file__).resolve().parents[1]
+CODEX_RS_ROOT = Path(__file__).resolve().parent
+DEFAULT_TARGET_DIR = Path(r"F:\codex-targets\codex-main-upstream-sync")
+DEFAULT_CARGO_HOME = Path(r"H:\cargo-home\codex-main-upstream-sync")
+FALLBACK_TARGET_DIR = Path(r"H:\codex-targets\codex-main-upstream-sync")
+DEFAULT_INSTALL_PATH = Path.home() / ".cargo" / "bin" / "codex.exe"
+DEFAULT_BACKUP_DIR = Path.home() / ".cargo" / "bin" / "backups"
+DEFAULT_LOG_FILE = REPO_ROOT / "_docs" / "2026-03-27_fast_build_install.log"
+DEFAULT_MD_LOG = REPO_ROOT / "_docs" / "2026-03-22_upstream-sync-v3.1.0_completion_log.md"
+DEFAULT_ARTIFACT_DIR = REPO_ROOT / "artifacts" / "trusted-build" / "codex"
+DEFAULT_ARTIFACT_MANIFEST = DEFAULT_ARTIFACT_DIR / "manifest.json"
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Build Codex, export trusted-build artifacts, and install an artifact locally.",
+    )
+    parser.add_argument(
+        "--mode",
+        choices=("build-only", "install-only", "build-and-install"),
+        default="build-and-install",
+        help="Whether to build, install, or do both.",
+    )
+    parser.add_argument("--jobs", type=int, default=6, help="Cargo parallelism.")
+    parser.add_argument("--target-dir", default=str(DEFAULT_TARGET_DIR), help="Requested CARGO_TARGET_DIR value.")
+    parser.add_argument("--cargo-home", default=str(DEFAULT_CARGO_HOME), help="CARGO_HOME value.")
+    parser.add_argument("--install-path", default=str(DEFAULT_INSTALL_PATH), help="Destination binary path.")
+    parser.add_argument("--backup-dir", default=str(DEFAULT_BACKUP_DIR), help="Backup directory for replaced binaries.")
+    parser.add_argument("--bin-name", default="codex", help="Cargo binary to build or install.")
+    parser.add_argument(
+        "--verify-args",
+        nargs="*",
+        default=["--version"],
+        help="Arguments used to verify built and installed binaries.",
+    )
+    parser.add_argument("--artifact-dir", default=str(DEFAULT_ARTIFACT_DIR), help="Directory containing exported artifacts.")
+    parser.add_argument(
+        "--artifact-manifest",
+        default=str(DEFAULT_ARTIFACT_MANIFEST),
+        help="Artifact manifest JSON path.",
+    )
+    parser.add_argument("--log-file", default=str(DEFAULT_LOG_FILE), help="Detailed execution log file.")
+    parser.add_argument(
+        "--kill-pattern",
+        action="append",
+        default=["codex.exe", "codex-tui.exe", "codex-gui.exe", "codex-tauri-gui.exe"],
+        help="Executable name pattern to terminate before install.",
+    )
+    parser.add_argument("--verbose", action="store_true", help="Enable debug logging.")
+    return parser.parse_args()
+
+
+def configure_logging(log_path: Path, verbose: bool) -> logging.Logger:
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    logger = logging.getLogger("fast_build_kill_install")
+    logger.setLevel(logging.DEBUG if verbose else logging.INFO)
+    logger.handlers.clear()
+
+    formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
+
+    file_handler = logging.FileHandler(log_path, encoding="utf-8")
+    file_handler.setFormatter(formatter)
+    file_handler.setLevel(logging.DEBUG)
+    logger.addHandler(file_handler)
+
+    stream_handler = logging.StreamHandler(sys.stderr)
+    stream_handler.setFormatter(formatter)
+    stream_handler.setLevel(logging.DEBUG if verbose else logging.INFO)
+    logger.addHandler(stream_handler)
+    return logger
+
+
+def can_execute_from(directory: Path, logger: logging.Logger) -> bool:
+    directory.mkdir(parents=True, exist_ok=True)
+    if os.name != "nt":
+        return True
+
+    probe_dir = directory / ".codex-exec-probe"
+    probe_dir.mkdir(parents=True, exist_ok=True)
+    system_root = Path(os.environ.get("SystemRoot", r"C:\Windows"))
+    source_exe = system_root / "System32" / "where.exe"
+    probe_exe = probe_dir / "probe.exe"
+    shutil.copy2(source_exe, probe_exe)
+
     try:
-        # 日時を取得
-        current_datetime = get_current_datetime_from_mcp()
-        date_part = current_datetime.split()[0]  # yyyy-mm-dd
+        proc = subprocess.run(
+            [str(probe_exe), "cmd.exe"],
+            cwd=str(probe_dir),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+        )
+        logger.info("Execution probe for %s returned exit=%s", directory, proc.returncode)
+        return proc.returncode == 0
+    except OSError as exc:
+        logger.warning("Execution probe failed for %s: %s", directory, exc)
+        return False
+    finally:
+        shutil.rmtree(probe_dir, ignore_errors=True)
 
-        # ログファイル名を作成
-        log_filename = f"{date_part}_{feature_name}{{main}}.md"
-        log_dir = Path("_docs")
-        log_dir.mkdir(exist_ok=True)
-        log_path = log_dir / log_filename
 
-        # ログ内容を作成
-        log_header = f"""# 実装ログ: {feature_name}
-**実装日時**: {current_datetime}
-**ワークツリー**: main
-**機能**: {feature_name}
+def select_storage_paths(
+    requested_target: Path,
+    requested_cargo_home: Path,
+    logger: logging.Logger,
+) -> tuple[Path, Path]:
+    temp_root = Path(tempfile.gettempdir()) / "codex-upstream-sync"
+    temp_target = temp_root / "target"
 
-## 実行内容
-{log_content}
+    if os.name == "nt":
+        target_candidates = [temp_target]
+        if requested_target != temp_target:
+            target_candidates.append(requested_target)
+        if FALLBACK_TARGET_DIR not in target_candidates:
+            target_candidates.append(FALLBACK_TARGET_DIR)
+    else:
+        target_candidates = [requested_target]
+        if requested_target != FALLBACK_TARGET_DIR:
+            target_candidates.append(FALLBACK_TARGET_DIR)
+        if requested_target != temp_target:
+            target_candidates.append(temp_target)
 
-## 完了ステータス
-✅ 正常に完了しました
+    for target_dir in target_candidates:
+        if can_execute_from(target_dir, logger):
+            requested_cargo_home.mkdir(parents=True, exist_ok=True)
+            logger.info(
+                "Using storage roots target_dir=%s cargo_home=%s",
+                target_dir,
+                requested_cargo_home,
+            )
+            return target_dir, requested_cargo_home
 
----
-*自動生成された実装ログ*
-"""
+    raise RuntimeError(
+        "Unable to find an executable target directory. Checked temp, requested, and fallback target locations."
+    )
 
-        # ファイルを保存
-        with open(log_path, 'w', encoding='utf-8') as f:
-            f.write(log_header)
 
-        print(f"📝 実装ログを保存しました: {log_path}")
-        return str(log_path)
+def hash_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
-    except Exception as e:
-        print(f"⚠️  実装ログ保存でエラー: {e}")
-        return None
 
-# Windows環境での文字エンコーディング対策
-# if sys.platform == 'win32':
-#     import io
-#     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-#     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
-
-class BuildProgressTracker:
-    """ビルド進捗を追跡してtqdm風に表示"""
-    
-    def __init__(self, total_estimated=100):
-        self.start_time = time.time()
-        self.compiled_crates = []
-        self.current_crate = None
-        self.total_estimated = total_estimated
-        self.last_update = time.time()
-        
-    def format_time(self, seconds):
-        """秒数を読みやすい形式に変換"""
-        if seconds < 60:
-            return f"{seconds:.1f}秒"
-        elif seconds < 3600:
-            minutes = int(seconds // 60)
-            secs = int(seconds % 60)
-            return f"{minutes}分{secs}秒"
-        else:
-            hours = int(seconds // 3600)
-            minutes = int((seconds % 3600) // 60)
-            return f"{hours}時間{minutes}分"
-    
-    def parse_cargo_output(self, line):
-        """cargoの出力からコンパイル情報を抽出"""
-        compiling_match = re.search(r'Compiling\s+(\S+)', line)
-        if compiling_match:
-            return ('compiling', compiling_match.group(1))
-        
-        if 'Finished' in line and ('dev' in line or 'release' in line):
-            return ('finished', None)
-        
-        if 'error:' in line.lower():
-            return ('error', line)
-        
-        if 'warning:' in line.lower():
-            return ('warning', line)
-        
-        return (None, None)
-    
-    def update_progress(self, crate_name=None):
-        """進捗を更新して表示"""
-        elapsed = time.time() - self.start_time
-        
-        if crate_name:
-            if crate_name not in self.compiled_crates:
-                self.compiled_crates.append(crate_name)
-            self.current_crate = crate_name
-        
-        progress = len(self.compiled_crates)
-        
-        # 進捗バーを表示
-        bar_length = 50
-        filled = int(bar_length * progress / max(self.total_estimated, progress))
-        bar = '█' * filled + '░' * (bar_length - filled)
-        percentage = min(100, int(progress * 100 / max(self.total_estimated, progress)))
-        
-        # 残り時間の推定（簡易版）
-        if progress > 0:
-            avg_time_per_crate = elapsed / progress
-            remaining_crates = max(0, self.total_estimated - progress)
-            estimated_remaining = avg_time_per_crate * remaining_crates
-            remaining_str = f" | 残り: {self.format_time(estimated_remaining)}"
-        else:
-            remaining_str = ""
-        
-        crate_display = self.current_crate[:35] if self.current_crate else "初期化中..."
-        
-        print(f"\r[{bar}] {percentage}% | {crate_display:<35} | 経過: {self.format_time(elapsed)}{remaining_str}", end='', flush=True)
-        self.last_update = time.time()
-    
-    def finish(self, success=True):
-        """ビルド完了時の表示"""
-        elapsed = time.time() - self.start_time
-        print(f"\r{' ' * 120}", end='')  # 行をクリア
-        
-        if success:
-            print(f"\r✅ ビルド完了！ | 経過時間: {self.format_time(elapsed)} | コンパイル済み: {len(self.compiled_crates)}個のクレート")
-        else:
-            print(f"\r❌ ビルド失敗 | 経過時間: {self.format_time(elapsed)}")
-        
-        return elapsed, len(self.compiled_crates)
-
-def kill_codex_processes():
-    """codex関連のプロセスを停止"""
-    print("\n🔪 実行中のcodexプロセスを停止中...")
-    
-    try:
-        if sys.platform == 'win32':
-            # Windows: taskkillを使用 (PowerShell回避)
-            # codex.exe, codex-tui.exe, codex-gui.exe などをまとめて停止
-            # /F (強制), /IM (イメージ名), /T (子プロセスも)
-            subprocess.run(["taskkill", "/F", "/IM", "codex.exe", "/T"], capture_output=True)
-            subprocess.run(["taskkill", "/F", "/IM", "codex-tui.exe", "/T"], capture_output=True)
-            subprocess.run(["taskkill", "/F", "/IM", "codex-gui.exe", "/T"], capture_output=True)
-            subprocess.run(["taskkill", "/F", "/IM", "codex-tauri-gui.exe", "/T"], capture_output=True)
-            print("   ✅ プロセス停止コマンド送信完了")
-            return True
-        else:
-            # Unix系: pkillを使用
-            subprocess.run(["pkill", "-f", "codex"], capture_output=True, timeout=10)
-            print("   ✅ プロセス停止完了")
-            return True
-    except Exception as e:
-        print(f"   ⚠️  プロセス停止で警告: {e}")
-        return True  # 警告があっても続行
-    
-    return True
-
-def build_with_progress(command, description="ビルド", total_estimated=100):
-    """進捗を可視化しながらビルドを実行"""
-    print(f"\n{'='*70}")
-    print(f"🚀 {description}を開始します...")
-    print(f"{'='*70}\n")
-    
-    tracker = BuildProgressTracker(total_estimated=total_estimated)
-    
+def run_command(
+    command: list[str],
+    *,
+    cwd: Path,
+    env: dict[str, str],
+    logger: logging.Logger,
+) -> tuple[int, int]:
+    logger.info("Running command: %s", " ".join(command))
     process = subprocess.Popen(
         command,
+        cwd=str(cwd),
+        env=env,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
+        encoding="utf-8",
+        errors="replace",
         bufsize=1,
         universal_newlines=True,
-        encoding='utf-8',
-        errors='replace'
     )
-    
-    errors = []
-    warnings = []
-    
-    try:
-        while True:
-            output = process.stdout.readline()
-            if output == '' and process.poll() is not None:
-                break
-            
-            if output:
-                line = output.strip()
-                event_type, data = tracker.parse_cargo_output(line)
-                
-                if event_type == 'compiling':
-                    tracker.update_progress(data)
-                
-                elif event_type == 'finished':
-                    elapsed, count = tracker.finish(success=True)
-                    break
-                
-                elif event_type == 'error':
-                    errors.append(data)
-                    print(f"\n❌ エラー: {data[:100]}")
-                
-                elif event_type == 'warning':
-                    warnings.append(data)
-        
-        return_code = process.poll()
-        
-        if return_code != 0:
-            tracker.finish(success=False)
-            return False, errors, warnings, 0, 0
-        
-        elapsed, count = tracker.finish(success=True)
-        return True, errors, warnings, elapsed, count
-    
-    except KeyboardInterrupt:
-        print("\n\n⚠️  ビルドが中断されました")
-        process.terminate()
-        return False, errors, warnings, 0, 0
 
-def install_binary(source_path, install_path):
-    """バイナリを上書きインストール"""
-    print(f"\n📦 バイナリをインストール中...")
-    print(f"   ソース: {source_path}")
-    print(f"   インストール先: {install_path}")
-    
-    try:
-        # インストール先ディレクトリが存在するか確認
-        install_dir = os.path.dirname(install_path)
-        if not os.path.exists(install_dir):
-            os.makedirs(install_dir, exist_ok=True)
-            print(f"   ✅ ディレクトリ作成: {install_dir}")
-        
-        # 既存のバイナリをバックアップ（オプション）
-        if os.path.exists(install_path):
-            backup_path = f"{install_path}.backup-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
-            import shutil
-            shutil.copy2(install_path, backup_path)
-            print(f"   📋 バックアップ作成: {backup_path}")
-        
-        # バイナリをコピー
-        import shutil
-        shutil.copy2(source_path, install_path)
-        print(f"   ✅ インストール完了")
-        
-        return True
-    except Exception as e:
-        print(f"   ❌ インストール失敗: {e}")
-        return False
+    compiled: set[str] = set()
+    progress = tqdm(desc="cargo build", unit="crate", dynamic_ncols=True, leave=True)
 
-def get_current_datetime():
-    """現在日時を取得（PowerShell経由）"""
-    try:
-        result = subprocess.run(
-            ["powershell", "-Command", "Get-Date -Format 'yyyy-MM-dd HH:mm:ss'"],
-            capture_output=True,
-            text=True,
-            timeout=5,
-            encoding='utf-8',
-            errors='replace'
-        )
-        if result.returncode == 0:
-            return result.stdout.strip()
-    except:
-        pass
-    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    assert process.stdout is not None
+    for raw_line in process.stdout:
+        line = raw_line.rstrip()
+        if line.startswith("   Compiling "):
+            crate_name = line.split()[1]
+            if crate_name not in compiled:
+                compiled.add(crate_name)
+                progress.update(1)
+                progress.set_postfix_str(crate_name)
+        elif line.startswith("    Finished "):
+            progress.set_postfix_str("finished")
+            logger.info(line)
+        elif "warning:" in line.lower():
+            logger.warning(line)
+        elif "error:" in line.lower():
+            logger.error(line)
+        else:
+            logger.info(line)
 
-def main():
-    """メイン処理"""
-    # 作業ディレクトリをcodex-rsに変更
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    os.chdir(script_dir)
+    return_code = process.wait()
+    progress.close()
+    logger.info(
+        "Command finished with exit code %s after compiling %s crates.",
+        return_code,
+        len(compiled),
+    )
+    return return_code, len(compiled)
 
-    # 開始日時を取得
-    start_datetime = get_current_datetime_from_mcp()
 
-    print("="*70)
-    print("🚀 高速差分ビルド・プロセスキル・上書きインストール (6コア + sccache)")
-    print("="*70)
-    print(f"🕐 開始時刻: {start_datetime}")
-    
-    # 環境変数の設定
-    os.environ['RUSTC_WRAPPER'] = 'sccache'
-    os.environ['RUSTFLAGS'] = '-D warnings'
-    os.environ['CARGO_TERM_COLOR'] = 'always'
-    target_dir = os.environ.get('CARGO_TARGET_DIR', 'target')
-    
-    print(f"🛠️  sccache 有効化中")
-    print(f"💪 並列ジョブ数: 6")
-    print(f"📁 ビルドディレクトリ: {target_dir}")
-    
-    # 0. プロセスキル
-    print("\n" + "="*70)
-    print("🔪 Phase 0: プロセスキル")
-    print("="*70)
-    kill_codex_processes()
-    time.sleep(2)  # プロセス停止を待つ
-    
-    # 1. ビルド対象の定義
-    packages = [
-        {"name": "codex-cli", "display": "CLI", "binary": "codex.exe", "dest": "codex.exe", "j": 6},
-        {"name": "codex-tui", "display": "TUI", "binary": "codex-tui.exe", "dest": "codex-tui.exe", "j": 6},
-    ]
-    
-    total_build_elapsed = 0
-    total_build_count = 0
-    build_results = []
-    
-    # 2. Rustパッケージのビルド
-    for pkg in packages:
-        print("\n" + "="*70)
-        print(f"📦 Phase 1: 高速差分ビルド ({pkg['display']})")
-        print("="*70)
-        
-        success, errors, warnings, elapsed, count = build_with_progress(
-            ["cargo", "build", "--release", "-p", pkg['name'], "-j", str(pkg['j'])],
-            f"{pkg['name']} (リリースビルド)",
-            total_estimated=80
-        )
-        
-        if not success:
-            print(f"\n❌ {pkg['display']} のビルドに失敗しました")
-            if errors:
-                print("\nエラー詳細:")
-                for error in errors[:5]:
-                    print(f"  - {error[:200]}")
-            sys.exit(1)
-        
-        total_build_elapsed += elapsed
-        total_build_count += count
-        build_results.append(pkg)
-    
-    # 3. GUIビルド (Tauri)
-    print("\n" + "="*70)
-    print("🎨 Phase 2: GUI ビルド (Tauri)")
-    print("="*70)
-    
-    gui_dir = os.path.join(script_dir, "tauri-gui")
-    if os.path.exists(gui_dir):
-        os.chdir(gui_dir)
+def terminate_processes(patterns: list[str], logger: logging.Logger) -> None:
+    for pattern in patterns:
         try:
-            print("📦 npm 依存関係を確認中...")
-            if not os.path.exists("node_modules"):
-                subprocess.run(["npm", "ci"], check=True)
-            
-            print("🚀 Tauri ビルド実行中...")
-            gui_start = time.time()
-            subprocess.run(["npm", "run", "tauri:build"], check=True)
-            gui_elapsed = time.time() - gui_start
-            print(f"✅ GUI ビルド完了 ({gui_elapsed:.2f}秒)")
-            
-            packages.append({
-                "name": "codex-gui", 
-                "display": "GUI", 
-                "binary": "codex-tauri-gui.exe", 
-                "dest": "codex-gui.exe",
-                "custom_source": os.path.join(script_dir, "tauri-gui", "src-tauri", target_dir, "release", "codex-tauri-gui.exe")
-            })
-            total_build_elapsed += gui_elapsed
-        except Exception as e:
-            print(f"❌ GUI ビルドに失敗しました: {e}")
-            # GUIビルド失敗は致命的として扱うか、要件次第
-            sys.exit(1)
-        finally:
-            os.chdir(script_dir)
-    else:
-        print("⚠️  tauri-gui ディレクトリが見つからないため、GUIビルドをスキップします")
+            if sys.platform == "win32":
+                proc = subprocess.run(
+                    ["taskkill", "/F", "/IM", pattern, "/T"],
+                    text=True,
+                    capture_output=True,
+                    encoding="utf-8",
+                    errors="replace",
+                )
+                if proc.returncode == 0:
+                    logger.info("Terminated process pattern %s", pattern)
+                else:
+                    stderr = proc.stderr.strip()
+                    if "not found" not in stderr.lower() and "見つかりません" not in stderr:
+                        logger.info(
+                            "taskkill returned %s for %s: %s",
+                            proc.returncode,
+                            pattern,
+                            stderr or proc.stdout.strip(),
+                        )
+            else:
+                subprocess.run(["pkill", "-f", pattern], check=False, capture_output=True)
+                logger.info("Sent pkill for %s", pattern)
+        except Exception as exc:  # pragma: no cover - defensive logging
+            logger.warning("Failed to terminate %s: %s", pattern, exc)
 
-    # 4. 上書きインストール
-    print("\n" + "="*70)
-    print("📥 Phase 3: バイナリ上書きインストール")
-    print("="*70)
-    
-    install_dir = os.path.join(os.environ.get('USERPROFILE', os.path.expanduser('~')), '.cargo', 'bin')
-    
-    for pkg in packages:
-        if "custom_source" in pkg:
-            src = pkg["custom_source"]
-        else:
-            src = os.path.join(target_dir, "release", pkg["binary"])
-            
-        if not os.path.exists(src):
-            print(f"⚠️  ソースが見つかりません: {src}")
-            continue
-            
-        dest = os.path.join(install_dir, pkg["dest"])
-        if not install_binary(src, dest):
-            print(f"❌ {pkg['display']} のインストールに失敗しました")
-            sys.exit(1)
-            
-    # 5. 動作確認
-    print("\n" + "="*70)
-    print("✅ Phase 4: 動作確認")
-    print("="*70)
-    
+
+def backup_existing_binary(install_path: Path, backup_dir: Path, logger: logging.Logger) -> Path | None:
+    if not install_path.exists():
+        return None
+
+    backup_dir.mkdir(parents=True, exist_ok=True)
+    backup_path = backup_dir / f"{install_path.stem}-{datetime.now().strftime('%Y%m%d-%H%M%S')}{install_path.suffix}"
+    shutil.copy2(install_path, backup_path)
+    logger.info("Created backup: %s", backup_path)
+    return backup_path
+
+
+def append_markdown_log(path: Path, heading: str, message_lines: list[str]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8", newline="\n") as handle:
+        handle.write(f"\n## {heading}\n")
+        for line in message_lines:
+            handle.write(f"- {line}\n")
+
+
+def verify_binary(binary_path: Path, verify_args: list[str], logger: logging.Logger) -> tuple[int, str]:
+    proc = subprocess.run(
+        [str(binary_path), *verify_args],
+        text=True,
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    output = (proc.stdout or proc.stderr).strip()
+    logger.info("Verification exit=%s output=%s", proc.returncode, output)
+    return proc.returncode, output
+
+
+def load_manifest(path: Path, logger: logging.Logger) -> dict[str, Any]:
+    if not path.exists():
+        logger.warning("Artifact manifest does not exist: %s", path)
+        return {}
+
+    with path.open("r", encoding="utf-8") as handle:
+        manifest = json.load(handle)
+    logger.info("Loaded artifact manifest from %s", path)
+    return manifest
+
+
+def write_manifest(path: Path, manifest: dict[str, Any], logger: logging.Logger) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8", newline="\n") as handle:
+        json.dump(manifest, handle, ensure_ascii=True, indent=2)
+        handle.write("\n")
+    logger.info("Wrote artifact manifest to %s", path)
+
+
+def export_artifact(
+    source_binary: Path,
+    artifact_dir: Path,
+    manifest_path: Path,
+    verify_output: str,
+    target_dir: Path,
+    cargo_home: Path,
+    logger: logging.Logger,
+) -> tuple[Path, dict[str, Any]]:
+    artifact_dir.mkdir(parents=True, exist_ok=True)
+    artifact_binary = artifact_dir / source_binary.name
+    shutil.copy2(source_binary, artifact_binary)
+    manifest = {
+        "artifact_binary": str(artifact_binary),
+        "source_binary": str(source_binary),
+        "version_output": verify_output,
+        "source_commit": os.environ.get("GIT_COMMIT", ""),
+        "target_dir": str(target_dir),
+        "cargo_home": str(cargo_home),
+        "built_at_utc": datetime.now(timezone.utc).isoformat(),
+        "sha256": hash_file(artifact_binary),
+    }
+    write_manifest(manifest_path, manifest, logger)
+    return artifact_binary, manifest
+
+
+def resolve_artifact_binary(artifact_dir: Path, bin_name: str, manifest: dict[str, Any], logger: logging.Logger) -> Path:
+    artifact_binary = artifact_dir / f"{bin_name}.exe"
+    manifest_binary = manifest.get("artifact_binary")
+    if manifest_binary:
+        candidate = Path(str(manifest_binary))
+        if candidate.exists():
+            artifact_binary = candidate
+
+    if not artifact_binary.exists():
+        logger.error("Artifact binary not found: %s", artifact_binary)
+        raise FileNotFoundError(f"Artifact binary not found: {artifact_binary}")
+
+    return artifact_binary
+
+
+def install_binary(
+    source_binary: Path,
+    install_path: Path,
+    backup_dir: Path,
+    kill_patterns: list[str],
+    verify_args: list[str],
+    manifest: dict[str, Any],
+    logger: logging.Logger,
+) -> tuple[int, str]:
+    install_path.parent.mkdir(parents=True, exist_ok=True)
+    source_hash = hash_file(source_binary)
+    destination_hash = hash_file(install_path) if install_path.exists() else None
+    if destination_hash == source_hash:
+        logger.info("Installed binary is already up to date; skipping copy.")
+        return verify_binary(install_path, verify_args, logger)
+
+    terminate_processes(kill_patterns, logger)
+    backup_path = backup_existing_binary(install_path, backup_dir, logger)
+
     try:
-        result = subprocess.run(
-            ["codex", "--version"],
-            capture_output=True,
-            text=True,
-            timeout=10,
-            encoding='utf-8',
-            errors='replace'
+        shutil.copy2(source_binary, install_path)
+        logger.info("Installed %s -> %s", source_binary, install_path)
+    except Exception as exc:
+        logger.error("Install copy failed: %s", exc)
+        if backup_path and backup_path.exists():
+            shutil.copy2(backup_path, install_path)
+            logger.info("Restored backup after failed install: %s", backup_path)
+        raise
+
+    verify_code, verify_output = verify_binary(install_path, verify_args, logger)
+    expected_version = str(manifest.get("version_output", "")).strip()
+    if expected_version and expected_version not in verify_output:
+        raise RuntimeError(
+            f"Installed binary version mismatch. expected fragment={expected_version!r} actual={verify_output!r}"
         )
-        if result.returncode == 0:
-            print(f"   ✅ バージョン確認成功: {result.stdout.strip()}")
-        else:
-            print(f"   ⚠️  バージョン確認で警告: {result.stderr[:200]}")
-    except Exception as e:
-        print(f"   ⚠️  動作確認でエラー: {e}")
-    
-    # 完了
-    end_datetime = get_current_datetime_from_mcp()
-    print("\n" + "="*70)
-    print("🎉 全ての処理が正常に完了しました！")
-    print("="*70)
-    print(f"🕐 終了時刻: {end_datetime}")
-    print(f"\n📊 サマリー:")
-    print(f"   - 総ビルド時間: {total_build_elapsed:.2f}秒")
-    print(f"   - インストール先: {install_dir}")
+    return verify_code, verify_output
 
-    # 実装ログを保存
-    log_content = f"""- 開始時刻: {start_datetime}
-- 終了時刻: {end_datetime}
-- 総ビルド時間: {total_build_elapsed:.2f}秒
-- インストール先: {install_dir}
-- 並列ジョブ数: 6
-- sccache: 有効
-- プロセスキル: 正常に実行
-- ビルド結果: 成功 (CLI, TUI, GUI)
-- インストール結果: 成功
-- 動作確認: 完了"""
 
-    log_path = save_implementation_log(log_content, "6コアsccache高速差分ビルド・インストール")
-    
-    # 完了音声を再生（Windows環境）
-    if sys.platform == 'win32':
-        audio_paths = [
-            r"C:\Users\downl\Desktop\SO8T\.cursor\marisa_owattaze.wav",
-            os.path.join(os.path.dirname(os.path.dirname(script_dir)), ".codex", "marisa_owattaze.wav")
-        ]
-        
-        audio_played = False
-        for audio_path in audio_paths:
-            if os.path.exists(audio_path):
-                try:
-                    import winsound
-                    print(f"\n🔊 完了音声を再生中: {audio_path}")
-                    winsound.PlaySound(audio_path, winsound.SND_FILENAME | winsound.SND_SYNC)
-                    print("✅ 音声を再生しました: 終わったぜ！")
-                    audio_played = True
-                    break
-                except Exception as e:
-                    print(f"⚠️  音声ファイルの再生に失敗しました: {e}")
-                    continue
-        
-        if not audio_played:
-            try:
-                import winsound
-                winsound.Beep(1000, 500)
-            except:
-                pass
-    
-    sys.exit(0)
+def run_build(
+    args: argparse.Namespace,
+    logger: logging.Logger,
+) -> tuple[int, int, Path, Path, Path, str]:
+    requested_target_dir = Path(args.target_dir)
+    requested_cargo_home = Path(args.cargo_home)
+    target_dir, cargo_home = select_storage_paths(requested_target_dir, requested_cargo_home, logger)
+    build_binary = target_dir / "release" / f"{args.bin_name}.exe"
+
+    env = os.environ.copy()
+    env["CARGO_TARGET_DIR"] = str(target_dir)
+    env["CARGO_HOME"] = str(cargo_home)
+
+    target_dir.mkdir(parents=True, exist_ok=True)
+    cargo_home.mkdir(parents=True, exist_ok=True)
+
+    return_code, compiled_count = run_command(
+        ["cargo", "build", "--bin", args.bin_name, "--release", "-j", str(args.jobs)],
+        cwd=CODEX_RS_ROOT,
+        env=env,
+        logger=logger,
+    )
+    if return_code != 0:
+        return return_code, compiled_count, requested_target_dir, cargo_home, build_binary, ""
+
+    if not build_binary.exists():
+        logger.error("Built binary not found: %s", build_binary)
+        return 2, compiled_count, requested_target_dir, cargo_home, build_binary, ""
+
+    verify_code, verify_output = verify_binary(build_binary, args.verify_args, logger)
+    if verify_code != 0:
+        return verify_code, compiled_count, requested_target_dir, cargo_home, build_binary, verify_output
+
+    export_artifact(
+        build_binary,
+        Path(args.artifact_dir),
+        Path(args.artifact_manifest),
+        verify_output,
+        target_dir,
+        cargo_home,
+        logger,
+    )
+    return 0, compiled_count, requested_target_dir, cargo_home, build_binary, verify_output
+
+
+def main() -> int:
+    args = parse_args()
+    logger = configure_logging(Path(args.log_file), args.verbose)
+
+    artifact_dir = Path(args.artifact_dir)
+    artifact_manifest_path = Path(args.artifact_manifest)
+    install_path = Path(args.install_path)
+    backup_dir = Path(args.backup_dir)
+
+    if args.mode in {"build-only", "build-and-install"}:
+        build_exit, compiled_count, requested_target_dir, cargo_home, build_binary, verify_output = run_build(args, logger)
+        if build_exit != 0:
+            append_markdown_log(
+                Path(DEFAULT_MD_LOG),
+                "2026-03-28 Fast Build Install Pass",
+                [
+                    f"mode=`{args.mode}`",
+                    f"Fast build failed before install. exit_code=`{build_exit}`",
+                    f"requested_target_dir=`{requested_target_dir}`",
+                    f"cargo_home=`{cargo_home}`",
+                    f"log_file=`{Path(args.log_file)}`",
+                ],
+            )
+            return build_exit
+    else:
+        compiled_count = 0
+        requested_target_dir = Path(args.target_dir)
+        cargo_home = Path(args.cargo_home)
+        build_binary = Path()
+        verify_output = ""
+
+    if args.mode == "build-only":
+        append_markdown_log(
+            Path(DEFAULT_MD_LOG),
+            "2026-03-28 Fast Build Install Pass",
+            [
+                f"mode=`{args.mode}`",
+                f"artifact_dir=`{artifact_dir}`",
+                f"artifact_manifest=`{artifact_manifest_path}`",
+                f"compiled_crates=`{compiled_count}`",
+                f"verify_output=`{verify_output}`",
+                f"log_file=`{Path(args.log_file)}`",
+            ],
+        )
+        return 0
+
+    manifest = load_manifest(artifact_manifest_path, logger)
+    source_binary = build_binary if args.mode == "build-and-install" else resolve_artifact_binary(
+        artifact_dir,
+        args.bin_name,
+        manifest,
+        logger,
+    )
+    if args.mode == "build-and-install" and not manifest:
+        manifest = load_manifest(artifact_manifest_path, logger)
+
+    verify_code, installed_output = install_binary(
+        source_binary,
+        install_path,
+        backup_dir,
+        args.kill_pattern,
+        args.verify_args,
+        manifest,
+        logger,
+    )
+
+    append_markdown_log(
+        Path(DEFAULT_MD_LOG),
+        "2026-03-28 Fast Build Install Pass",
+        [
+            f"mode=`{args.mode}`",
+            f"requested_target_dir=`{requested_target_dir}`",
+            f"cargo_home=`{cargo_home}`",
+            f"artifact_dir=`{artifact_dir}`",
+            f"artifact_manifest=`{artifact_manifest_path}`",
+            f"install_path=`{install_path}`",
+            f"compiled_crates=`{compiled_count}`",
+            f"verify_exit=`{verify_code}`",
+            f"verify_output=`{installed_output}`",
+            f"log_file=`{Path(args.log_file)}`",
+        ],
+    )
+    return verify_code
+
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

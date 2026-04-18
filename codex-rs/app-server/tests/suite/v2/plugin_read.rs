@@ -516,6 +516,190 @@ async fn plugin_read_returns_invalid_request_when_plugin_manifest_is_missing() -
     Ok(())
 }
 
+#[tokio::test]
+async fn plugin_read_returns_legacy_suite_bundle_details() -> Result<()> {
+    let codex_home = TempDir::new()?;
+    let repo_root = TempDir::new()?;
+    let plugin_root = repo_root.path().join("plugins/zapabob-legacy-suite");
+    std::fs::create_dir_all(repo_root.path().join(".git"))?;
+    std::fs::create_dir_all(repo_root.path().join(".agents/plugins"))?;
+    std::fs::create_dir_all(plugin_root.join(".codex-plugin"))?;
+    std::fs::create_dir_all(plugin_root.join("skills/deepresearch"))?;
+    std::fs::create_dir_all(plugin_root.join("skills/git4d"))?;
+    std::fs::create_dir_all(plugin_root.join("skills/vr-ar"))?;
+    std::fs::write(
+        repo_root.path().join(".agents/plugins/marketplace.json"),
+        r#"{
+  "name": "zapabob-repo-local",
+  "plugins": [
+    {
+      "name": "zapabob-legacy-suite",
+      "source": {
+        "source": "local",
+        "path": "./plugins/zapabob-legacy-suite"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Research"
+    }
+  ]
+}"#,
+    )?;
+    std::fs::write(
+        plugin_root.join(".codex-plugin/plugin.json"),
+        r##"{
+  "name": "zapabob-legacy-suite",
+  "description": "Migrates fork-only DeepResearch, Git4D, and VR or AR affordances onto the official Codex app and plugin seams.",
+  "interface": {
+    "displayName": "Zapabob Legacy Suite",
+    "shortDescription": "Repo-local DeepResearch, Git4D, and VR or AR migration bundle.",
+    "developerName": "zapabob",
+    "category": "Research",
+    "capabilities": ["DeepResearch", "Git4D", "VR/AR", "Migration"],
+    "defaultPrompt": [
+      "Use this plugin when the user asks for DeepResearch, Git4D, or VR or AR capabilities that used to live in the legacy GUI.",
+      "Prefer official app-server plugin APIs such as plugin/list, plugin/read, and plugin/install before suggesting any legacy GUI path."
+    ],
+    "brandColor": "#1F6F5F"
+  }
+}"##,
+    )?;
+    std::fs::write(
+        plugin_root.join("skills/deepresearch/SKILL.md"),
+        r#"---
+name: deepresearch
+description: Continue the fork's DeepResearch workflow through the official Codex plugin surface instead of the retired GUI.
+---
+
+# DeepResearch
+"#,
+    )?;
+    std::fs::write(
+        plugin_root.join("skills/git4d/SKILL.md"),
+        r#"---
+name: git4d
+description: Carry Git4D forward as an optional plugin capability with a text-first fallback.
+---
+
+# Git4D
+"#,
+    )?;
+    std::fs::write(
+        plugin_root.join("skills/vr-ar/SKILL.md"),
+        r#"---
+name: vr-ar
+description: Carry VR and AR forward as an optional plugin capability with graceful no-device fallback.
+---
+
+# VR or AR
+"#,
+    )?;
+    std::fs::write(
+        plugin_root.join(".app.json"),
+        r#"{
+  "apps": {
+    "github": {
+      "id": "github"
+    },
+    "hugging-face": {
+      "id": "hugging-face"
+    },
+    "vercel": {
+      "id": "vercel"
+    }
+  }
+}"#,
+    )?;
+    std::fs::write(
+        plugin_root.join(".mcp.json"),
+        r#"{
+  "mcpServers": {
+    "legacy-suite-fallbacks": {
+      "command": "python",
+      "args": ["servers/legacy_suite_mcp.py"],
+      "cwd": ".",
+      "enabled_tools": [
+        "deepresearch_brief",
+        "git4d_repo_summary",
+        "vr_ar_capability_report"
+      ]
+    }
+  }
+}"#,
+    )?;
+    std::fs::write(
+        codex_home.path().join("config.toml"),
+        r#"[features]
+plugins = true
+
+[plugins."zapabob-legacy-suite@zapabob-repo-local"]
+enabled = true
+"#,
+    )?;
+    write_installed_plugin(&codex_home, "zapabob-repo-local", "zapabob-legacy-suite")?;
+
+    let mut mcp = McpProcess::new(codex_home.path()).await?;
+    timeout(DEFAULT_TIMEOUT, mcp.initialize()).await??;
+
+    let marketplace_path =
+        AbsolutePathBuf::try_from(repo_root.path().join(".agents/plugins/marketplace.json"))?;
+    let request_id = mcp
+        .send_plugin_read_request(PluginReadParams {
+            marketplace_path: marketplace_path.clone(),
+            plugin_name: "zapabob-legacy-suite".to_string(),
+        })
+        .await?;
+
+    let response: JSONRPCResponse = timeout(
+        DEFAULT_TIMEOUT,
+        mcp.read_stream_until_response_message(RequestId::Integer(request_id)),
+    )
+    .await??;
+    let response: PluginReadResponse = to_response(response)?;
+
+    assert_eq!(response.plugin.marketplace_name, "zapabob-repo-local");
+    assert_eq!(response.plugin.marketplace_path, marketplace_path);
+    assert_eq!(
+        response.plugin.summary.id,
+        "zapabob-legacy-suite@zapabob-repo-local"
+    );
+    assert_eq!(response.plugin.summary.installed, true);
+    assert_eq!(response.plugin.summary.enabled, true);
+    assert_eq!(
+        response.plugin.description.as_deref(),
+        Some(
+            "Migrates fork-only DeepResearch, Git4D, and VR or AR affordances onto the official Codex app and plugin seams."
+        )
+    );
+    assert_eq!(response.plugin.skills.len(), 3);
+    assert_eq!(
+        response
+            .plugin
+            .skills
+            .iter()
+            .map(|skill| skill.name.as_str())
+            .collect::<Vec<_>>(),
+        vec![
+            "zapabob-legacy-suite:deepresearch",
+            "zapabob-legacy-suite:git4d",
+            "zapabob-legacy-suite:vr-ar",
+        ]
+    );
+    assert_eq!(
+        response
+            .plugin
+            .apps
+            .iter()
+            .map(|app| app.id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["github", "hugging-face", "vercel"]
+    );
+    assert_eq!(response.plugin.mcp_servers, vec!["legacy-suite-fallbacks"]);
+    Ok(())
+}
+
 fn write_installed_plugin(
     codex_home: &TempDir,
     marketplace_name: &str,

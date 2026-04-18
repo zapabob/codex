@@ -146,6 +146,10 @@ windows-sys = { version = "0.52", features = [
 [target.'cfg(unix)'.dependencies]
 codex-shell-escalation = { workspace = true }
 
+[features]
+default = []
+custom-features = []
+
 [dev-dependencies]
 assert_cmd = { workspace = true }
 assert_matches = { workspace = true }

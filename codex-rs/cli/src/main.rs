@@ -38,12 +38,15 @@ use supports_color::Stream;
 mod app_cmd;
 #[cfg(target_os = "macos")]
 mod desktop_app;
+mod gui_x;
 mod marketplace_cmd;
 mod mcp_cmd;
 mod responses_cmd;
 #[cfg(not(windows))]
 mod wsl_paths;
 
+use crate::gui_x::GuiXCommand;
+use crate::gui_x::run_gui_x_command;
 use crate::marketplace_cmd::MarketplaceCli;
 use crate::mcp_cmd::McpCli;
 use crate::responses_cmd::ResponsesCommand;
@@ -113,6 +116,10 @@ enum Subcommand {
 
     /// Manage Codex plugins.
     Plugin(PluginCli),
+
+    /// [deprecated] Legacy GUI entrypoint that now prints migration guidance.
+    #[clap(name = "gui-x")]
+    GuiX(GuiXCommand),
 
     /// Start Codex as an MCP server (stdio).
     McpServer,
@@ -758,6 +765,14 @@ async fn cli_main(arg0_paths: Arg0DispatchPaths) -> anyhow::Result<()> {
                     marketplace_cli.run().await?;
                 }
             }
+        }
+        Some(Subcommand::GuiX(gui_x_cli)) => {
+            reject_remote_mode_for_subcommand(
+                root_remote.as_deref(),
+                root_remote_auth_token_env.as_deref(),
+                "gui-x",
+            )?;
+            run_gui_x_command(gui_x_cli)?;
         }
         Some(Subcommand::AppServer(app_server_cli)) => {
             let AppServerCommand {
@@ -2278,5 +2293,15 @@ mod tests {
             .to_overrides()
             .expect_err("feature should be rejected");
         assert_eq!(err.to_string(), "Unknown feature flag: does_not_exist");
+    }
+
+    #[test]
+    fn gui_x_subcommand_parses() {
+        let cli = MultitoolCli::try_parse_from(["codex", "gui-x", "--port", "3000"])
+            .expect("parse should succeed");
+        let Some(Subcommand::GuiX(gui_x)) = cli.subcommand else {
+            panic!("expected gui-x subcommand");
+        };
+        assert_eq!(gui_x.port, 3000);
     }
 }

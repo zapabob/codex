@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Codex is an AI coding assistant platform forked from OpenAI/codex with extensive enhancements (zapabob extensions). The core is a Rust workspace (`codex-rs/`) with 69 crates, plus a Next.js GUI (`gui/`), a Node.js CLI (`codex-cli/`), and supporting services.
 
-**Version**: 2.16.0 | **Rust edition**: 2024 | **Toolchain**: 1.93.0
+**Version**: 3.1.0 | **Rust edition**: 2024 | **Toolchain**: 1.93.0
 
 ## Build & Development Commands
 

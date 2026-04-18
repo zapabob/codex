@@ -1,159 +1,210 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    Codexのプロセスをキルして新しいバイナリで上書きインストール
+    Stop eligible standalone Codex processes and overwrite-install a new binary.
 .DESCRIPTION
-    実行中のCodexプロセスを検出・終了させ、新しいバイナリをコピー
-.PARAMETER SourcePath
-    新しいバイナリのソースパス
-.PARAMETER TargetPath
-    インストール先のパス
-.PARAMETER ProcessName
-    終了させるプロセス名（デフォルト: codex）
-.PARAMETER Force
-    強制インストール（確認なし）
-.EXAMPLE
-    .\install_with_kill.ps1 -SourcePath "codex-rs\target\release\codex.exe" -TargetPath "C:\bin\codex.exe"
+    Stops only the processes whose executable paths are not excluded, then copies the
+    source binary to the target path with retries. Windows Store CodexApp paths can be
+    excluded so the app keeps running while standalone CLI/TUI binaries are replaced.
 #>
 
 param(
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [string]$SourcePath,
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [string]$TargetPath,
 
-    [string]$ProcessName = "codex",
+    [string[]]$ProcessNames = @("codex"),
 
-    [switch]$Force
+    [string[]]$ExcludePathPrefixes = @(),
+
+    [switch]$Force,
+
+    [int]$MaxRetries = 3
 )
 
-# 視覚化関数
-function Write-ColoredMessage {
-    param(
-        [string]$Message,
-        [string]$Color = "White"
-    )
-    Write-Host $Message -ForegroundColor $Color
+$ErrorActionPreference = "Stop"
+
+function Write-Status {
+    param([string]$Message, [string]$Color = "Cyan")
+    Write-Host "[*] $Message" -ForegroundColor $Color
 }
 
-function Show-Progress {
-    param(
-        [string]$Activity,
-        [string]$Status,
-        [int]$PercentComplete = -1
-    )
-    if ($PercentComplete -ge 0) {
-        Write-Progress -Activity $Activity -Status $Status -PercentComplete $PercentComplete
-    } else {
-        Write-Progress -Activity $Activity -Status $Status
+function Write-Success {
+    param([string]$Message)
+    Write-Host "[OK] $Message" -ForegroundColor Green
+}
+
+function Write-WarningMsg {
+    param([string]$Message)
+    Write-Host "[WARN] $Message" -ForegroundColor Yellow
+}
+
+function Write-ErrorMsg {
+    param([string]$Message)
+    Write-Host "[ERROR] $Message" -ForegroundColor Red
+}
+
+function Resolve-ProcessPath {
+    param([System.Diagnostics.Process]$Process)
+
+    if ($Process.Path) {
+        return $Process.Path
+    }
+
+    try {
+        return $Process.MainModule.FileName
+    }
+    catch {
+        return $null
     }
 }
 
-# メイン処理開始
-Write-ColoredMessage "[REBUILD] Codex 上書きインストールシステム開始" "Cyan"
-Write-ColoredMessage "[DIR] ソース: $SourcePath" "Gray"
-Write-ColoredMessage "[TARGET] ターゲット: $TargetPath" "Gray"
+function Test-ExcludedProcessPath {
+    param(
+        [string]$ProcessPath,
+        [string[]]$Prefixes
+    )
 
-# ソースファイルの存在確認
-if (!(Test-Path $SourcePath)) {
-    Write-ColoredMessage "[ERROR] ソースファイルが見つかりません: $SourcePath" "Red"
+    if ([string]::IsNullOrWhiteSpace($ProcessPath)) {
+        return $false
+    }
+
+    foreach ($prefix in $Prefixes) {
+        if ([string]::IsNullOrWhiteSpace($prefix)) {
+            continue
+        }
+        if ($ProcessPath.StartsWith($prefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+            return $true
+        }
+    }
+
+    return $false
+}
+
+function Get-ManagedProcesses {
+    param(
+        [string[]]$Names,
+        [string[]]$Prefixes
+    )
+
+    $items = @()
+    foreach ($name in $Names) {
+        $processes = Get-Process -Name $name -ErrorAction SilentlyContinue
+        foreach ($process in $processes) {
+            $processPath = Resolve-ProcessPath -Process $process
+            $excluded = Test-ExcludedProcessPath -ProcessPath $processPath -Prefixes $Prefixes
+            $items += [PSCustomObject]@{
+                ProcessName = $process.ProcessName
+                Id          = $process.Id
+                Path        = $processPath
+                Excluded    = $excluded
+            }
+        }
+    }
+    return $items
+}
+
+function Stop-EligibleProcesses {
+    param([object[]]$ProcessItems)
+
+    $eligible = @($ProcessItems | Where-Object { -not $_.Excluded })
+    $excluded = @($ProcessItems | Where-Object { $_.Excluded })
+
+    foreach ($item in $excluded) {
+        Write-Status "Preserving excluded process $($item.ProcessName) [$($item.Id)] at $($item.Path)"
+    }
+
+    foreach ($item in $eligible) {
+        try {
+            Write-Status "Stopping $($item.ProcessName) [$($item.Id)]"
+            Stop-Process -Id $item.Id -Force -ErrorAction Stop
+        }
+        catch {
+            Write-WarningMsg "Failed to stop PID $($item.Id): $($_.Exception.Message)"
+        }
+    }
+
+    if ($eligible.Count -gt 0) {
+        Start-Sleep -Seconds 1
+    }
+}
+
+Write-Status "Source: $SourcePath"
+Write-Status "Target: $TargetPath"
+
+if (-not (Test-Path -LiteralPath $SourcePath)) {
+    Write-ErrorMsg "Source file not found: $SourcePath"
     exit 1
 }
 
-# プロセス検出と終了
-Write-ColoredMessage "[SEARCH] 実行中のプロセスを検索中..." "Yellow"
-$runningProcesses = Get-Process -Name $ProcessName -ErrorAction SilentlyContinue
+$targetDir = Split-Path -Parent $TargetPath
+if (-not [string]::IsNullOrWhiteSpace($targetDir) -and -not (Test-Path -LiteralPath $targetDir)) {
+    New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
+    Write-Success "Created install directory: $targetDir"
+}
 
-if ($runningProcesses) {
-    Write-ColoredMessage "[WARN] 実行中のプロセスを検出: $($runningProcesses.Count) 個" "Yellow"
-
-    foreach ($process in $runningProcesses) {
-        Write-ColoredMessage "  [INFO] PID: $($process.Id), 開始時間: $($process.StartTime)" "Gray"
+$managedProcesses = Get-ManagedProcesses -Names $ProcessNames -Prefixes $ExcludePathPrefixes
+if ($managedProcesses.Count -eq 0) {
+    Write-Status "No matching processes found."
+}
+else {
+    foreach ($item in $managedProcesses) {
+        $label = if ($item.Excluded) { "excluded" } else { "eligible" }
+        Write-Status "Found $label process $($item.ProcessName) [$($item.Id)] path=$($item.Path)"
     }
 
-    if (!$Force) {
-        $confirm = Read-Host "プロセスを終了させてインストールしますか？ (y/N)"
+    if (-not $Force) {
+        $confirm = Read-Host "Stop eligible processes and install the new binary? (y/N)"
         if ($confirm -notmatch "^[Yy]$") {
-            Write-ColoredMessage "[ERROR] キャンセルされました" "Red"
+            Write-WarningMsg "Installation cancelled."
             exit 0
         }
     }
 
-    Show-Progress -Activity "プロセス終了" -Status "実行中のプロセスを終了中..." -PercentComplete 25
-
-    foreach ($process in $runningProcesses) {
-        try {
-            Write-ColoredMessage "[STOP] プロセス終了: PID $($process.Id)" "Yellow"
-            Stop-Process -Id $process.Id -Force -ErrorAction Stop
-            Write-ColoredMessage "[OK] プロセス終了成功" "Green"
-        }
-        catch {
-            Write-ColoredMessage "[WARN] プロセス終了失敗: $($_.Exception.Message)" "Red"
-        }
-    }
-
-    # 少し待って完全に終了するのを待つ
-    Start-Sleep -Seconds 2
-} else {
-    Write-ColoredMessage "[OK] 実行中のプロセスはありません" "Green"
+    Stop-EligibleProcesses -ProcessItems $managedProcesses
 }
 
-Show-Progress -Activity "ファイルコピー" -Status "新しいバイナリをコピー中..." -PercentComplete 50
-
-# ターゲットディレクトリの作成
-$targetDir = Split-Path $TargetPath -Parent
-if (!(Test-Path $targetDir)) {
+$copied = $false
+for ($attempt = 1; $attempt -le $MaxRetries; $attempt++) {
     try {
-        New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
-        Write-ColoredMessage "[DIR] ディレクトリ作成: $targetDir" "Gray"
+        Copy-Item -LiteralPath $SourcePath -Destination $TargetPath -Force -ErrorAction Stop
+        $copied = $true
+        Write-Success "Installed binary on attempt $attempt"
+        break
     }
     catch {
-        Write-ColoredMessage "[ERROR] ディレクトリ作成失敗: $($_.Exception.Message)" "Red"
-        exit 1
-    }
-}
-
-# ファイルコピー
-try {
-    Copy-Item -Path $SourcePath -Destination $TargetPath -Force
-    Write-ColoredMessage "[OK] ファイルコピー成功" "Green"
-} catch {
-    Write-ColoredMessage "[ERROR] ファイルコピー失敗: $($_.Exception.Message)" "Red"
-    exit 1
-}
-
-Show-Progress -Activity "インストール完了" -Status "インストール完了を確認中..." -PercentComplete 75
-
-# インストール確認
-if (Test-Path $TargetPath) {
-    $fileInfo = Get-Item $TargetPath
-    Write-ColoredMessage "[OK] インストール成功!" "Green"
-    Write-ColoredMessage "[STATS] ファイル情報:" "Gray"
-    Write-ColoredMessage "  [DIR] パス: $($fileInfo.FullName)" "Gray"
-    Write-ColoredMessage "  📏 サイズ: $([math]::Round($fileInfo.Length / 1MB, 2)) MB" "Gray"
-    Write-ColoredMessage "  [TIME] 更新日時: $($fileInfo.LastWriteTime)" "Gray"
-
-    # バージョン情報取得（可能であれば）
-    try {
-        $version = & $TargetPath --version 2>$null
-        if ($LASTEXITCODE -eq 0) {
-            Write-ColoredMessage "  🏷️ バージョン: $version" "Gray"
+        Write-WarningMsg "Copy attempt $attempt failed: $($_.Exception.Message)"
+        if ($attempt -lt $MaxRetries) {
+            $retryProcesses = Get-ManagedProcesses -Names $ProcessNames -Prefixes $ExcludePathPrefixes
+            Stop-EligibleProcesses -ProcessItems $retryProcesses
+            Start-Sleep -Seconds 1
         }
-    } catch {
-        # バージョン取得失敗は無視
     }
-} else {
-    Write-ColoredMessage "[ERROR] インストール確認失敗" "Red"
+}
+
+if (-not $copied) {
+    Write-ErrorMsg "Failed to install $TargetPath after $MaxRetries attempts"
     exit 1
 }
 
-Show-Progress -Activity "完了" -Status "すべての処理が完了しました" -PercentComplete 100
+if (-not (Test-Path -LiteralPath $TargetPath)) {
+    Write-ErrorMsg "Target binary missing after install: $TargetPath"
+    exit 1
+}
 
-Write-ColoredMessage "[SUCCESS] 上書きインストール完了!" "Green"
-Write-ColoredMessage "[START] 新しいCodexを使用できます" "Cyan"
+$installedInfo = Get-Item -LiteralPath $TargetPath
+Write-Success "Install complete: $($installedInfo.FullName)"
+Write-Status "Size: $([math]::Round($installedInfo.Length / 1MB, 2)) MB"
+Write-Status "Updated: $($installedInfo.LastWriteTime)"
 
-# 完了音を鳴らす
-[console]::beep(800, 200)
-[console]::beep(1000, 200)
-[console]::beep(1200, 200)
+try {
+    $version = & $TargetPath --version 2>$null
+    if ($LASTEXITCODE -eq 0) {
+        Write-Status "Version: $version"
+    }
+}
+catch {
+    Write-WarningMsg "Version check skipped: $($_.Exception.Message)"
+}

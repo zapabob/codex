@@ -604,6 +604,196 @@ async fn plugin_install_makes_bundled_mcp_servers_available_to_followup_requests
     Ok(())
 }
 
+#[tokio::test]
+async fn plugin_install_preserves_legacy_suite_apps_and_fallback_mcp_server() -> Result<()> {
+    let connectors = vec![
+        AppInfo {
+            id: "github".to_string(),
+            name: "GitHub".to_string(),
+            description: Some("GitHub connector".to_string()),
+            logo_url: None,
+            logo_url_dark: None,
+            distribution_channel: None,
+            branding: None,
+            app_metadata: None,
+            labels: None,
+            install_url: None,
+            is_accessible: false,
+            is_enabled: true,
+            plugin_display_names: Vec::new(),
+        },
+        AppInfo {
+            id: "hugging-face".to_string(),
+            name: "Hugging Face".to_string(),
+            description: Some("Hugging Face connector".to_string()),
+            logo_url: None,
+            logo_url_dark: None,
+            distribution_channel: None,
+            branding: None,
+            app_metadata: None,
+            labels: None,
+            install_url: None,
+            is_accessible: false,
+            is_enabled: true,
+            plugin_display_names: Vec::new(),
+        },
+        AppInfo {
+            id: "vercel".to_string(),
+            name: "Vercel".to_string(),
+            description: Some("Vercel connector".to_string()),
+            logo_url: None,
+            logo_url_dark: None,
+            distribution_channel: None,
+            branding: None,
+            app_metadata: None,
+            labels: None,
+            install_url: None,
+            is_accessible: true,
+            is_enabled: true,
+            plugin_display_names: Vec::new(),
+        },
+    ];
+    let tools = vec![connector_tool("vercel", "Vercel")?];
+    let (server_url, server_handle) = start_apps_server(connectors, tools).await?;
+
+    let codex_home = TempDir::new()?;
+    write_connectors_config(codex_home.path(), &server_url)?;
+    write_chatgpt_auth(
+        codex_home.path(),
+        ChatGptAuthFixture::new("chatgpt-token")
+            .account_id("account-123")
+            .chatgpt_user_id("user-123")
+            .chatgpt_account_id("account-123"),
+        AuthCredentialsStoreMode::File,
+    )?;
+
+    let repo_root = TempDir::new()?;
+    let plugin_root = repo_root.path().join("plugins/zapabob-legacy-suite");
+    std::fs::create_dir_all(repo_root.path().join(".git"))?;
+    std::fs::create_dir_all(repo_root.path().join(".agents/plugins"))?;
+    std::fs::create_dir_all(plugin_root.join(".codex-plugin"))?;
+    std::fs::create_dir_all(plugin_root.join("servers"))?;
+    std::fs::write(
+        repo_root.path().join(".agents/plugins/marketplace.json"),
+        r#"{
+  "name": "zapabob-repo-local",
+  "plugins": [
+    {
+      "name": "zapabob-legacy-suite",
+      "source": {
+        "source": "local",
+        "path": "./plugins/zapabob-legacy-suite"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      }
+    }
+  ]
+}"#,
+    )?;
+    std::fs::write(
+        plugin_root.join(".codex-plugin/plugin.json"),
+        r#"{"name":"zapabob-legacy-suite"}"#,
+    )?;
+    std::fs::write(
+        plugin_root.join(".app.json"),
+        r#"{
+  "apps": {
+    "github": {
+      "id": "github"
+    },
+    "hugging-face": {
+      "id": "hugging-face"
+    },
+    "vercel": {
+      "id": "vercel"
+    }
+  }
+}"#,
+    )?;
+    std::fs::write(
+        plugin_root.join(".mcp.json"),
+        r#"{
+  "mcpServers": {
+    "legacy-suite-fallbacks": {
+      "command": "python",
+      "args": ["servers/legacy_suite_mcp.py"],
+      "cwd": "."
+    }
+  }
+}"#,
+    )?;
+    std::fs::write(
+        plugin_root.join("servers/legacy_suite_mcp.py"),
+        "print('legacy suite')\n",
+    )?;
+    let marketplace_path =
+        AbsolutePathBuf::try_from(repo_root.path().join(".agents/plugins/marketplace.json"))?;
+
+    let mut mcp = McpProcess::new(codex_home.path()).await?;
+    timeout(DEFAULT_TIMEOUT, mcp.initialize()).await??;
+
+    let request_id = mcp
+        .send_plugin_install_request(PluginInstallParams {
+            marketplace_path,
+            plugin_name: "zapabob-legacy-suite".to_string(),
+            force_remote_sync: false,
+        })
+        .await?;
+    let response: JSONRPCResponse = timeout(
+        DEFAULT_TIMEOUT,
+        mcp.read_stream_until_response_message(RequestId::Integer(request_id)),
+    )
+    .await??;
+    let response: PluginInstallResponse = to_response(response)?;
+
+    assert_eq!(response.auth_policy, PluginAuthPolicy::OnInstall);
+    assert_eq!(
+        response
+            .apps_needing_auth
+            .iter()
+            .map(|app| app.id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["github", "hugging-face"]
+    );
+    assert!(
+        codex_home
+            .path()
+            .join(
+                "plugins/cache/zapabob-repo-local/zapabob-legacy-suite/local/.codex-plugin/plugin.json"
+            )
+            .is_file()
+    );
+    let config = std::fs::read_to_string(codex_home.path().join("config.toml"))?;
+    assert!(config.contains(r#"[plugins."zapabob-legacy-suite@zapabob-repo-local"]"#));
+    assert!(!config.contains("[mcp_servers.legacy-suite-fallbacks]"));
+
+    let request_id = mcp
+        .send_raw_request(
+            "mcpServer/oauth/login",
+            Some(json!({
+                "name": "legacy-suite-fallbacks",
+            })),
+        )
+        .await?;
+    let err = timeout(
+        DEFAULT_TIMEOUT,
+        mcp.read_stream_until_error_message(RequestId::Integer(request_id)),
+    )
+    .await??;
+
+    assert_eq!(err.error.code, -32600);
+    assert_eq!(
+        err.error.message,
+        "OAuth login is only supported for streamable HTTP servers."
+    );
+
+    server_handle.abort();
+    let _ = server_handle.await;
+    Ok(())
+}
+
 #[derive(Clone)]
 struct AppsServerState {
     response: Arc<StdMutex<serde_json::Value>>,

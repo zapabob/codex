@@ -1,52 +1,39 @@
-# Fast Reinstall Script
-# Kills processes, builds, and installs Codex
-
 param(
     [switch]$SkipBuild,
-    [switch]$SkipInstall
+    [switch]$SkipInstall,
+    [string]$InstallDir = "$env:USERPROFILE\.cargo\bin"
 )
 
 $ErrorActionPreference = "Stop"
 
-Write-Host "🚀 Fast Reinstall Started..." -ForegroundColor Cyan
+$repoRoot = Split-Path -Parent $PSScriptRoot
+$workspaceRoot = Join-Path $repoRoot "codex-rs"
+$installHelper = Join-Path $PSScriptRoot "install_with_kill.ps1"
+$sourceBinary = Join-Path $workspaceRoot "target\release\codex.exe"
+$targetBinary = Join-Path $InstallDir "codex.exe"
+$codexAppPrefix = "C:\Program Files\WindowsApps\OpenAI.Codex_"
 
-# 1. Kill Processes
-Write-Host "🔪 Killing processes..." -ForegroundColor Yellow
-$processes = @("codex", "codex-gui", "codex-service", "Codex")
-foreach ($proc in $processes) {
-    Get-Process -Name $proc -ErrorAction SilentlyContinue | Stop-Process -Force
-}
-Start-Sleep -Seconds 1
+Write-Host "[*] Fast reinstall started" -ForegroundColor Cyan
 
-# 2. Build
 if (-not $SkipBuild) {
-    Write-Host "🔨 Building Codex..." -ForegroundColor Yellow
-    
-    # Rust Build (Incremental)
-    Push-Location "$PSScriptRoot/../codex-rs"
+    Write-Host "[*] Building codex-cli release binary" -ForegroundColor Yellow
+    Push-Location $workspaceRoot
     try {
-        # Using sccache if available is handled by config, just run cargo build
-        # We use release for "overwrite install" as requested, but maybe dev is faster?
-        # User said "overwrite install", usually implies the final binary.
-        # Let's stick to the build-unified.ps1 logic but simplified or just call it.
-        # Calling build-unified.ps1 is safer to ensure all artifacts are there.
-        & .\build-unified.ps1 -Release -SkipClean
+        cargo build --release -p codex-cli
     }
     finally {
         Pop-Location
     }
 }
 
-# 3. Install
 if (-not $SkipInstall) {
-    Write-Host "📦 Installing..." -ForegroundColor Yellow
-    Push-Location "$PSScriptRoot/../codex-rs"
-    try {
-        & .\install-unified.ps1
-    }
-    finally {
-        Pop-Location
-    }
+    Write-Host "[*] Installing codex.exe with path-aware process filtering" -ForegroundColor Yellow
+    & $installHelper `
+        -SourcePath $sourceBinary `
+        -TargetPath $targetBinary `
+        -ProcessNames @("codex", "codex-tui", "codex-gui", "opencode") `
+        -ExcludePathPrefixes @($codexAppPrefix) `
+        -Force
 }
 
-Write-Host "✅ Fast Reinstall Complete!" -ForegroundColor Green
+Write-Host "[OK] Fast reinstall complete" -ForegroundColor Green

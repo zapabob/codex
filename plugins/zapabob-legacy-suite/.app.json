@@ -1,0 +1,13 @@
+{
+  "apps": {
+    "github": {
+      "id": "connector_76869538009648d5b282a4bb21c3d157"
+    },
+    "hugging-face": {
+      "id": "asdk_app_6939e86417648191b7bda087d872685b"
+    },
+    "vercel": {
+      "id": "connector_690a90ec05c881918afb6a55dc9bbaa1"
+    }
+  }
+}

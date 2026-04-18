@@ -866,6 +866,104 @@ async fn plugin_list_accepts_legacy_string_default_prompt() -> Result<()> {
 }
 
 #[tokio::test]
+async fn plugin_list_surfaces_legacy_suite_metadata() -> Result<()> {
+    let codex_home = TempDir::new()?;
+    let repo_root = TempDir::new()?;
+    let plugin_root = repo_root.path().join("plugins/zapabob-legacy-suite");
+    std::fs::create_dir_all(repo_root.path().join(".git"))?;
+    std::fs::create_dir_all(repo_root.path().join(".agents/plugins"))?;
+    std::fs::create_dir_all(plugin_root.join(".codex-plugin"))?;
+    write_plugins_enabled_config(codex_home.path())?;
+    std::fs::write(
+        repo_root.path().join(".agents/plugins/marketplace.json"),
+        r#"{
+  "name": "zapabob-repo-local",
+  "plugins": [
+    {
+      "name": "zapabob-legacy-suite",
+      "source": {
+        "source": "local",
+        "path": "./plugins/zapabob-legacy-suite"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Research"
+    }
+  ]
+}"#,
+    )?;
+    std::fs::write(
+        plugin_root.join(".codex-plugin/plugin.json"),
+        r##"{
+  "name": "zapabob-legacy-suite",
+  "description": "Migrates fork-only DeepResearch, Git4D, and VR or AR affordances onto the official Codex app and plugin seams.",
+  "interface": {
+    "displayName": "Zapabob Legacy Suite",
+    "shortDescription": "Repo-local DeepResearch, Git4D, and VR or AR migration bundle.",
+    "developerName": "zapabob",
+    "category": "Research",
+    "capabilities": ["DeepResearch", "Git4D", "VR/AR", "Migration"],
+    "defaultPrompt": [
+      "Use this plugin when the user asks for DeepResearch, Git4D, or VR or AR capabilities that used to live in the legacy GUI.",
+      "Prefer official app-server plugin APIs such as plugin/list, plugin/read, and plugin/install before suggesting any legacy GUI path."
+    ],
+    "brandColor": "#1F6F5F"
+  }
+}"##,
+    )?;
+
+    let mut mcp = McpProcess::new(codex_home.path()).await?;
+    timeout(DEFAULT_TIMEOUT, mcp.initialize()).await??;
+
+    let request_id = mcp
+        .send_plugin_list_request(PluginListParams {
+            cwds: Some(vec![AbsolutePathBuf::try_from(repo_root.path())?]),
+            force_remote_sync: false,
+        })
+        .await?;
+
+    let response: JSONRPCResponse = timeout(
+        DEFAULT_TIMEOUT,
+        mcp.read_stream_until_response_message(RequestId::Integer(request_id)),
+    )
+    .await??;
+    let response: PluginListResponse = to_response(response)?;
+
+    let plugin = response
+        .marketplaces
+        .iter()
+        .flat_map(|marketplace| marketplace.plugins.iter())
+        .find(|plugin| plugin.name == "zapabob-legacy-suite")
+        .expect("expected zapabob-legacy-suite entry");
+
+    assert_eq!(plugin.id, "zapabob-legacy-suite@zapabob-repo-local");
+    assert_eq!(plugin.installed, false);
+    assert_eq!(plugin.enabled, false);
+    assert_eq!(plugin.install_policy, PluginInstallPolicy::Available);
+    assert_eq!(plugin.auth_policy, PluginAuthPolicy::OnInstall);
+    let interface = plugin
+        .interface
+        .as_ref()
+        .expect("expected legacy suite interface");
+    assert_eq!(
+        interface.display_name.as_deref(),
+        Some("Zapabob Legacy Suite")
+    );
+    assert_eq!(interface.category.as_deref(), Some("Research"));
+    assert_eq!(interface.brand_color.as_deref(), Some("#1F6F5F"));
+    assert_eq!(
+        interface.default_prompt,
+        Some(vec![
+            "Use this plugin when the user asks for DeepResearch, Git4D, or VR or AR capabilities that used to live in the legacy GUI.".to_string(),
+            "Prefer official app-server plugin APIs such as plugin/list, plugin/read, and plugin/install before suggesting any legacy GUI path.".to_string(),
+        ])
+    );
+    Ok(())
+}
+
+#[tokio::test]
 async fn plugin_list_force_remote_sync_returns_remote_sync_error_on_fail_open() -> Result<()> {
     let codex_home = TempDir::new()?;
     write_plugin_sync_config(codex_home.path(), "https://chatgpt.com/backend-api/")?;

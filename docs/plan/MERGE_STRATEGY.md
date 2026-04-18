@@ -1,212 +1,122 @@
-# Zapabob Codex Merge Strategy
+# Upstream Merge Strategy
 
-## Overview
+## Goal
 
-This document describes the strategy for merging upstream OpenAI Codex changes while preserving zapabob's custom features.
+Keep this fork close to `openai/codex` by default, preserve only fork-only value that upstream still does not offer, and move legacy GUI functionality onto official plugin and app-server seams.
 
-## Custom Features Summary
+Current target:
 
-### Slash Commands
+- baseline tag: `rust-v0.121.0`
+- released: April 15, 2026
+- post-tag hardening window: through April 17, 2026 on `upstream/main`
 
-- `/qc` - Quality Control analysis
-- `/dev-mode` - Dev-mode orchestration
-- `/git4d` - Git 4D visualization
-- `/vr` - VR mode for Git 4D
-- `/ar` - AR mode for Git 4D
+## Security Gate
 
-### Custom Scripts
+Treat the writable-root hardening from `fix: reduce writable root (#17947)` as mandatory. Do not preserve any fork change that reintroduces writable-root drift or equivalent sandbox-boundary regressions.
 
-- `zapabob/scripts/load-env.sh` - Environment loading script
-- `zapabob/scripts/setup-env-vars.ps1` - PowerShell environment setup
-- `scripts/upstream_sync.py` - Upstream merge orchestration entry point
-- `scripts/resolve_merge_conflicts.py` - Upstream-first merge conflict resolver
+## Driver
 
-## Merge Strategy
+Use [`scripts/upstream_sync.py`](/C:/Users/downl/Desktop/codex-main/scripts/upstream_sync.py) as the only merge entrypoint.
 
-### Phase 1: Preparation
+Default analysis run:
 
-1. **Identify Custom Features**
-
-   ```bash
-   python3 scripts/resolve_merge_conflicts.py codex-rs/tui/src/slash_command.rs --rule "codex-rs/tui/src/slash_command.rs=upstream-reinject"
-   ```
-
-2. **Backup Current State**
-   ```bash
-   git backup-branch custom-features-$(date +%Y%m%d)
-   ```
-
-### Phase 2: Fetch Upstream
-
-```bash
-git fetch upstream
+```powershell
+python scripts/upstream_sync.py
 ```
 
-### Phase 3: Analyze Differences
+Analysis plus no-commit merge:
 
-```bash
-# View upstream changes
-git diff upstream/main...HEAD --stat
-
-# Identify conflicts
-git merge --no-commit upstream/main
-git diff --name-only --diff-filter=U
+```powershell
+python scripts/upstream_sync.py --merge
 ```
 
-### Phase 4: Merge with Custom Preservation
+The driver:
 
-#### Automatic Merge
+1. fetches refs and tags
+2. verifies the baseline and upstream refs
+3. creates an integration branch ref from the configured base branch
+4. diffs `rust-v0.121.0` against `upstream/main`
+5. classifies paths
+6. optionally runs `git merge --no-commit --no-ff`
+7. resolves conflicts through [`scripts/resolve_merge_conflicts.py`](/C:/Users/downl/Desktop/codex-main/scripts/resolve_merge_conflicts.py)
+8. writes Markdown and JSON reports
 
-```bash
-python3 scripts/upstream_sync.py
+## Classification Policy
+
+### `upstream-first`
+
+Use upstream by default for:
+
+- `codex-rs/**`
+- CLI, protocol, app-server, and plugin seams
+- repo-local marketplace and plugin infrastructure
+
+### `upstream-plus-reinject`
+
+Only reinject local value for:
+
+- fork-only orchestration behavior
+- retained DeepResearch backend logic
+- other fork code that still has no upstream equivalent
+
+### `plugin-migrate`
+
+Move legacy GUI behavior to plugins for:
+
+- `gui/**`
+- `codex-gui-x/**`
+- `codex-rs/gui/**`
+- `codex-rs/tauri-gui/**`
+
+### `retire-after-parity`
+
+Delete after parity instead of preserving:
+
+- virtual OS surfaces
+- custom computer-operation flows
+- custom OS-control surfaces
+
+### `keep-fork`
+
+Keep local-only operational assets where upstream does not own the surface:
+
+- `_docs/**`
+- local sync and maintenance scripts
+- local agent definitions and skills
+
+## Plugin Migration Path
+
+Repo-local migration now lives at:
+
+- [`.agents/plugins/marketplace.json`](/C:/Users/downl/Desktop/codex-main/.agents/plugins/marketplace.json)
+- [`plugins/zapabob-legacy-suite/.codex-plugin/plugin.json`](/C:/Users/downl/Desktop/codex-main/plugins/zapabob-legacy-suite/.codex-plugin/plugin.json)
+
+Use the official plugin APIs:
+
+- `plugin/list`
+- `plugin/read`
+- `plugin/install`
+- mention path `plugin://zapabob-legacy-suite@zapabob-repo-local`
+
+## Verification
+
+Use `scripts/upstream_sync.py` reports as the authoritative closeout signal for this fork. Legacy verify scripts remain convenience helpers only.
+
+On native Windows, final full-workspace verification should be run in a session with Developer Mode or equivalent symlink privilege. If `cargo test --workspace` stops in `v8` build setup with `os error 1314`, treat that as an environment prerequisite blocker and resume the full validation in a privileged Windows session.
+
+At minimum, verify:
+
+- sync classification tests in `scripts/test/test_upstream_sync.py`
+- app-server plugin discovery tests
+- app-server plugin read tests
+- CLI `gui-x` deprecation tests
+
+Recommended commands:
+
+```powershell
+python -m unittest scripts.test.test_upstream_sync
+cd codex-rs
+cargo test -p codex-cli gui_x
+cargo test -p codex-app-server plugin_list_discovers_repo_local_migration_bundle -- --exact
+cargo test -p codex-app-server plugin_read_returns_repo_local_migration_bundle_details -- --exact
 ```
-
-#### Manual Merge (if needed)
-
-1. **For slash_command.rs**:
-   - Preserve custom enum variants
-   - Maintain description mappings
-   - Keep feature gating rules
-
-2. **For other files**:
-   - Use three-way merge strategy
-   - Prefer upstream for standard features
-   - Preserve local for custom features
-
-### Phase 5: Verification
-
-```bash
-# Check custom features preserved
-git diff --check
-python3 scripts/fast_build.py fast-build --changed-only codex-cli codex-tui
-
-# Run tests
-cd codex-rs && cargo test -p codex-tui
-
-# Verify build
-cargo build
-```
-
-## Conflict Resolution Rules
-
-### Priority Order
-
-1. **Custom Features**: Always preserve (Qc, DevMode, Git4d, Vr, Ar)
-2. **Bug Fixes**: Prefer upstream
-3. **New Features**: Prefer upstream if equivalent
-4. **Documentation**: Prefer upstream
-5. **Configuration**: Merge carefully, test thoroughly
-
-### Three-Way Merge Logic
-
-```
-Local (HEAD)    Upstream      Result
------------     --------      ------
-Custom cmd      Standard      → Custom cmd (preserve)
-Standard        Standard      → Upstream (use new)
-Custom cmd      Modified     → Merge, preserve custom
-```
-
-## Troubleshooting
-
-### Common Issues
-
-#### 1. Conflict in slash_command.rs
-
-**Solution**: Run the merge resolver
-
-```bash
-python3 scripts/resolve_merge_conflicts.py codex-rs/tui/src/slash_command.rs --rule "codex-rs/tui/src/slash_command.rs=upstream-reinject"
-```
-
-#### 2. Custom Features Not Detected
-
-**Solution**: Check feature detection
-
-```bash
-python3 -c "
-from scripts.resolve_merge_conflicts import choose_strategy, load_rules
-rules = load_rules([])
-print(choose_strategy("codex-rs/tui/src/slash_command.rs", rules))
-"
-```
-
-#### 3. Build Failures After Merge
-
-**Solution**: Check for missing dependencies
-
-```bash
-cd codex-rs && cargo check
-```
-
-## Automation Script
-
-```bash
-#!/bin/bash
-# Full merge automation
-
-set -e
-
-echo "=== Zapabob Codex Merge Tool ==="
-
-# Step 1: Backup
-echo "[1/4] Backing up current state..."
-git stash push -m "pre-merge-backup-$(date +%Y%m%d)"
-
-# Step 2: Fetch
-echo "[2/4] Fetching upstream..."
-git fetch upstream
-
-# Step 3: Merge
-echo "[3/4] Merging upstream changes..."
-if git merge upstream/main --no-edit; then
-    echo "Merge successful!"
-else
-    echo "Conflicts detected, running resolver..."
-    python3 scripts/upstream_sync.py
-fi
-
-# Step 4: Verify
-echo "[4/4] Verifying custom features..."
-git diff --check
-python3 scripts/fast_build.py fast-build --changed-only codex-cli codex-tui
-
-echo "=== Merge Complete ==="
-```
-
-## Rollback Procedure
-
-If something goes wrong:
-
-```bash
-# Abort merge
-git merge --abort
-
-# Restore from backup
-git stash pop
-
-# Or reset to previous state
-git reset --hard HEAD@{1}
-```
-
-## Maintenance
-
-### Regular Upstream Sync
-
-Schedule regular merges to avoid large conflicts:
-
-- Weekly for active development
-- Monthly for stable releases
-
-### Testing Matrix
-
-| Upstream Version | Local Version | Status |
-| ---------------- | ------------- | ------ |
-| v2.14.0          | Current       | ✓ OK   |
-| v2.14.1          | Current       | ✓ OK   |
-
-## References
-
-- [OpenAI Codex Repository](https://github.com/openai/codex)
-- [Zapabob Codex Repository](https://github.com/zapabob/Codex)
-- [Plan Mode Documentation](IMPLEMENTATION.md)

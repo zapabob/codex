@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "legacy-suite-fallbacks": {
+      "command": "python",
+      "args": [
+        "servers/legacy_suite_mcp.py"
+      ],
+      "cwd": ".",
+      "enabled_tools": [
+        "deepresearch_brief",
+        "git4d_repo_summary",
+        "vr_ar_capability_report"
+      ],
+      "startup_timeout_sec": 15,
+      "tool_timeout_sec": 30
+    }
+  }
+}

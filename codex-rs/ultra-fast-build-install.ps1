@@ -285,8 +285,8 @@ if ($Clean) {
 }
 
 # Step 2: Kill processes
-Write-Status "Step 2: Stopping existing processes..."
-$processesToKill = @("codex", "codex-tui", "codex-gui", "opencode")
+Write-Status "Step 2: Stopping non-CodexApp helper processes..."
+$processesToKill = @("opencode")
 $killSuccess = $true
 
 foreach ($proc in $processesToKill) {
@@ -306,9 +306,7 @@ $buildsRequired = @{}
 $sourceHashes = @{}
 
 $packages = @(
-    @{ Name = "codex-cli"; Path = "cli"; Features = "" },
-    @{ Name = "codex-tui"; Path = "tui"; Features = "" },
-    @{ Name = "codex-tauri-gui"; Path = "tauri-gui/src-tauri"; Features = ""; IsTauri = $true }
+    @{ Name = "codex-cli"; Path = "cli" }
 )
 
 if (-not $SkipOpenCode) {
@@ -328,16 +326,15 @@ foreach ($pkg in $packages) {
     }
 }
 
-# Step 4: Combined Build for CLI and TUI
+# Step 4: Build codex-cli
 $pkgsToBuild = @()
 if ($buildsRequired.ContainsKey("codex-cli")) { $pkgsToBuild += "codex-cli" }
-if ($buildsRequired.ContainsKey("codex-tui")) { $pkgsToBuild += "codex-tui" }
 
 if ($pkgsToBuild.Count -gt 0) {
     Write-Status "Step 4: Building $($pkgsToBuild -join ', ') in combined cargo process..."
     
     $pkgArgs = $pkgsToBuild | ForEach-Object { "-p $_" }
-    $cargoCmd = "build --release $($pkgArgs -join ' ') -j $MaxParallelJobs --all-features"
+    $cargoCmd = "build --release $($pkgArgs -join ' ') -j $MaxParallelJobs"
     $buildStopwatch = [System.Diagnostics.Stopwatch]::StartNew()
     
     # Combined build with corruption auto-recovery
@@ -380,47 +377,11 @@ if ($pkgsToBuild.Count -gt 0) {
     }
 }
 else {
-    Write-Success "Step 4: CLI and TUI are up to date, skipping build"
+    Write-Success "Step 4: codex-cli is up to date, skipping build"
 }
 
-# Step 5: Build GUI (depends on core crates)
-if ($buildsRequired.ContainsKey("codex-tauri-gui")) {
-    Write-Status "Step 5: Building GUI..."
-    Push-Location "tauri-gui"
-    
-    try {
-        # Check if npm dependencies are installed
-        if (-not (Test-Path "node_modules")) {
-            Write-Status "Installing npm dependencies..."
-            & npm ci
-            if ($LASTEXITCODE -ne 0) {
-                throw "npm install failed"
-            }
-        }
-        
-        # Build Tauri
-        $guiStopwatch = [System.Diagnostics.Stopwatch]::StartNew()
-        & npm run tauri:build
-        $guiStopwatch.Stop()
-        
-        if ($LASTEXITCODE -ne 0) {
-            throw "GUI build failed"
-        }
-        
-        Write-Success "GUI built successfully in $($guiStopwatch.Elapsed.TotalSeconds.ToString('F1'))s"
-    }
-    catch {
-        Write-ErrorMsg "GUI build failed: $_"
-        Pop-Location
-        exit 1
-    }
-    finally {
-        Pop-Location
-    }
-}
-else {
-    Write-Success "Step 5: GUI is up to date, skipping build"
-}
+# Step 5: Legacy GUI install is retired in favor of Codex App and plugins
+Write-Success "Step 5: Skipping legacy GUI build and install"
 
 # Step 6: Update build cache
 foreach ($pkgName in $sourceHashes.Keys) {
@@ -428,36 +389,25 @@ foreach ($pkgName in $sourceHashes.Keys) {
 }
 Save-BuildCache -CacheFile $BuildCacheFile -Cache $buildCache
 
-# Step 7: Install binaries
-Write-Status "Step 6: Installing binaries..."
+# Step 7: Install codex.exe
+Write-Status "Step 6: Installing codex.exe..."
 
 if (-not (Test-Path $InstallDir)) {
     New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
 }
 
-$binaries = @(
-    @{ Source = "target\release\codex.exe"; Dest = "codex.exe" },
-    @{ Source = "target\release\codex-tui.exe"; Dest = "codex-tui.exe" },
-    @{ Source = "target\release\codex-tauri-gui.exe"; Dest = "codex-gui.exe" }
-)
+$installHelper = Join-Path $scriptPath "..\scripts\install_with_kill.ps1"
+$resolvedInstallHelper = [System.IO.Path]::GetFullPath($installHelper)
+$sourceBinary = Join-Path $scriptPath "target\release\codex.exe"
+$destinationBinary = Join-Path $InstallDir "codex.exe"
 
-$installSuccess = $true
-foreach ($bin in $binaries) {
-    $source = Join-Path $scriptPath $bin.Source
-    $dest = Join-Path $InstallDir $bin.Dest
-    
-    try {
-        Install-BinaryAtomic -Source $source -Destination $dest -MaxRetries 5
-    }
-    catch {
-        Write-ErrorMsg "Failed to install $($bin.Dest): $_"
-        $installSuccess = $false
-    }
-}
-
-if (-not $installSuccess) {
-    exit 1
-}
+& $resolvedInstallHelper `
+    -SourcePath $sourceBinary `
+    -TargetPath $destinationBinary `
+    -ProcessNames @("codex", "codex-tui", "codex-gui", "opencode") `
+    -ExcludePathPrefixes @("C:\Program Files\WindowsApps\OpenAI.Codex_") `
+    -Force `
+    -MaxRetries 5
 
 # Step 8: Verification
 Write-Status "Step 7: Verifying installation..."
@@ -469,25 +419,6 @@ catch {
     Write-WarningMsg "CLI verification failed: $_"
 }
 
-# Create desktop shortcuts
-$desktopDir = [Environment]::GetFolderPath("Desktop")
-$WshShell = New-Object -ComObject WScript.Shell
-
-$shortcuts = @(
-    @{ Source = "$InstallDir\codex-tui.exe"; Name = "Codex TUI.lnk" },
-    @{ Source = "$InstallDir\codex-gui.exe"; Name = "Codex GUI.lnk" }
-)
-
-foreach ($shortcut in $shortcuts) {
-    if (Test-Path $shortcut.Source) {
-        $shortcutPath = Join-Path $desktopDir $shortcut.Name
-        $sc = $WshShell.CreateShortcut($shortcutPath)
-        $sc.TargetPath = $shortcut.Source
-        $sc.Save()
-        Write-Success "Created shortcut: $($shortcut.Name)"
-    }
-}
-
 # Summary
 $scriptEndTime = Get-Date
 $totalDuration = ($scriptEndTime - $scriptStartTime).TotalSeconds
@@ -496,6 +427,6 @@ Write-Host ""
 Write-Success "=== Build Complete ==="
 Write-Status "Total duration: $($totalDuration.ToString('F1')) seconds"
 Write-Status "Install location: $InstallDir"
-Write-Status "Binaries: codex.exe, codex-tui.exe, codex-gui.exe"
+Write-Status "Installed binary: codex.exe"
 
 #endregion
