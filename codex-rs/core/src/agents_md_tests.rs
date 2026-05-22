@@ -7,12 +7,14 @@ use core_test_support::PathBufExt;
 use core_test_support::TempDirExt;
 use pretty_assertions::assert_eq;
 use std::fs;
+use std::path::Path;
 use std::path::PathBuf;
 use tempfile::TempDir;
 
 async fn get_user_instructions(config: &Config) -> Option<String> {
+    let mut warnings = Vec::new();
     AgentsMdManager::new(config)
-        .user_instructions_with_fs(LOCAL_FS.as_ref())
+        .user_instructions_with_fs(LOCAL_FS.as_ref(), &mut warnings)
         .await
 }
 
@@ -20,6 +22,19 @@ async fn agents_md_paths(config: &Config) -> std::io::Result<Vec<AbsolutePathBuf
     AgentsMdManager::new(config)
         .agents_md_paths(LOCAL_FS.as_ref())
         .await
+}
+
+fn assert_invalid_utf8_warning(warnings: &[String], source: &str, path: &Path) {
+    let path_display = path.display().to_string();
+    assert_eq!(warnings.len(), 1, "expected one warning, got {warnings:?}");
+    let warning = &warnings[0];
+    assert!(
+        warning.contains(&format!("{source} AGENTS.md instructions"))
+            && warning.contains(&path_display)
+            && warning.contains("invalid UTF-8")
+            && warning.contains("Invalid byte sequences were replaced."),
+        "unexpected invalid UTF-8 warning: {warning:?}"
+    );
 }
 
 /// Helper that returns a `Config` pointing at `root` and using `limit` as
@@ -105,8 +120,9 @@ async fn no_environment_returns_none() {
     let tmp = tempfile::tempdir().expect("tempdir");
     let config = make_config(&tmp, /*limit*/ 4096, Some("user instructions")).await;
 
+    let mut warnings = Vec::new();
     let res = AgentsMdManager::new(&config)
-        .user_instructions(/*environment*/ None)
+        .user_instructions(/*environment*/ None, &mut warnings)
         .await;
 
     assert_eq!(res, None);
@@ -127,6 +143,45 @@ async fn doc_smaller_than_limit_is_returned() {
         res, "hello world",
         "The document should be returned verbatim when it is smaller than the limit and there are no existing instructions"
     );
+}
+
+#[tokio::test]
+async fn global_doc_invalid_utf8_warns_and_uses_lossy_text() {
+    let codex_home = tempfile::tempdir().expect("tempdir");
+    let codex_home_abs = codex_home.abs();
+    let path = codex_home_abs.join(DEFAULT_AGENTS_MD_FILENAME);
+    fs::write(&path, b"global\xFF doc").unwrap();
+
+    let mut warnings = Vec::new();
+    let loaded = AgentsMdManager::load_global_instructions(
+        LOCAL_FS.as_ref(),
+        Some(&codex_home_abs),
+        &mut warnings,
+    )
+    .await
+    .expect("global doc expected");
+
+    assert_eq!(loaded.contents, "global\u{FFFD} doc");
+    assert_eq!(loaded.path, path);
+    assert_invalid_utf8_warning(&warnings, "Global", path.as_path());
+}
+
+#[tokio::test]
+async fn project_doc_invalid_utf8_warns_and_uses_lossy_text() {
+    let tmp = tempfile::tempdir().expect("tempdir");
+    let path = tmp.path().join("AGENTS.md");
+    fs::write(&path, b"project\xFF doc").unwrap();
+
+    let config = make_config(&tmp, /*limit*/ 4096, /*instructions*/ None).await;
+    let mut warnings = Vec::new();
+    let res = AgentsMdManager::new(&config)
+        .user_instructions_with_fs(LOCAL_FS.as_ref(), &mut warnings)
+        .await
+        .expect("doc expected");
+
+    assert_eq!(res, "project\u{FFFD} doc");
+    let canonical_path = dunce::canonicalize(&path).expect("canonical doc path");
+    assert_invalid_utf8_warning(&warnings, "Project", &canonical_path);
 }
 
 /// Oversize file is truncated to `project_doc_max_bytes`.
@@ -197,40 +252,6 @@ async fn zero_byte_limit_disables_discovery() {
         .await
         .expect("discover paths");
     assert_eq!(discovery, Vec::<AbsolutePathBuf>::new());
-}
-
-#[tokio::test]
-async fn js_repl_instructions_are_appended_when_enabled() {
-    let tmp = tempfile::tempdir().expect("tempdir");
-    let mut cfg = make_config(&tmp, /*limit*/ 4096, /*instructions*/ None).await;
-    cfg.features
-        .enable(Feature::JsRepl)
-        .expect("test config should allow js_repl");
-
-    let res = get_user_instructions(&cfg)
-        .await
-        .expect("js_repl instructions expected");
-    let expected = "## JavaScript REPL (Node)\n- Use `js_repl` for Node-backed JavaScript with top-level await in a persistent kernel.\n- `js_repl` is a freeform/custom tool. Direct `js_repl` calls must send raw JavaScript tool input (optionally with first-line `// codex-js-repl: timeout_ms=15000`). Do not wrap code in JSON (for example `{\"code\":\"...\"}`), quotes, or markdown code fences.\n- Helpers: `codex.cwd`, `codex.homeDir`, `codex.tmpDir`, `codex.tool(name, args?)`, and `codex.emitImage(imageLike)`.\n- `codex.tool` executes a normal tool call and resolves to the raw tool output object. Use it for shell and non-shell tools alike. Nested tool outputs stay inside JavaScript unless you emit them explicitly.\n- `codex.emitImage(...)` adds one image to the outer `js_repl` function output each time you call it, so you can call it multiple times to emit multiple images. It accepts a data URL, a single `input_image` item, an object like `{ bytes, mimeType }`, or a raw tool response object with exactly one image and no text. It rejects mixed text-and-image content.\n- `codex.tool(...)` and `codex.emitImage(...)` keep stable helper identities across cells. Saved references and persisted objects can reuse them in later cells, but async callbacks that fire after a cell finishes still fail because no exec is active.\n- Request full-resolution image processing with `detail: \"original\"` only when the `view_image` tool schema includes a `detail` argument. The same availability applies to `codex.emitImage(...)`: if `view_image.detail` is present, you may also pass `detail: \"original\"` there. Use this when high-fidelity image perception or precise localization is needed, especially for CUA agents.\n- Raw MCP image blocks can request the same behavior by returning `_meta: { \"codex/imageDetail\": \"original\" }` on the image content item.\n- Example of sharing an in-memory Playwright screenshot: `await codex.emitImage({ bytes: await page.screenshot({ type: \"jpeg\", quality: 85 }), mimeType: \"image/jpeg\", detail: \"original\" })`.\n- Example of sharing a local image tool result: `await codex.emitImage(codex.tool(\"view_image\", { path: \"/absolute/path\", detail: \"original\" }))`.\n- When encoding an image to send with `codex.emitImage(...)` or `view_image`, prefer JPEG at about 85 quality when lossy compression is acceptable; use PNG when transparency or lossless detail matters. Smaller uploads are faster and less likely to hit size limits.\n- Top-level bindings persist across cells. If a cell throws, prior bindings remain available and bindings that finished initializing before the throw often remain usable in later cells. For code you plan to reuse across cells, prefer declaring or assigning it in direct top-level statements before operations that might throw. If you hit `SyntaxError: Identifier 'x' has already been declared`, first reuse the existing binding, reassign a previously declared `let`, or pick a new descriptive name. Use `{ ... }` only for a short temporary block when you specifically need local scratch names; do not wrap an entire cell in block scope if you want those names reusable later. Reset the kernel with `js_repl_reset` only when you need a clean state.\n- Top-level static import declarations (for example `import x from \"./file.js\"`) are currently unsupported in `js_repl`; use dynamic imports with `await import(\"pkg\")`, `await import(\"./file.js\")`, or `await import(\"/abs/path/file.mjs\")` instead. Imported local files must be ESM `.js`/`.mjs` files and run in the same REPL VM context. Bare package imports always resolve from REPL-global search roots (`CODEX_JS_REPL_NODE_MODULE_DIRS`, then cwd), not relative to the imported file location. Local files may statically import only other local relative/absolute/`file://` `.js`/`.mjs` files; package and builtin imports from local files must stay dynamic. `import.meta.resolve()` returns importable strings such as `file://...`, bare package names, and `node:...` specifiers. Local file modules reload between execs, while top-level bindings persist until `js_repl_reset`.\n- Avoid direct access to `process.stdout` / `process.stderr` / `process.stdin`; it can corrupt the JSON line protocol. Use `console.log`, `codex.tool(...)`, and `codex.emitImage(...)`.";
-    assert_eq!(res, expected);
-}
-
-#[tokio::test]
-async fn js_repl_tools_only_instructions_are_feature_gated() {
-    let tmp = tempfile::tempdir().expect("tempdir");
-    let mut cfg = make_config(&tmp, /*limit*/ 4096, /*instructions*/ None).await;
-    let mut features = cfg.features.get().clone();
-    features
-        .enable(Feature::JsRepl)
-        .enable(Feature::JsReplToolsOnly);
-    cfg.features
-        .set(features)
-        .expect("test config should allow js_repl tool restrictions");
-
-    let res = get_user_instructions(&cfg)
-        .await
-        .expect("js_repl instructions expected");
-    let expected = "## JavaScript REPL (Node)\n- Use `js_repl` for Node-backed JavaScript with top-level await in a persistent kernel.\n- `js_repl` is a freeform/custom tool. Direct `js_repl` calls must send raw JavaScript tool input (optionally with first-line `// codex-js-repl: timeout_ms=15000`). Do not wrap code in JSON (for example `{\"code\":\"...\"}`), quotes, or markdown code fences.\n- Helpers: `codex.cwd`, `codex.homeDir`, `codex.tmpDir`, `codex.tool(name, args?)`, and `codex.emitImage(imageLike)`.\n- `codex.tool` executes a normal tool call and resolves to the raw tool output object. Use it for shell and non-shell tools alike. Nested tool outputs stay inside JavaScript unless you emit them explicitly.\n- `codex.emitImage(...)` adds one image to the outer `js_repl` function output each time you call it, so you can call it multiple times to emit multiple images. It accepts a data URL, a single `input_image` item, an object like `{ bytes, mimeType }`, or a raw tool response object with exactly one image and no text. It rejects mixed text-and-image content.\n- `codex.tool(...)` and `codex.emitImage(...)` keep stable helper identities across cells. Saved references and persisted objects can reuse them in later cells, but async callbacks that fire after a cell finishes still fail because no exec is active.\n- Request full-resolution image processing with `detail: \"original\"` only when the `view_image` tool schema includes a `detail` argument. The same availability applies to `codex.emitImage(...)`: if `view_image.detail` is present, you may also pass `detail: \"original\"` there. Use this when high-fidelity image perception or precise localization is needed, especially for CUA agents.\n- Raw MCP image blocks can request the same behavior by returning `_meta: { \"codex/imageDetail\": \"original\" }` on the image content item.\n- Example of sharing an in-memory Playwright screenshot: `await codex.emitImage({ bytes: await page.screenshot({ type: \"jpeg\", quality: 85 }), mimeType: \"image/jpeg\", detail: \"original\" })`.\n- Example of sharing a local image tool result: `await codex.emitImage(codex.tool(\"view_image\", { path: \"/absolute/path\", detail: \"original\" }))`.\n- When encoding an image to send with `codex.emitImage(...)` or `view_image`, prefer JPEG at about 85 quality when lossy compression is acceptable; use PNG when transparency or lossless detail matters. Smaller uploads are faster and less likely to hit size limits.\n- Top-level bindings persist across cells. If a cell throws, prior bindings remain available and bindings that finished initializing before the throw often remain usable in later cells. For code you plan to reuse across cells, prefer declaring or assigning it in direct top-level statements before operations that might throw. If you hit `SyntaxError: Identifier 'x' has already been declared`, first reuse the existing binding, reassign a previously declared `let`, or pick a new descriptive name. Use `{ ... }` only for a short temporary block when you specifically need local scratch names; do not wrap an entire cell in block scope if you want those names reusable later. Reset the kernel with `js_repl_reset` only when you need a clean state.\n- Top-level static import declarations (for example `import x from \"./file.js\"`) are currently unsupported in `js_repl`; use dynamic imports with `await import(\"pkg\")`, `await import(\"./file.js\")`, or `await import(\"/abs/path/file.mjs\")` instead. Imported local files must be ESM `.js`/`.mjs` files and run in the same REPL VM context. Bare package imports always resolve from REPL-global search roots (`CODEX_JS_REPL_NODE_MODULE_DIRS`, then cwd), not relative to the imported file location. Local files may statically import only other local relative/absolute/`file://` `.js`/`.mjs` files; package and builtin imports from local files must stay dynamic. `import.meta.resolve()` returns importable strings such as `file://...`, bare package names, and `node:...` specifiers. Local file modules reload between execs, while top-level bindings persist until `js_repl_reset`.\n- Do not call tools directly; use `js_repl` + `codex.tool(...)` for all tool calls, including shell commands.\n- MCP tools (if any) can also be called by name via `codex.tool(...)`.\n- Avoid direct access to `process.stdout` / `process.stderr` / `process.stdin`; it can corrupt the JSON line protocol. Use `console.log`, `codex.tool(...)`, and `codex.emitImage(...)`.";
-    assert_eq!(res, expected);
 }
 
 /// When both system instructions and AGENTS.md docs are present the two

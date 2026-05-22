@@ -53,7 +53,7 @@ use cudarc::driver::LaunchAsync;
 ///
 /// This struct is designed to be GPU-friendly with packed data layout
 /// suitable for CUDA kernel processing.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 #[repr(C)]
 pub struct GitCommitVertex {
     /// X, Y, Z coordinates in 3D space
@@ -534,9 +534,11 @@ impl CudaGit4DAccelerator {
 
 /// Stub implementation when CUDA feature is not enabled.
 #[cfg(not(feature = "cuda"))]
+#[allow(dead_code)]
 pub struct CudaGit4DAccelerator;
 
 #[cfg(not(feature = "cuda"))]
+#[allow(dead_code)]
 impl CudaGit4DAccelerator {
     /// Creates a stub that always returns an error.
     pub fn new() -> anyhow::Result<Self> {

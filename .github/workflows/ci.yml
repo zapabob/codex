@@ -5,122 +5,42 @@ on:
   push: { branches: [main] }
 
 jobs:
-  type-check:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    env:
-      NODE_OPTIONS: --max-old-space-size=4096
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v5
-        with:
-          run_install: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Cache pnpm dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
-
-      - name: Install root dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Install TypeScript package dependencies
-        run: |
-          set -euo pipefail
-          npm ci --prefix gui
-          npm ci --prefix sdk
-          npm ci --prefix sdk/typescript
-          npm ci --prefix packages/protocol-client
-          npm ci --prefix shell-tool-mcp
-          npm ci --prefix extensions
-          npm install --prefix extensions/vscode-codex
-          npm ci --prefix extensions/windsurf-extension
-          npm install --legacy-peer-deps --prefix extensions/codex-viz-web/frontend
-          npm install --prefix extensions/codex-viz-web/desktop
-
-      - name: Run monorepo type-check
-        run: npm run type-check
-
-      - name: Check workspace package versions
-        run: npm run type-check:versions
-
-  schema-diff:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Check vendored app-server schema fixtures
-        working-directory: codex-rs
-        run: cargo test -p codex-app-server-protocol schema_fixtures_match_generated -- --exact
-
-  protocol-version:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Check protocol version alignment
-        run: python3 ./scripts/check_protocol_versions.py
-
   build-test:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     env:
       NODE_OPTIONS: --max-old-space-size=4096
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Verify codex-rs Cargo manifests inherit workspace settings
+        run: python3 .github/scripts/verify_cargo_workspace_manifests.py
+
+      - name: Verify codex-tui does not import codex-core directly
+        run: python3 .github/scripts/verify_tui_core_boundary.py
+
+      - name: Verify Bazel clippy flags match Cargo workspace lints
+        run: python3 .github/scripts/verify_bazel_clippy_lints.py
+
+      - name: Test Codex package builder
+        run: python3 -m unittest discover -s scripts/codex_package -p 'test_*.py'
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@a8198c4bff370c8506180b035930dea56dbd5288 # v5
         with:
           run_install: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: 22
-
-      - name: Cache pnpm dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      # stage_npm_packages.py requires DotSlash when staging releases.
-      - uses: facebook/install-dotslash@v2
 
       - name: Stage npm package
         id: stage_npm_package
@@ -128,215 +48,31 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          # Use a rust-release version that includes all native binaries.
-          CODEX_VERSION=0.115.0
-          # Try to get the latest release version dynamically
-          CODEX_VERSION=$(git describe --tags --match "v[0-9]*" --abbrev=0 2>/dev/null || echo "v3.0.0")
-
+          # Use a recent successful rust-release run that published the full
+          # cross-platform native payload required by the npm package layout.
+          # Passing the workflow URL directly avoids relying on old rust-v*
+          # branches remaining discoverable via `gh run list --branch ...`.
+          CODEX_VERSION=0.133.0-alpha.4
+          WORKFLOW_URL="https://github.com/openai/codex/actions/runs/26201494185"
           OUTPUT_DIR="${RUNNER_TEMP}"
-          # Skip if the version doesn't have a release workflow
-          if ! gh run list --workflow=rust-release.yml --json headSha -q '.[0].headSha' 2>/dev/null | grep -q .; then
-            echo "No rust-release workflow found for $CODEX_VERSION, skipping staging"
-            echo "pack_output=" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
           python3 ./scripts/stage_npm_packages.py \
             --release-version "$CODEX_VERSION" \
+            --workflow-url "$WORKFLOW_URL" \
             --package codex \
-            --output-dir "$OUTPUT_DIR" || true
+            --output-dir "$OUTPUT_DIR"
           PACK_OUTPUT="${OUTPUT_DIR}/codex-npm-${CODEX_VERSION}.tgz"
           echo "pack_output=$PACK_OUTPUT" >> "$GITHUB_OUTPUT"
-        continue-on-error: true
 
       - name: Upload staged npm package artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: codex-npm-staging
           path: ${{ steps.stage_npm_package.outputs.pack_output }}
-        if: steps.stage_npm_package.outputs.pack_output != ''
 
+      - name: Ensure root README.md contains only ASCII and certain Unicode code points
+        run: ./scripts/asciicheck.py README.md
       - name: Check root README ToC
-        run: python3 ./scripts/readme_toc.py README.md
-      - name: Validate README bilingual format (English/Japanese)
-        run: |
-          # Check if README contains both English and Japanese sections
-          # (headers may include emoji prefix, so use flexible grep)
-          if ! grep -qi "english" README.md; then
-            echo "README must contain English section"
-            exit 1
-          fi
-          # Japanese section check (README has multiple H2 sections including Japanese)
-          if ! grep -cE "^## " README.md | grep -q "^[2-9]"; then
-            echo "README must contain multiple sections including Japanese"
-            exit 1
-          fi
-
-      - name: Ensure codex-cli/README.md contains only ASCII (if it exists)
-        run: |
-          if [ -f codex-cli/README.md ]; then
-            python3 ./scripts/asciicheck.py codex-cli/README.md
-          else
-            echo "codex-cli/README.md does not exist, skipping ASCII check"
-          fi
-      - name: Check codex-cli/README ToC
-        run: |
-          if [ -f codex-cli/README.md ]; then
-            python3 ./scripts/readme_toc.py codex-cli/README.md
-          fi
+        run: python3 scripts/readme_toc.py README.md
 
       - name: Prettier (run `pnpm run format:fix` to fix)
-        run: pnpm run format || true
-
-  mcp-integration-test:
-    runs-on: windows-2022
-    timeout-minutes: 20
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          run_install: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: 22
-
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt, clippy
-
-      - name: Cache Cargo registry
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install tqdm requests
-
-      - name: Install Node.js dependencies
-        run: pnpm install --frozen-lockfile
-
-      # Build MCP programs
-      - name: Build MCP programs
-        shell: pwsh
-        continue-on-error: true
-        run: |
-          Set-Location codex-rs
-          # Build MCP server (exists in workspace)
-          cargo build --release -p codex-mcp-server 2>&1
-          if ($LASTEXITCODE -ne 0) { Write-Host "Warning: mcp-server build failed, continuing..." }
-          # Build optional crates if they exist in workspace
-          $geminiCrate = "gemini-cli-mcp-server"
-          $meta = cargo metadata --no-deps --format-version 1 2>$null
-          if ($meta -and ($meta | Select-String $geminiCrate -Quiet)) {
-            cargo build --release -p codex-gemini-cli-mcp-server 2>&1
-          } else {
-            Write-Host "Info: codex-gemini-cli-mcp-server not in workspace, skipping"
-          }
-          cargo build --release -p codex-supervisor 2>&1
-          if ($LASTEXITCODE -ne 0) { Write-Host "Warning: supervisor build failed, continuing..." }
-          cargo build --release -p codex-deep-research 2>&1
-          if ($LASTEXITCODE -ne 0) { Write-Host "Warning: deep-research build failed, continuing..." }
-          exit 0
-
-      # Test MCP binaries
-      - name: Test MCP binaries
-        run: |
-          cd codex-rs
-          if (Test-Path "target\release\codex-mcp-server.exe") {
-            Write-Host "[OK] codex-mcp-server.exe found"
-          } else {
-            Write-Host "[WARN] codex-mcp-server.exe missing (build may have failed)"
-          }
-          if (Test-Path "target\release\codex-gemini-cli-mcp-server.exe") {
-            Write-Host "[OK] codex-gemini-cli-mcp-server.exe found"
-          } else {
-            Write-Host "[INFO] codex-gemini-cli-mcp-server.exe not built (optional crate)"
-          }
-
-      # Run integration tests
-      - name: Run integration tests
-        run: |
-          Write-Host "Integration tests skipped - needs migration"
-        continue-on-error: true
-
-      # Build TUI
-      - name: Build TUI
-        run: |
-          cd codex-rs
-          cargo build --release -p codex-tui
-
-      - name: Test TUI binary
-        run: |
-          cd codex-rs
-          if (Test-Path "target\release\codex-tui.exe") {
-            .\target\release\codex-tui.exe --help | Out-Null
-            if ($LASTEXITCODE -eq 0) {
-              Write-Host "[OK] TUI binary functional"
-            } else {
-              Write-Host "[ERROR] TUI binary test failed"
-              exit 1
-            }
-          } else {
-            Write-Host "[ERROR] TUI binary not found"
-            exit 1
-          }
-
-  gui-tests:
-    name: GUI Integration Tests
-    runs-on: windows-2022
-    timeout-minutes: 25
-    needs:
-      - build-test
-      - type-check
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          run_install: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: 22
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Install gui dependencies (for dev server)
-        working-directory: gui
-        run: npm install
-
-      - name: Install gui-tests dependencies
-        working-directory: gui-tests
-        run: npm install
-
-      - name: Install Playwright browsers
-        working-directory: gui-tests
-        run: npx playwright install --with-deps
-
-      - name: Run GUI integration tests
-        working-directory: gui-tests
-        run: npm test -- --project=chromium-cursor
-        env:
-          CI: true
-        continue-on-error: true
+        run: pnpm run format

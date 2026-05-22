@@ -1,0 +1,106 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "AbsolutePathBuf": {
+      "description": "A path that is guaranteed to be absolute and normalized (though it is not guaranteed to be canonicalized or exist on the filesystem).\n\nIMPORTANT: When deserializing an `AbsolutePathBuf`, a base path must be set using [AbsolutePathBufGuard::new]. If no base path is set, the deserialization will fail unless the path being deserialized is already absolute.",
+      "type": "string"
+    },
+    "Git4DMode": {
+      "enum": [
+        "desktop",
+        "vr",
+        "ar"
+      ],
+      "type": "string"
+    },
+    "Git4DSessionStatus": {
+      "enum": [
+        "starting",
+        "active",
+        "paused",
+        "stopping",
+        "stopped",
+        "error"
+      ],
+      "type": "string"
+    },
+    "Git4DSessionSummary": {
+      "properties": {
+        "deviceName": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "effectiveMode": {
+          "$ref": "#/definitions/Git4DMode"
+        },
+        "fallbackReason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "idleMs": {
+          "format": "uint64",
+          "minimum": 0.0,
+          "type": "integer"
+        },
+        "platform": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "repositoryPath": {
+          "$ref": "#/definitions/AbsolutePathBuf"
+        },
+        "requestedMode": {
+          "$ref": "#/definitions/Git4DMode"
+        },
+        "sessionId": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/Git4DSessionStatus"
+        },
+        "uptimeMs": {
+          "format": "uint64",
+          "minimum": 0.0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "effectiveMode",
+        "idleMs",
+        "repositoryPath",
+        "requestedMode",
+        "sessionId",
+        "status",
+        "uptimeMs"
+      ],
+      "type": "object"
+    },
+    "Git4DSessionWatchReplayMode": {
+      "enum": [
+        "buffered",
+        "liveOnly"
+      ],
+      "type": "string"
+    }
+  },
+  "properties": {
+    "replayMode": {
+      "$ref": "#/definitions/Git4DSessionWatchReplayMode"
+    },
+    "session": {
+      "$ref": "#/definitions/Git4DSessionSummary"
+    }
+  },
+  "required": [
+    "replayMode",
+    "session"
+  ],
+  "title": "Git4DSessionWatchResponse",
+  "type": "object"
+}

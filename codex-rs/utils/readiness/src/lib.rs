@@ -1,6 +1,6 @@
 //! Readiness flag with token-based authorization and async waiting (Tokio).
 
-use std::collections::BTreeSet;
+use std::collections::HashSet;
 use std::fmt;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::AtomicI32;
@@ -12,7 +12,7 @@ use tokio::sync::watch;
 use tokio::time;
 
 /// Opaque subscription token returned by `subscribe()`.
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub struct Token(i32);
 
 const LOCK_TIMEOUT: Duration = Duration::from_millis(1000);
@@ -46,7 +46,7 @@ pub struct ReadinessFlag {
     /// Used to generate the next i32 token.
     next_id: AtomicI32,
     /// Set of active subscriptions.
-    tokens: Mutex<BTreeSet<Token>>,
+    tokens: Mutex<HashSet<Token>>,
     /// Broadcasts readiness to async waiters.
     tx: watch::Sender<bool>,
 }
@@ -58,14 +58,14 @@ impl ReadinessFlag {
         Self {
             ready: AtomicBool::new(false),
             next_id: AtomicI32::new(1), // Reserve 0.
-            tokens: Mutex::new(BTreeSet::new()),
+            tokens: Mutex::new(HashSet::new()),
             tx,
         }
     }
 
     async fn with_tokens<R>(
         &self,
-        f: impl FnOnce(&mut BTreeSet<Token>) -> R,
+        f: impl FnOnce(&mut HashSet<Token>) -> R,
     ) -> Result<R, errors::ReadinessError> {
         let mut guard = time::timeout(LOCK_TIMEOUT, self.tokens.lock())
             .await
@@ -277,17 +277,36 @@ mod tests {
 
     #[tokio::test]
     async fn subscribe_returns_error_when_lock_is_held() {
-        let flag = ReadinessFlag::new();
-        let _guard = flag
-            .tokens
-            .try_lock()
-            .expect("initial lock acquisition should succeed");
+        let flag = Arc::new(ReadinessFlag::new());
+        let (locked_tx, locked_rx) = std::sync::mpsc::channel();
+        let (release_tx, release_rx) = std::sync::mpsc::channel();
+        let lock_thread = {
+            let flag = Arc::clone(&flag);
+            std::thread::spawn(move || {
+                let _guard = flag.tokens.blocking_lock();
+                locked_tx
+                    .send(())
+                    .expect("test should receive lock acquisition notification");
+                release_rx
+                    .recv()
+                    .expect("test should release held readiness lock");
+            })
+        };
+        locked_rx
+            .recv()
+            .expect("test should observe held readiness lock");
 
         let err = flag
             .subscribe()
             .await
             .expect_err("contended subscribe should report a lock failure");
         assert_matches!(err, ReadinessError::TokenLockFailed);
+        release_tx
+            .send(())
+            .expect("test should release readiness lock thread");
+        lock_thread
+            .join()
+            .expect("readiness lock thread should not panic");
     }
 
     #[tokio::test]

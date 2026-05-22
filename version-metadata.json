@@ -1,9 +1,13 @@
 {
   "schema_version": 1,
   "canonical_source": "VERSION",
-  "fork_version": "3.1.0",
-  "upstream_base": "rust-v0.121.0",
-  "release_date": "2026-04-18",
+  "fork_version": "3.2.0",
+  "upstream_base": "rust-v0.133.0",
+  "upstream_release": "0.133.0",
+  "upstream_main_commit": "b14f11d3d2ca048bdae1872ef66087a2ce3f6b0c",
+  "upstream_release_published_at": "2026-05-21T16:48:03Z",
+  "upstream_main_observed_at": "2026-05-22T05:27:25Z",
+  "release_date": "2026-05-22",
   "current_release_line": "3.x",
   "legacy_release_line": "2.x",
   "sync_targets": {

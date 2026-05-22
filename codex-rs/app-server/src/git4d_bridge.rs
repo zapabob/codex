@@ -141,19 +141,15 @@ impl Git4DBridge {
             Ok(session) => {
                 match Git4DAcceleratedVisualizer::get_session_snapshot(&session.session_id) {
                     Some(snapshot) => {
+                        let session = match to_api_session_summary(snapshot) {
+                            Ok(summary) => summary,
+                            Err(err) => {
+                                self.send_internal_error(request_id, err).await;
+                                return;
+                            }
+                        };
                         self.outgoing
-                            .send_response(
-                                request_id,
-                                Git4DSessionStartResponse {
-                                    session: match to_api_session_summary(snapshot) {
-                                        Ok(summary) => summary,
-                                        Err(err) => {
-                                            self.send_internal_error(request_id, err).await;
-                                            return;
-                                        }
-                                    },
-                                },
-                            )
+                            .send_response(request_id, Git4DSessionStartResponse { session })
                             .await;
                     }
                     None => {

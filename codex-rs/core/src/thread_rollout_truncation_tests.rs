@@ -1,5 +1,5 @@
 use super::*;
-use crate::codex::make_session_and_context;
+use crate::session::tests::make_session_and_context;
 use codex_protocol::AgentPath;
 use codex_protocol::models::ContentItem;
 use codex_protocol::models::ReasoningItemReasoningSummary;
@@ -14,7 +14,6 @@ fn user_msg(text: &str) -> ResponseItem {
         content: vec![ContentItem::OutputText {
             text: text.to_string(),
         }],
-        end_turn: None,
         phase: None,
     }
 }
@@ -26,7 +25,6 @@ fn assistant_msg(text: &str) -> ResponseItem {
         content: vec![ContentItem::OutputText {
             text: text.to_string(),
         }],
-        end_turn: None,
         phase: None,
     }
 }

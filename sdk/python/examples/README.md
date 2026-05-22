@@ -5,7 +5,11 @@ Each example folder contains runnable versions:
 - `sync.py` (public sync surface: `Codex`)
 - `async.py` (public async surface: `AsyncCodex`)
 
-All examples intentionally use only public SDK exports from `codex_app_server`.
+All examples intentionally use only public SDK exports from `openai_codex`
+and `openai_codex.types`.
+
+Examples use plain strings for text-only turns and typed input objects for
+multimodal or structured input lists.
 
 ## Prerequisites
 
@@ -15,22 +19,20 @@ All examples intentionally use only public SDK exports from `codex_app_server`.
 Recommended setup (from `sdk/python`):
 
 ```bash
-python -m venv .venv
+uv sync
 source .venv/bin/activate
-python -m pip install -U pip
-python -m pip install -e .
 ```
 
 When running examples from this repo checkout, the SDK source uses the local
 tree and does not bundle a runtime binary. The helper in `examples/_bootstrap.py`
-uses the installed `codex-cli-bin` runtime package.
+uses the installed `openai-codex-cli-bin` runtime package.
 
-If the pinned `codex-cli-bin` runtime is not already installed, the bootstrap
+If the pinned `openai-codex-cli-bin` runtime is not already installed, the bootstrap
 will download the matching GitHub release artifact, stage a temporary local
-`codex-cli-bin` package, install it into your active interpreter, and clean up
+`openai-codex-cli-bin` package, install it into your active interpreter, and clean up
 the temporary files afterward.
 
-Current pinned runtime version: `0.116.0-alpha.1`
+The pinned runtime version comes from the SDK package dependency.
 
 ## Run examples
 
@@ -43,7 +45,7 @@ python examples/<example-folder>/async.py
 
 The examples bootstrap local imports from `sdk/python/src` automatically, so no
 SDK wheel install is required. You only need the Python dependencies for your
-active interpreter and an installed `codex-cli-bin` runtime package (either
+active interpreter and an installed `openai-codex-cli-bin` runtime package (either
 already present or automatically provisioned by the bootstrap).
 
 ## Recommended first run
@@ -82,4 +84,6 @@ python examples/01_quickstart_constructor/async.py
 - `13_model_select_and_turn_params/`
   - list models, pick highest model + highest supported reasoning effort, run turns, print message and usage
 - `14_turn_controls/`
-  - separate best-effort `steer()` and `interrupt()` demos with concise summaries
+  - separate `steer()` and `interrupt()` demos with concise summaries
+- `15_login_and_account/`
+  - browser-login handle lifecycle, cancellation, and account inspection

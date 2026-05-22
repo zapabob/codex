@@ -2,41 +2,52 @@ use std::collections::HashSet;
 use std::time::Duration;
 
 use crate::chatgpt_client::chatgpt_get_request_with_timeout;
-use crate::chatgpt_token::get_chatgpt_token_data;
-use crate::chatgpt_token::init_chatgpt_token_from_auth;
 
 use codex_app_server_protocol::AppInfo;
-use codex_connectors::AllConnectorsCacheKey;
+use codex_connectors::ConnectorDirectoryCacheContext;
+use codex_connectors::ConnectorDirectoryCacheKey;
 use codex_connectors::DirectoryListResponse;
 use codex_connectors::filter::filter_disallowed_connectors;
 use codex_connectors::merge::merge_connectors;
 use codex_connectors::merge::merge_plugin_connectors;
 use codex_core::config::Config;
 pub use codex_core::connectors::list_accessible_connectors_from_mcp_tools;
+pub use codex_core::connectors::list_accessible_connectors_from_mcp_tools_with_environment_manager;
 pub use codex_core::connectors::list_accessible_connectors_from_mcp_tools_with_options;
 pub use codex_core::connectors::list_accessible_connectors_from_mcp_tools_with_options_and_status;
 pub use codex_core::connectors::list_cached_accessible_connectors_from_mcp_tools;
 pub use codex_core::connectors::with_app_enabled_state;
-use codex_core::plugins::AppConnectorId;
-use codex_core::plugins::PluginsManager;
+use codex_core_plugins::PluginsManager;
 use codex_login::AuthManager;
 use codex_login::CodexAuth;
 use codex_login::default_client::originator;
-use codex_login::token_data::TokenData;
+use codex_plugin::AppConnectorId;
 
 const DIRECTORY_CONNECTORS_TIMEOUT: Duration = Duration::from_secs(60);
 
 async fn apps_enabled(config: &Config) -> bool {
-    let auth_manager = AuthManager::shared(
-        config.codex_home.to_path_buf(),
-        /*enable_codex_api_key_env*/ false,
-        config.cli_auth_credentials_store_mode,
-    );
+    let auth_manager =
+        AuthManager::shared_from_config(config, /*enable_codex_api_key_env*/ false).await;
     let auth = auth_manager.auth().await;
     config
         .features
-        .apps_enabled_for_auth(auth.as_ref().is_some_and(CodexAuth::is_chatgpt_auth))
+        .apps_enabled_for_auth(auth.as_ref().is_some_and(CodexAuth::uses_codex_backend))
 }
+
+async fn connector_auth(config: &Config) -> anyhow::Result<CodexAuth> {
+    let auth_manager =
+        AuthManager::shared_from_config(config, /*enable_codex_api_key_env*/ false).await;
+    let auth = auth_manager
+        .auth()
+        .await
+        .ok_or_else(|| anyhow::anyhow!("ChatGPT auth not available"))?;
+    anyhow::ensure!(
+        auth.uses_codex_backend(),
+        "ChatGPT connectors require Codex backend auth"
+    );
+    Ok(auth)
+}
+
 pub async fn list_connectors(config: &Config) -> anyhow::Result<Vec<AppInfo>> {
     if !apps_enabled(config).await {
         return Ok(Vec::new());
@@ -64,15 +75,9 @@ pub async fn list_cached_all_connectors(config: &Config) -> Option<Vec<AppInfo>>
         return Some(Vec::new());
     }
 
-    if init_chatgpt_token_from_auth(&config.codex_home, config.cli_auth_credentials_store_mode)
-        .await
-        .is_err()
-    {
-        return None;
-    }
-    let token_data = get_chatgpt_token_data()?;
-    let cache_key = all_connectors_cache_key(config, &token_data);
-    let connectors = codex_connectors::cached_all_connectors(&cache_key)?;
+    let auth = connector_auth(config).await.ok()?;
+    let cache_context = connector_directory_cache_context(config, &auth);
+    let connectors = codex_connectors::cached_directory_connectors(&cache_context)?;
     let connectors = merge_plugin_connectors(
         connectors,
         plugin_apps_for_config(config)
@@ -93,15 +98,11 @@ pub async fn list_all_connectors_with_options(
     if !apps_enabled(config).await {
         return Ok(Vec::new());
     }
-    init_chatgpt_token_from_auth(&config.codex_home, config.cli_auth_credentials_store_mode)
-        .await?;
-
-    let token_data =
-        get_chatgpt_token_data().ok_or_else(|| anyhow::anyhow!("ChatGPT token not available"))?;
-    let cache_key = all_connectors_cache_key(config, &token_data);
+    let auth = connector_auth(config).await?;
+    let cache_context = connector_directory_cache_context(config, &auth);
     let connectors = codex_connectors::list_all_connectors_with_options(
-        cache_key,
-        token_data.id_token.is_workspace_account(),
+        cache_context,
+        auth.is_workspace_account(),
         force_refetch,
         |path| async move {
             chatgpt_get_request_with_timeout::<DirectoryListResponse>(
@@ -126,18 +127,25 @@ pub async fn list_all_connectors_with_options(
     ))
 }
 
-fn all_connectors_cache_key(config: &Config, token_data: &TokenData) -> AllConnectorsCacheKey {
-    AllConnectorsCacheKey::new(
-        config.chatgpt_base_url.clone(),
-        token_data.account_id.clone(),
-        token_data.id_token.chatgpt_user_id.clone(),
-        token_data.id_token.is_workspace_account(),
+fn connector_directory_cache_context(
+    config: &Config,
+    auth: &CodexAuth,
+) -> ConnectorDirectoryCacheContext {
+    ConnectorDirectoryCacheContext::new(
+        config.codex_home.to_path_buf(),
+        ConnectorDirectoryCacheKey::new(
+            config.chatgpt_base_url.clone(),
+            auth.get_account_id(),
+            auth.get_chatgpt_user_id(),
+            auth.is_workspace_account(),
+        ),
     )
 }
 
-async fn plugin_apps_for_config(config: &Config) -> Vec<codex_core::plugins::AppConnectorId> {
+async fn plugin_apps_for_config(config: &Config) -> Vec<AppConnectorId> {
+    let plugins_input = config.plugins_config_input();
     PluginsManager::new(config.codex_home.to_path_buf())
-        .plugins_for_config(config)
+        .plugins_for_config(&plugins_input)
         .await
         .effective_apps()
 }
@@ -188,7 +196,7 @@ pub fn merge_connectors_with_accessible(
 mod tests {
     use super::*;
     use codex_connectors::metadata::connector_install_url;
-    use codex_core::plugins::AppConnectorId;
+    use codex_plugin::AppConnectorId;
     use pretty_assertions::assert_eq;
 
     fn app(id: &str) -> AppInfo {

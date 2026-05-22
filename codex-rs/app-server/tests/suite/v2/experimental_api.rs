@@ -5,8 +5,6 @@ use app_test_support::create_mock_responses_server_sequence_unchecked;
 use app_test_support::to_response;
 use codex_app_server_protocol::AskForApproval;
 use codex_app_server_protocol::ClientInfo;
-use codex_app_server_protocol::Git4DMode;
-use codex_app_server_protocol::Git4DSessionStartParams;
 use codex_app_server_protocol::InitializeCapabilities;
 use codex_app_server_protocol::JSONRPCError;
 use codex_app_server_protocol::JSONRPCMessage;
@@ -17,6 +15,7 @@ use codex_app_server_protocol::ThreadMemoryMode;
 use codex_app_server_protocol::ThreadMemoryModeSetParams;
 use codex_app_server_protocol::ThreadRealtimeStartParams;
 use codex_app_server_protocol::ThreadRealtimeStartTransport;
+use codex_app_server_protocol::ThreadSettingsUpdateParams;
 use codex_app_server_protocol::ThreadStartParams;
 use codex_app_server_protocol::ThreadStartResponse;
 use codex_protocol::protocol::RealtimeOutputModality;
@@ -38,6 +37,7 @@ async fn mock_experimental_method_requires_experimental_api_capability() -> Resu
             default_client_info(),
             Some(InitializeCapabilities {
                 experimental_api: false,
+                request_attestation: false,
                 opt_out_notification_methods: None,
             }),
         )
@@ -68,6 +68,7 @@ async fn realtime_conversation_start_requires_experimental_api_capability() -> R
             default_client_info(),
             Some(InitializeCapabilities {
                 experimental_api: false,
+                request_attestation: false,
                 opt_out_notification_methods: None,
             }),
         )
@@ -81,7 +82,7 @@ async fn realtime_conversation_start_requires_experimental_api_capability() -> R
             thread_id: "thr_123".to_string(),
             output_modality: RealtimeOutputModality::Audio,
             prompt: Some(Some("hello".to_string())),
-            session_id: None,
+            realtime_session_id: None,
             transport: None,
             voice: None,
         })
@@ -105,6 +106,7 @@ async fn thread_memory_mode_set_requires_experimental_api_capability() -> Result
             default_client_info(),
             Some(InitializeCapabilities {
                 experimental_api: false,
+                request_attestation: false,
                 opt_out_notification_methods: None,
             }),
         )
@@ -129,7 +131,7 @@ async fn thread_memory_mode_set_requires_experimental_api_capability() -> Result
 }
 
 #[tokio::test]
-async fn git4d_session_start_requires_experimental_api_capability() -> Result<()> {
+async fn thread_settings_update_requires_experimental_api_capability() -> Result<()> {
     let codex_home = TempDir::new()?;
     let mut mcp = McpProcess::new(codex_home.path()).await?;
 
@@ -138,6 +140,7 @@ async fn git4d_session_start_requires_experimental_api_capability() -> Result<()
             default_client_info(),
             Some(InitializeCapabilities {
                 experimental_api: false,
+                request_attestation: false,
                 opt_out_notification_methods: None,
             }),
         )
@@ -147,9 +150,9 @@ async fn git4d_session_start_requires_experimental_api_capability() -> Result<()
     };
 
     let request_id = mcp
-        .send_git4d_session_start_request(Git4DSessionStartParams {
-            repository_path: None,
-            mode: Git4DMode::Desktop,
+        .send_thread_settings_update_request(ThreadSettingsUpdateParams {
+            thread_id: "thr_123".to_string(),
+            ..Default::default()
         })
         .await?;
     let error = timeout(
@@ -157,7 +160,7 @@ async fn git4d_session_start_requires_experimental_api_capability() -> Result<()
         mcp.read_stream_until_error_message(RequestId::Integer(request_id)),
     )
     .await??;
-    assert_experimental_capability_error(error, "git4d/session/start");
+    assert_experimental_capability_error(error, "thread/settings/update");
     Ok(())
 }
 
@@ -171,6 +174,7 @@ async fn realtime_webrtc_start_requires_experimental_api_capability() -> Result<
             default_client_info(),
             Some(InitializeCapabilities {
                 experimental_api: false,
+                request_attestation: false,
                 opt_out_notification_methods: None,
             }),
         )
@@ -184,7 +188,7 @@ async fn realtime_webrtc_start_requires_experimental_api_capability() -> Result<
             thread_id: "thr_123".to_string(),
             output_modality: RealtimeOutputModality::Audio,
             prompt: Some(Some("hello".to_string())),
-            session_id: None,
+            realtime_session_id: None,
             transport: Some(ThreadRealtimeStartTransport::Webrtc {
                 sdp: "v=offer\r\n".to_string(),
             }),
@@ -212,6 +216,7 @@ async fn thread_start_mock_field_requires_experimental_api_capability() -> Resul
             default_client_info(),
             Some(InitializeCapabilities {
                 experimental_api: false,
+                request_attestation: false,
                 opt_out_notification_methods: None,
             }),
         )
@@ -249,6 +254,7 @@ async fn thread_start_without_dynamic_tools_allows_without_experimental_api_capa
             default_client_info(),
             Some(InitializeCapabilities {
                 experimental_api: false,
+                request_attestation: false,
                 opt_out_notification_methods: None,
             }),
         )
@@ -285,6 +291,7 @@ async fn thread_start_granular_approval_policy_requires_experimental_api_capabil
             default_client_info(),
             Some(InitializeCapabilities {
                 experimental_api: false,
+                request_attestation: false,
                 opt_out_notification_methods: None,
             }),
         )

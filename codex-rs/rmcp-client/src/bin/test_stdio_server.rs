@@ -68,7 +68,9 @@ impl TestToolServer {
         let tools = vec![
             Self::echo_tool(),
             Self::echo_dash_tool(),
+            Self::cwd_tool(),
             Self::sync_tool(),
+            Self::sync_readonly_tool(),
             Self::image_tool(),
             Self::image_scenario_tool(),
             sandbox_meta_tool,
@@ -124,12 +126,41 @@ impl TestToolServer {
                         { "type": "string" },
                         { "type": "null" }
                     ]
-                }
+                },
             },
             "required": ["echo", "env"],
             "additionalProperties": false
         }))
         .expect("echo tool output schema should deserialize");
+        tool.output_schema = Some(Arc::new(output_schema));
+        tool.annotations = Some(ToolAnnotations::new().read_only(true));
+        tool
+    }
+
+    fn cwd_tool() -> Tool {
+        #[expect(clippy::expect_used)]
+        let schema: JsonObject = serde_json::from_value(json!({
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+        }))
+        .expect("cwd tool schema should deserialize");
+
+        let mut tool = Tool::new(
+            Cow::Borrowed("cwd"),
+            Cow::Borrowed("Return the current working directory of this test server process."),
+            Arc::new(schema),
+        );
+        #[expect(clippy::expect_used)]
+        let output_schema: JsonObject = serde_json::from_value(json!({
+            "type": "object",
+            "properties": {
+                "cwd": { "type": "string" }
+            },
+            "required": ["cwd"],
+            "additionalProperties": false
+        }))
+        .expect("cwd tool output schema should deserialize");
         tool.output_schema = Some(Arc::new(output_schema));
         tool.annotations = Some(ToolAnnotations::new().read_only(true));
         tool
@@ -175,6 +206,12 @@ impl TestToolServer {
         }))
         .expect("sync tool output schema should deserialize");
         tool.output_schema = Some(Arc::new(output_schema));
+        tool
+    }
+
+    fn sync_readonly_tool() -> Tool {
+        let mut tool = Self::sync_tool();
+        tool.name = Cow::Borrowed("sync_readonly");
         tool.annotations = Some(ToolAnnotations::new().read_only(true));
         tool
     }
@@ -292,7 +329,6 @@ impl TestToolServer {
 #[derive(Deserialize)]
 struct EchoArgs {
     message: String,
-    #[allow(dead_code)]
     env_var: Option<String>,
 }
 
@@ -372,6 +408,7 @@ impl ServerHandler for TestToolServer {
         )]));
 
         ServerInfo {
+            instructions: Some("Use these tools to exercise the rmcp test server.".to_string()),
             capabilities,
             ..ServerInfo::default()
         }
@@ -453,6 +490,17 @@ impl ServerHandler for TestToolServer {
                 is_error: Some(false),
                 meta: None,
             }),
+            "cwd" => {
+                let cwd = std::env::current_dir()
+                    .map(|path| path.to_string_lossy().into_owned())
+                    .map_err(|err| McpError::internal_error(err.to_string(), None))?;
+                Ok(CallToolResult {
+                    content: Vec::new(),
+                    structured_content: Some(json!({ "cwd": cwd })),
+                    is_error: Some(false),
+                    meta: None,
+                })
+            }
             "echo" | "echo-tool" => {
                 let args: EchoArgs = match request.arguments {
                     Some(arguments) => serde_json::from_value(serde_json::Value::Object(
@@ -468,9 +516,10 @@ impl ServerHandler for TestToolServer {
                 };
 
                 let env_snapshot: HashMap<String, String> = std::env::vars().collect();
+                let env_name = args.env_var.as_deref().unwrap_or("MCP_TEST_VALUE");
                 let structured_content = json!({
                     "echo": format!("ECHOING: {}", args.message),
-                    "env": env_snapshot.get("MCP_TEST_VALUE"),
+                    "env": env_snapshot.get(env_name),
                 });
 
                 Ok(CallToolResult {
@@ -507,6 +556,10 @@ impl ServerHandler for TestToolServer {
             }
             "sync" => {
                 let args = Self::parse_call_args::<SyncArgs>(&request, "sync")?;
+                Self::sync_result(args).await
+            }
+            "sync_readonly" => {
+                let args = Self::parse_call_args::<SyncArgs>(&request, "sync_readonly")?;
                 Self::sync_result(args).await
             }
             other => Err(McpError::invalid_params(
@@ -714,6 +767,9 @@ fn parse_data_url(url: &str) -> Option<(String, String)> {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     eprintln!("starting rmcp test server");
+    if let Ok(pid_file) = std::env::var("MCP_TEST_PID_FILE") {
+        std::fs::write(pid_file, std::process::id().to_string())?;
+    }
     // Run the server with STDIO transport. If the client disconnects we simply
     // bubble up the error so the process exits.
     let service = TestToolServer::new();

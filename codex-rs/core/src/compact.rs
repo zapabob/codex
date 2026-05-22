@@ -4,11 +4,15 @@ use std::time::Instant;
 use crate::Prompt;
 use crate::client::ModelClientSession;
 use crate::client_common::ResponseEvent;
+use crate::hook_runtime::PostCompactHookOutcome;
+use crate::hook_runtime::PreCompactHookOutcome;
+use crate::hook_runtime::run_post_compact_hooks;
+use crate::hook_runtime::run_pre_compact_hooks;
 #[cfg(test)]
-use crate::codex::PreviousTurnSettings;
-use crate::codex::Session;
-use crate::codex::TurnContext;
-use crate::codex::get_last_assistant_message_from_turn;
+use crate::session::PreviousTurnSettings;
+use crate::session::session::Session;
+use crate::session::turn::get_last_assistant_message_from_turn;
+use crate::session::turn_context::TurnContext;
 use crate::util::backoff;
 use codex_analytics::CodexCompactionEvent;
 use codex_analytics::CompactionImplementation;
@@ -18,7 +22,6 @@ use codex_analytics::CompactionStatus;
 use codex_analytics::CompactionStrategy;
 use codex_analytics::CompactionTrigger;
 use codex_analytics::now_unix_seconds;
-use codex_features::Feature;
 use codex_protocol::error::CodexErr;
 use codex_protocol::error::Result as CodexResult;
 use codex_protocol::items::ContextCompactionItem;
@@ -31,6 +34,7 @@ use codex_protocol::protocol::EventMsg;
 use codex_protocol::protocol::TurnStartedEvent;
 use codex_protocol::protocol::WarningEvent;
 use codex_protocol::user_input::UserInput;
+use codex_rollout_trace::InferenceTraceContext;
 use codex_utils_output_truncation::TruncationPolicy;
 use codex_utils_output_truncation::approx_token_count;
 use codex_utils_output_truncation::truncate_text;
@@ -110,7 +114,8 @@ pub(crate) async fn run_compact_task(
         CompactionReason::UserRequested,
         CompactionPhase::StandaloneTurn,
     )
-    .await
+    .await?;
+    Ok(())
 }
 
 async fn run_compact_task_inner(
@@ -131,6 +136,17 @@ async fn run_compact_task_inner(
         phase,
     )
     .await;
+    let pre_compact_outcome = run_pre_compact_hooks(&sess, &turn_context, trigger).await;
+    match pre_compact_outcome {
+        PreCompactHookOutcome::Continue => {}
+        PreCompactHookOutcome::Stopped { reason } => {
+            let error = reason.unwrap_or_else(|| "PreCompact hook stopped execution".to_string());
+            attempt
+                .track(sess.as_ref(), CompactionStatus::Interrupted, Some(error))
+                .await;
+            return Err(CodexErr::TurnAborted);
+        }
+    }
     let result = run_compact_task_inner_impl(
         Arc::clone(&sess),
         Arc::clone(&turn_context),
@@ -138,14 +154,17 @@ async fn run_compact_task_inner(
         initial_context_injection,
     )
     .await;
-    attempt
-        .track(
-            sess.as_ref(),
-            compaction_status_from_result(&result),
-            result.as_ref().err().map(ToString::to_string),
-        )
-        .await;
-    result
+    let status = compaction_status_from_result(&result);
+    let error = result.as_ref().err().map(ToString::to_string);
+    if result.is_ok() {
+        let post_compact_outcome = run_post_compact_hooks(&sess, &turn_context, trigger).await;
+        if let PostCompactHookOutcome::Stopped = post_compact_outcome {
+            attempt.track(sess.as_ref(), status, error).await;
+            return Err(CodexErr::TurnAborted);
+        }
+    }
+    attempt.track(sess.as_ref(), status, error).await;
+    result.map(|_| ())
 }
 
 async fn run_compact_task_inner_impl(
@@ -153,7 +172,7 @@ async fn run_compact_task_inner_impl(
     turn_context: Arc<TurnContext>,
     input: Vec<UserInput>,
     initial_context_injection: InitialContextInjection,
-) -> CodexResult<()> {
+) -> CodexResult<String> {
     let compaction_item = TurnItem::ContextCompaction(ContextCompactionItem::new());
     sess.emit_turn_item_started(&turn_context, &compaction_item)
         .await;
@@ -164,8 +183,6 @@ async fn run_compact_task_inner_impl(
         &[initial_input_for_turn.into()],
         turn_context.truncation_policy,
     );
-
-    let mut truncated_count = 0usize;
 
     let max_retries = turn_context.provider.info().stream_max_retries();
     let mut retries = 0;
@@ -198,15 +215,6 @@ async fn run_compact_task_inner_impl(
 
         match attempt_result {
             Ok(()) => {
-                if truncated_count > 0 {
-                    sess.notify_background_event(
-                        turn_context.as_ref(),
-                        format!(
-                            "Trimmed {truncated_count} older thread item(s) before compacting so the prompt fits the model context window."
-                        ),
-                    )
-                    .await;
-                }
                 break;
             }
             Err(CodexErr::Interrupted) => {
@@ -219,7 +227,6 @@ async fn run_compact_task_inner_impl(
                         "Context window exceeded while compacting; removing oldest history item. Error: {e}"
                     );
                     history.remove_first_item();
-                    truncated_count += 1;
                     retries = 0;
                     continue;
                 }
@@ -265,12 +272,6 @@ async fn run_compact_task_inner_impl(
         new_history =
             insert_initial_context_before_last_real_user_or_summary(new_history, initial_context);
     }
-    let ghost_snapshots: Vec<ResponseItem> = history_items
-        .iter()
-        .filter(|item| matches!(item, ResponseItem::GhostSnapshot { .. }))
-        .cloned()
-        .collect();
-    new_history.extend(ghost_snapshots);
     let reference_context_item = match initial_context_injection {
         InitialContextInjection::DoNotInject => None,
         InitialContextInjection::BeforeLastUserMessage => Some(turn_context.to_turn_context_item()),
@@ -281,7 +282,6 @@ async fn run_compact_task_inner_impl(
     };
     sess.replace_compacted_history(new_history, reference_context_item, compacted_item)
         .await;
-    client_session.reset_websocket_session();
     sess.recompute_token_usage(&turn_context).await;
 
     sess.emit_turn_item_completed(&turn_context, compaction_item)
@@ -290,11 +290,10 @@ async fn run_compact_task_inner_impl(
         message: "Heads up: Long threads and multiple compactions can cause the model to be less accurate. Start a new thread when possible to keep threads small and targeted.".to_string(),
     });
     sess.send_event(&turn_context, warning).await;
-    Ok(())
+    Ok(summary_suffix)
 }
 
 pub(crate) struct CompactionAnalyticsAttempt {
-    enabled: bool,
     thread_id: String,
     turn_id: String,
     trigger: CompactionTrigger,
@@ -315,10 +314,8 @@ impl CompactionAnalyticsAttempt {
         implementation: CompactionImplementation,
         phase: CompactionPhase,
     ) -> Self {
-        let enabled = sess.enabled(Feature::GeneralAnalytics);
         let active_context_tokens_before = sess.get_total_token_usage().await;
         Self {
-            enabled,
             thread_id: sess.conversation_id.to_string(),
             turn_id: turn_context.sub_id.clone(),
             trigger,
@@ -337,9 +334,6 @@ impl CompactionAnalyticsAttempt {
         status: CompactionStatus,
         error: Option<String>,
     ) {
-        if !self.enabled {
-            return;
-        }
         let active_context_tokens_after = sess.get_total_token_usage().await;
         sess.services
             .analytics_events_client
@@ -444,7 +438,13 @@ pub(crate) fn insert_initial_context_before_last_real_user_or_summary(
         .iter()
         .enumerate()
         .rev()
-        .find_map(|(i, item)| matches!(item, ResponseItem::Compaction { .. }).then_some(i));
+        .find_map(|(i, item)| {
+            matches!(
+                item,
+                ResponseItem::Compaction { .. } | ResponseItem::ContextCompaction { .. }
+            )
+            .then_some(i)
+        });
     let insertion_index = last_real_user_index
         .or(last_user_or_summary_index)
         .or(last_compaction_index);
@@ -508,7 +508,6 @@ fn build_compacted_history_with_limit(
             content: vec![ContentItem::InputText {
                 text: message.clone(),
             }],
-            end_turn: None,
             phase: None,
         });
     }
@@ -523,7 +522,6 @@ fn build_compacted_history_with_limit(
         id: None,
         role: "user".to_string(),
         content: vec![ContentItem::InputText { text: summary_text }],
-        end_turn: None,
         phase: None,
     });
 
@@ -544,8 +542,11 @@ async fn drain_to_completed(
             &turn_context.session_telemetry,
             turn_context.reasoning_effort,
             turn_context.reasoning_summary,
-            turn_context.config.service_tier,
+            turn_context.config.service_tier.clone(),
             turn_metadata_header,
+            // Rollout tracing currently models remote compaction only; local compaction streams
+            // are left untraced until the reducer has a first-class local compaction lifecycle.
+            &InferenceTraceContext::disabled(),
         )
         .await?;
     loop {

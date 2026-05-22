@@ -162,8 +162,9 @@ mod tests {
 
     #[test]
     fn git4d_session_start_params_round_trip() {
+        let repository_path = absolute_path("tmp/repo");
         let params = Git4DSessionStartParams {
-            repository_path: Some(absolute_path("tmp/repo")),
+            repository_path: Some(repository_path.clone()),
             mode: Git4DMode::Vr,
         };
 
@@ -171,7 +172,7 @@ mod tests {
         assert_eq!(
             value,
             json!({
-                "repositoryPath": "/tmp/repo",
+                "repositoryPath": repository_path.display().to_string(),
                 "mode": "vr",
             })
         );

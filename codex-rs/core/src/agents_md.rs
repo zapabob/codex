@@ -16,13 +16,14 @@
 //! 3.  We do **not** walk past the project root.
 
 use crate::config::Config;
-use crate::config_loader::ConfigLayerStackOrdering;
-use crate::config_loader::default_project_root_markers;
-use crate::config_loader::merge_toml_values;
-use crate::config_loader::project_root_markers_from_config;
 use codex_app_server_protocol::ConfigLayerSource;
+use codex_config::ConfigLayerStackOrdering;
+use codex_config::default_project_root_markers;
+use codex_config::merge_toml_values;
+use codex_config::project_root_markers_from_config;
 use codex_exec_server::Environment;
 use codex_exec_server::ExecutorFileSystem;
+use codex_exec_server::LOCAL_FS;
 use codex_features::Feature;
 use codex_utils_absolute_path::AbsolutePathBuf;
 use dunce::canonicalize as normalize_path;
@@ -42,41 +43,6 @@ pub const LOCAL_AGENTS_MD_FILENAME: &str = "AGENTS.override.md";
 /// be concatenated with the following separator.
 const AGENTS_MD_SEPARATOR: &str = "\n\n--- project-doc ---\n\n";
 
-fn render_js_repl_instructions(config: &Config) -> Option<String> {
-    if !config.features.enabled(Feature::JsRepl) {
-        return None;
-    }
-
-    let mut section = String::from("## JavaScript REPL (Node)\n");
-    section.push_str(
-        "- Use `js_repl` for Node-backed JavaScript with top-level await in a persistent kernel.\n",
-    );
-    section.push_str("- `js_repl` is a freeform/custom tool. Direct `js_repl` calls must send raw JavaScript tool input (optionally with first-line `// codex-js-repl: timeout_ms=15000`). Do not wrap code in JSON (for example `{\"code\":\"...\"}`), quotes, or markdown code fences.\n");
-    section.push_str(
-        "- Helpers: `codex.cwd`, `codex.homeDir`, `codex.tmpDir`, `codex.tool(name, args?)`, and `codex.emitImage(imageLike)`.\n",
-    );
-    section.push_str("- `codex.tool` executes a normal tool call and resolves to the raw tool output object. Use it for shell and non-shell tools alike. Nested tool outputs stay inside JavaScript unless you emit them explicitly.\n");
-    section.push_str("- `codex.emitImage(...)` adds one image to the outer `js_repl` function output each time you call it, so you can call it multiple times to emit multiple images. It accepts a data URL, a single `input_image` item, an object like `{ bytes, mimeType }`, or a raw tool response object with exactly one image and no text. It rejects mixed text-and-image content.\n");
-    section.push_str("- `codex.tool(...)` and `codex.emitImage(...)` keep stable helper identities across cells. Saved references and persisted objects can reuse them in later cells, but async callbacks that fire after a cell finishes still fail because no exec is active.\n");
-    section.push_str("- Request full-resolution image processing with `detail: \"original\"` only when the `view_image` tool schema includes a `detail` argument. The same availability applies to `codex.emitImage(...)`: if `view_image.detail` is present, you may also pass `detail: \"original\"` there. Use this when high-fidelity image perception or precise localization is needed, especially for CUA agents.\n");
-    section.push_str("- Raw MCP image blocks can request the same behavior by returning `_meta: { \"codex/imageDetail\": \"original\" }` on the image content item.\n");
-    section.push_str("- Example of sharing an in-memory Playwright screenshot: `await codex.emitImage({ bytes: await page.screenshot({ type: \"jpeg\", quality: 85 }), mimeType: \"image/jpeg\", detail: \"original\" })`.\n");
-    section.push_str("- Example of sharing a local image tool result: `await codex.emitImage(codex.tool(\"view_image\", { path: \"/absolute/path\", detail: \"original\" }))`.\n");
-    section.push_str("- When encoding an image to send with `codex.emitImage(...)` or `view_image`, prefer JPEG at about 85 quality when lossy compression is acceptable; use PNG when transparency or lossless detail matters. Smaller uploads are faster and less likely to hit size limits.\n");
-    section.push_str("- Top-level bindings persist across cells. If a cell throws, prior bindings remain available and bindings that finished initializing before the throw often remain usable in later cells. For code you plan to reuse across cells, prefer declaring or assigning it in direct top-level statements before operations that might throw. If you hit `SyntaxError: Identifier 'x' has already been declared`, first reuse the existing binding, reassign a previously declared `let`, or pick a new descriptive name. Use `{ ... }` only for a short temporary block when you specifically need local scratch names; do not wrap an entire cell in block scope if you want those names reusable later. Reset the kernel with `js_repl_reset` only when you need a clean state.\n");
-    section.push_str("- Top-level static import declarations (for example `import x from \"./file.js\"`) are currently unsupported in `js_repl`; use dynamic imports with `await import(\"pkg\")`, `await import(\"./file.js\")`, or `await import(\"/abs/path/file.mjs\")` instead. Imported local files must be ESM `.js`/`.mjs` files and run in the same REPL VM context. Bare package imports always resolve from REPL-global search roots (`CODEX_JS_REPL_NODE_MODULE_DIRS`, then cwd), not relative to the imported file location. Local files may statically import only other local relative/absolute/`file://` `.js`/`.mjs` files; package and builtin imports from local files must stay dynamic. `import.meta.resolve()` returns importable strings such as `file://...`, bare package names, and `node:...` specifiers. Local file modules reload between execs, while top-level bindings persist until `js_repl_reset`.\n");
-
-    if config.features.enabled(Feature::JsReplToolsOnly) {
-        section.push_str("- Do not call tools directly; use `js_repl` + `codex.tool(...)` for all tool calls, including shell commands.\n");
-        section
-            .push_str("- MCP tools (if any) can also be called by name via `codex.tool(...)`.\n");
-    }
-
-    section.push_str("- Avoid direct access to `process.stdout` / `process.stderr` / `process.stdin`; it can corrupt the JSON line protocol. Use `console.log`, `codex.tool(...)`, and `codex.emitImage(...)`.");
-
-    Some(section)
-}
-
 /// Resolves AGENTS.md files into model-visible user instructions and source
 /// paths.
 pub struct AgentsMdManager<'a> {
@@ -93,20 +59,34 @@ impl<'a> AgentsMdManager<'a> {
         Self { config }
     }
 
-    pub(crate) fn load_global_instructions(
+    pub(crate) async fn load_global_instructions(
+        fs: &dyn ExecutorFileSystem,
         codex_dir: Option<&AbsolutePathBuf>,
+        startup_warnings: &mut Vec<String>,
     ) -> Option<LoadedAgentsMd> {
         let base = codex_dir?;
         for candidate in [LOCAL_AGENTS_MD_FILENAME, DEFAULT_AGENTS_MD_FILENAME] {
             let path = base.join(candidate);
-            if let Ok(contents) = std::fs::read_to_string(&path) {
-                let trimmed = contents.trim();
-                if !trimmed.is_empty() {
-                    return Some(LoadedAgentsMd {
-                        contents: trimmed.to_string(),
-                        path,
-                    });
+            let data = match fs.read_file(&path, /*sandbox*/ None).await {
+                Ok(data) => data,
+                Err(err) if err.kind() == io::ErrorKind::NotFound => continue,
+                Err(err) if err.kind() == io::ErrorKind::IsADirectory => continue,
+                Err(err) => {
+                    startup_warnings.push(format!(
+                        "Failed to read global AGENTS.md instructions from `{}`: {err}",
+                        path.display()
+                    ));
+                    continue;
                 }
+            };
+            warn_invalid_utf8(&path, &data, "Global", startup_warnings);
+            let contents = String::from_utf8_lossy(&data);
+            let trimmed = contents.trim();
+            if !trimmed.is_empty() {
+                return Some(LoadedAgentsMd {
+                    contents: trimmed.to_string(),
+                    path,
+                });
             }
         }
         None
@@ -117,16 +97,19 @@ impl<'a> AgentsMdManager<'a> {
     pub(crate) async fn user_instructions(
         &self,
         environment: Option<&Environment>,
+        startup_warnings: &mut Vec<String>,
     ) -> Option<String> {
         let fs = environment?.get_filesystem();
-        self.user_instructions_with_fs(fs.as_ref()).await
+        self.user_instructions_with_fs(fs.as_ref(), startup_warnings)
+            .await
     }
 
-    pub(crate) async fn user_instructions_with_fs(
+    async fn user_instructions_with_fs(
         &self,
         fs: &dyn ExecutorFileSystem,
+        startup_warnings: &mut Vec<String>,
     ) -> Option<String> {
-        let agents_md_docs = self.read_agents_md(fs).await;
+        let agents_md_docs = self.read_agents_md(fs, startup_warnings).await;
 
         let mut output = String::new();
 
@@ -147,13 +130,6 @@ impl<'a> AgentsMdManager<'a> {
             }
         };
 
-        if let Some(js_repl_section) = render_js_repl_instructions(self.config) {
-            if !output.is_empty() {
-                output.push_str("\n\n");
-            }
-            output.push_str(&js_repl_section);
-        }
-
         if self.config.features.enabled(Feature::ChildAgentsMd) {
             if !output.is_empty() {
                 output.push_str("\n\n");
@@ -170,9 +146,15 @@ impl<'a> AgentsMdManager<'a> {
 
     /// Returns all instruction source files included in the current config.
     pub async fn instruction_sources(&self, fs: &dyn ExecutorFileSystem) -> Vec<AbsolutePathBuf> {
-        let mut paths = Self::load_global_instructions(Some(&self.config.codex_home))
-            .map(|loaded| vec![loaded.path])
-            .unwrap_or_default();
+        let mut global_instruction_warnings = Vec::new();
+        let mut paths = Self::load_global_instructions(
+            LOCAL_FS.as_ref(),
+            Some(&self.config.codex_home),
+            &mut global_instruction_warnings,
+        )
+        .await
+        .map(|loaded| vec![loaded.path])
+        .unwrap_or_default();
         match self.agents_md_paths(fs).await {
             Ok(agents_md_paths) => paths.extend(agents_md_paths),
             Err(err) => {
@@ -188,7 +170,11 @@ impl<'a> AgentsMdManager<'a> {
     /// concatenation of all discovered docs. If no documentation file is found
     /// the function returns `Ok(None)`. Unexpected I/O failures bubble up as
     /// `Err` so callers can decide how to handle them.
-    async fn read_agents_md(&self, fs: &dyn ExecutorFileSystem) -> io::Result<Option<String>> {
+    async fn read_agents_md(
+        &self,
+        fs: &dyn ExecutorFileSystem,
+        startup_warnings: &mut Vec<String>,
+    ) -> io::Result<Option<String>> {
         let max_total = self.config.project_doc_max_bytes;
 
         if max_total == 0 {
@@ -220,6 +206,8 @@ impl<'a> AgentsMdManager<'a> {
                 Err(err) if err.kind() == io::ErrorKind::NotFound => continue,
                 Err(err) => return Err(err),
             };
+            warn_invalid_utf8(&p, &data, "Project", startup_warnings);
+
             let size = data.len() as u64;
             if size > remaining {
                 data.truncate(remaining as usize);
@@ -359,6 +347,20 @@ impl<'a> AgentsMdManager<'a> {
             }
         }
         names
+    }
+}
+
+fn warn_invalid_utf8(
+    path: &AbsolutePathBuf,
+    data: &[u8],
+    source: &str,
+    startup_warnings: &mut Vec<String>,
+) {
+    if let Err(err) = std::str::from_utf8(data) {
+        startup_warnings.push(format!(
+            "{source} AGENTS.md instructions from `{}` contain invalid UTF-8: {err}. Invalid byte sequences were replaced.",
+            path.display()
+        ));
     }
 }
 

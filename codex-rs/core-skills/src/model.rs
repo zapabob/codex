@@ -19,6 +19,7 @@ pub struct SkillMetadata {
     /// Path to the SKILLS.md file that declares this skill.
     pub path_to_skills_md: AbsolutePathBuf,
     pub scope: SkillScope,
+    pub plugin_id: Option<String>,
 }
 
 impl SkillMetadata {
@@ -89,6 +90,8 @@ pub struct SkillLoadOutcome {
     pub skills: Vec<SkillMetadata>,
     pub errors: Vec<SkillError>,
     pub disabled_paths: HashSet<AbsolutePathBuf>,
+    pub(crate) skill_roots: Vec<AbsolutePathBuf>,
+    pub(crate) skill_root_by_path: Arc<HashMap<AbsolutePathBuf, AbsolutePathBuf>>,
     pub(crate) file_systems_by_skill_path: SkillFileSystemsByPath,
     pub(crate) implicit_skills_by_scripts_dir: Arc<HashMap<AbsolutePathBuf, SkillMetadata>>,
     pub(crate) implicit_skills_by_doc_path: Arc<HashMap<AbsolutePathBuf, SkillMetadata>>,
@@ -176,6 +179,19 @@ pub fn filter_skill_load_outcome_for_product(
     outcome
         .file_systems_by_skill_path
         .retain_paths(&retained_paths);
+    outcome.skill_root_by_path = Arc::new(
+        outcome
+            .skill_root_by_path
+            .iter()
+            .filter(|(path, _)| retained_paths.contains(*path))
+            .map(|(path, root)| (path.clone(), root.clone()))
+            .collect(),
+    );
+    let retained_roots: HashSet<AbsolutePathBuf> =
+        outcome.skill_root_by_path.values().cloned().collect();
+    outcome
+        .skill_roots
+        .retain(|root| retained_roots.contains(root));
     outcome.implicit_skills_by_scripts_dir = Arc::new(
         outcome
             .implicit_skills_by_scripts_dir

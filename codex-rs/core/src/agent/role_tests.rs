@@ -2,10 +2,11 @@ use super::*;
 use crate::SkillsManager;
 use crate::config::CONFIG_TOML_FILE;
 use crate::config::ConfigBuilder;
-use crate::config_loader::ConfigLayerStackOrdering;
-use crate::plugins::PluginsManager;
 use crate::skills_load_input_from_config;
+use codex_config::ConfigLayerStackOrdering;
+use codex_core_plugins::PluginsManager;
 use codex_protocol::config_types::ReasoningSummary;
+use codex_protocol::config_types::ServiceTier;
 use codex_protocol::config_types::Verbosity;
 use codex_protocol::openai_models::ReasoningEffort;
 use codex_utils_absolute_path::test_support::PathExt;
@@ -83,7 +84,7 @@ async fn apply_explorer_role_sets_model_and_adds_session_flags_layer() {
         .await
         .expect("explorer role should apply");
 
-    assert_eq!(config.model.as_deref(), Some("gpt-5.1-codex-mini"));
+    assert_eq!(config.model.as_deref(), Some("gpt-5.4-mini"));
     assert_eq!(config.model_reasoning_effort, Some(ReasoningEffort::Medium));
     assert_eq!(session_flags_layer_count(&config), before_layers + 1);
 }
@@ -211,6 +212,66 @@ async fn apply_role_preserves_unspecified_keys() {
     assert_eq!(
         config.main_execve_wrapper_exe,
         Some(PathBuf::from("/tmp/codex-execve-wrapper"))
+    );
+}
+
+#[tokio::test]
+async fn apply_role_reports_explicit_service_tier() {
+    let (home, mut config) = test_config_with_cli_overrides(Vec::new()).await;
+    let role_path = write_role_config(
+        &home,
+        "tiered-role.toml",
+        r#"developer_instructions = "Stay focused"
+service_tier = "priority"
+"#,
+    )
+    .await;
+    config.agent_roles.insert(
+        "custom".to_string(),
+        AgentRoleConfig {
+            description: None,
+            config_file: Some(role_path),
+            nickname_candidates: None,
+        },
+    );
+
+    apply_role_to_config(&mut config, Some("custom"))
+        .await
+        .expect("custom role should apply");
+
+    assert_eq!(
+        config.service_tier,
+        Some(ServiceTier::Fast.request_value().to_string())
+    );
+}
+
+#[tokio::test]
+async fn apply_role_preserves_existing_service_tier_without_override() {
+    let (home, mut config) = test_config_with_cli_overrides(Vec::new()).await;
+    config.service_tier = Some(ServiceTier::Fast.request_value().to_string());
+    let role_path = write_role_config(
+        &home,
+        "default-tier-role.toml",
+        r#"developer_instructions = "Stay focused"
+"#,
+    )
+    .await;
+    config.agent_roles.insert(
+        "custom".to_string(),
+        AgentRoleConfig {
+            description: None,
+            config_file: Some(role_path),
+            nickname_candidates: None,
+        },
+    );
+
+    apply_role_to_config(&mut config, Some("custom"))
+        .await
+        .expect("custom role should apply");
+
+    assert_eq!(
+        config.service_tier,
+        Some(ServiceTier::Fast.request_value().to_string())
     );
 }
 
@@ -574,7 +635,7 @@ writable_roots = ["./sandbox-root"]
         false
     );
 
-    match &*config.permissions.sandbox_policy {
+    match &config.legacy_sandbox_policy() {
         SandboxPolicy::WorkspaceWrite { network_access, .. } => {
             assert_eq!(*network_access, true);
         }
@@ -655,8 +716,9 @@ enabled = false
     let plugins_manager = Arc::new(PluginsManager::new(home.path().to_path_buf()));
     let skills_manager =
         SkillsManager::new(home.path().abs(), /*bundled_skills_enabled*/ true);
-    let plugin_outcome = plugins_manager.plugins_for_config(&config).await;
-    let effective_skill_roots = plugin_outcome.effective_skill_roots();
+    let plugins_input = config.plugins_config_input();
+    let plugin_outcome = plugins_manager.plugins_for_config(&plugins_input).await;
+    let effective_skill_roots = plugin_outcome.effective_plugin_skill_roots();
     let skills_input = skills_load_input_from_config(&config, effective_skill_roots);
     let outcome = skills_manager
         .skills_for_config(
@@ -763,6 +825,31 @@ fn spawn_tool_spec_marks_role_locked_reasoning_effort_only() {
     assert!(spec.contains(
             "Review carefully.\n- This role's reasoning effort is set to `medium` and cannot be changed."
         ));
+}
+
+#[test]
+fn spawn_tool_spec_marks_role_locked_service_tier() {
+    let tempdir = TempDir::new().expect("create temp dir");
+    let role_path = tempdir.path().join("tiered.toml");
+    fs::write(
+        &role_path,
+        "developer_instructions = \"Stay fast\"\nservice_tier = \"priority\"\n",
+    )
+    .expect("write role config");
+    let user_defined_roles = BTreeMap::from([(
+        "tiered".to_string(),
+        AgentRoleConfig {
+            description: Some("Stay fast.".to_string()),
+            config_file: Some(role_path),
+            nickname_candidates: None,
+        },
+    )]);
+
+    let spec = spawn_tool_spec::build(&user_defined_roles);
+
+    assert!(spec.contains(
+        "Stay fast.\n- This role's service tier is set to `priority`. If it is supported by the resolved model, it takes precedence over a valid spawn request service tier."
+    ));
 }
 
 #[test]

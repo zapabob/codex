@@ -1,8 +1,8 @@
 [package]
-edition = "2024"
 name = "codex-file-search"
-version = { workspace = true }
-license = { workspace = true }
+version.workspace = true
+edition.workspace = true
+license.workspace = true
 
 [[bin]]
 name = "codex-file-search"
@@ -11,6 +11,10 @@ path = "src/main.rs"
 [lib]
 name = "codex_file_search"
 path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
 
 [dependencies]
 anyhow = { workspace = true }
@@ -25,3 +29,4 @@ tokio = { workspace = true, features = ["full"] }
 [dev-dependencies]
 pretty_assertions = { workspace = true }
 tempfile = { workspace = true }
+

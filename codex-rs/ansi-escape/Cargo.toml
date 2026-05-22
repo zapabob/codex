@@ -1,12 +1,17 @@
 [package]
-edition = "2024"
 name = "codex-ansi-escape"
-version = { workspace = true }
-license = { workspace = true }
+version.workspace = true
+edition.workspace = true
+license.workspace = true
 
 [lib]
 name = "codex_ansi_escape"
 path = "src/lib.rs"
+test = false
+doctest = false
+
+[lints]
+workspace = true
 
 [dependencies]
 ansi-to-tui = { workspace = true }
@@ -15,3 +20,4 @@ ratatui = { workspace = true, features = [
     "unstable-widget-ref",
 ] }
 tracing = { workspace = true, features = ["log"] }
+

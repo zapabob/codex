@@ -45,25 +45,25 @@ impl VRARIntegration {
 
         match platform {
             XRPlatform::OculusQuest2 | XRPlatform::OculusQuest3 => {
-                println!("Initializing Oculus VR integration...");
+                tracing::info!("Initializing Oculus VR integration");
             }
             XRPlatform::AppleVisionPro | XRPlatform::AppleGlass => {
-                println!("Initializing Apple Vision Pro integration...");
+                tracing::info!("Initializing Apple Vision Pro integration");
             }
             XRPlatform::HTCVive => {
-                println!("Initializing HTC VIVE (OpenXR) integration...");
+                tracing::info!("Initializing HTC VIVE (OpenXR) integration");
             }
             XRPlatform::VirtualDesktop => {
-                println!("Initializing Virtual Desktop integration...");
+                tracing::info!("Initializing Virtual Desktop integration");
             }
             XRPlatform::SteamVR => {
-                println!("Initializing SteamVR integration...");
+                tracing::info!("Initializing SteamVR integration");
             }
             XRPlatform::WindowsMixedReality => {
-                println!("Initializing Windows Mixed Reality integration...");
+                tracing::info!("Initializing Windows Mixed Reality integration");
             }
             XRPlatform::WebXR => {
-                println!("Initializing WebXR integration...");
+                tracing::info!("Initializing WebXR integration");
             }
         }
 
@@ -165,7 +165,7 @@ impl VRARIntegration {
                 // Find nearest anchor to pointed position
                 if let Some(anchor) = self
                     .anchor_system
-                    .find_nearest_anchor(position, 1.0)
+                    .find_nearest_anchor(position, /*max_distance*/ 1.0)
                     .await
                     .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?
                 {

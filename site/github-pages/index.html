@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Codex v3.2.0</title>
+    <meta
+      name="description"
+      content="Codex v3.2.0 keeps pace with official OpenAI Codex while preserving Git4D, DeepResearch, repo-local plugins, and Windows-first release operations."
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="site-header" aria-label="Codex release navigation">
+      <a class="brand" href="#top" aria-label="Codex v3.2.0 home">Codex</a>
+      <nav>
+        <a href="#features">Features</a>
+        <a href="#release">Release</a>
+        <a href="#proof">Proof</a>
+        <a href="https://github.com/zapabob/Codex/releases/tag/v3.2.0">Download</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <img class="hero-art" src="./assets/codex-v3.2.0-hero.png" alt="" />
+        <div class="hero-copy">
+          <p class="eyebrow">Upstream-first fork release</p>
+          <h1 id="hero-title">Codex v3.2.0</h1>
+          <p class="lead">
+            Official Codex through rust-v0.133.0, with Git4D, DeepResearch,
+            repo-local plugins, and Windows release automation on the official API path.
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="https://github.com/zapabob/Codex/releases/tag/v3.2.0">Get v3.2.0</a>
+            <a class="button secondary" href="https://github.com/zapabob/Codex">View source</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="feature-strip" id="features" aria-label="Custom features">
+        <article>
+          <span>Git4D</span>
+          <h2>4D repo sessions on app-server protocol</h2>
+          <p>Git4D uses <code>git4d/session/*</code> methods, buffered replay, and deterministic desktop fallback.</p>
+        </article>
+        <article>
+          <span>DeepResearch</span>
+          <h2>Research workflow as plugin value</h2>
+          <p>DeepResearch stays layered on official Codex surfaces instead of replacing the product shell.</p>
+        </article>
+        <article>
+          <span>Local Plugins</span>
+          <h2>Repo-local marketplace delivery</h2>
+          <p>Bundled zapabob plugins remain discoverable while upstream plugin protocol changes are preserved.</p>
+        </article>
+      </section>
+
+      <section class="release-band" id="release">
+        <div>
+          <p class="eyebrow">Release channels</p>
+          <h2>Main and stable carry the same verified build.</h2>
+        </div>
+        <dl class="release-grid">
+          <div>
+            <dt>Mainline</dt>
+            <dd><code>main</code> / <code>v3.2.0</code></dd>
+          </div>
+          <div>
+            <dt>Stable</dt>
+            <dd><code>release/3.2.0-stable</code> / <code>v3.2.0-stable.0</code></dd>
+          </div>
+          <div>
+            <dt>Windows bundle</dt>
+            <dd><code>codex-v3.2.0-windows-x86_64.tar.gz</code></dd>
+          </div>
+          <div>
+            <dt>SHA256</dt>
+            <dd><code>E2508EC70DC888A0DA4AC1813124F7F9C3D5F65FF6F73067CFBFF5630207FF59</code></dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="proof-band" id="proof">
+        <div class="proof-copy">
+          <p class="eyebrow">Release proof</p>
+          <h2>Built, installed, and checked on Windows.</h2>
+          <p>
+            The shipped executable reports <code>codex-cli 3.2.0</code>. The release path used six build jobs,
+            isolated <code>H:</code> target and temp directories, Bazel lock refresh, focused app-server protocol tests,
+            and a tar.gz asset with merge evidence.
+          </p>
+        </div>
+        <ol class="proof-list" aria-label="Verification commands">
+          <li><code>cargo test -p codex-app-server-protocol git4d</code></li>
+          <li><code>cargo test -p codex-app-server git4d</code></li>
+          <li><code>cargo check -p codex-core -j 6</code></li>
+          <li><code>cargo check -p codex-app-server -j 6</code></li>
+          <li><code>cargo check -p codex-tui -j 6</code></li>
+          <li><code>cargo build --release -p codex-cli -j 6</code></li>
+        </ol>
+      </section>
+    </main>
+  </body>
+</html>

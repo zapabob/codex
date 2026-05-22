@@ -82,13 +82,15 @@ pub enum CodexErr {
     ContextWindowExceeded,
     #[error("no thread with id: {0}")]
     ThreadNotFound(ThreadId),
-    #[error("agent thread limit reached (max {max_threads})")]
+    #[error("agent thread limit reached")]
     AgentLimitReached { max_threads: usize },
     #[error("session configured event was not the first event in the stream")]
     SessionConfiguredNotFirstEvent,
     /// Returned by run_command_stream when the spawned child process timed out (10s).
     #[error("timeout waiting for child process to exit")]
     Timeout,
+    #[error("request timed out")]
+    RequestTimeout,
     /// Returned by run_command_stream when the child could not be spawned (its stdout/stderr pipes
     /// could not be captured). Analogous to the previous `CodexError::Spawn` variant.
     #[error("spawn failed: child stdout/stderr not captured")]
@@ -110,6 +112,8 @@ pub enum CodexErr {
     UsageLimitReached(UsageLimitReachedError),
     #[error("Selected model is at capacity. Please try a different model.")]
     ServerOverloaded,
+    #[error("{message}")]
+    CyberPolicy { message: String },
     #[error("{0}")]
     ResponseStreamFailed(ResponseStreamFailed),
     #[error("{0}")]
@@ -186,9 +190,11 @@ impl CodexErr {
             | CodexErr::Spawn
             | CodexErr::SessionConfiguredNotFirstEvent
             | CodexErr::UsageLimitReached(_)
-            | CodexErr::ServerOverloaded => false,
+            | CodexErr::ServerOverloaded
+            | CodexErr::CyberPolicy { .. } => false,
             CodexErr::Stream(..)
             | CodexErr::Timeout
+            | CodexErr::RequestTimeout
             | CodexErr::UnexpectedStatus(_)
             | CodexErr::ResponseStreamFailed(_)
             | CodexErr::ConnectionFailed(_)
@@ -217,6 +223,7 @@ impl CodexErr {
             | CodexErr::QuotaExceeded
             | CodexErr::UsageNotIncluded => CodexErrorInfo::UsageLimitExceeded,
             CodexErr::ServerOverloaded => CodexErrorInfo::ServerOverloaded,
+            CodexErr::CyberPolicy { .. } => CodexErrorInfo::CyberPolicy,
             CodexErr::RetryLimit(_) => CodexErrorInfo::ResponseTooManyFailedAttempts {
                 http_status_code: self.http_status_code_value(),
             },

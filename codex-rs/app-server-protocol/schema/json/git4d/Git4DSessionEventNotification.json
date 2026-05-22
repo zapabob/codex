@@ -1,0 +1,209 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "Git4DSessionEvent": {
+      "oneOf": [
+        {
+          "properties": {
+            "commit_count": {
+              "format": "uint",
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "type": {
+              "enum": [
+                "commits_loaded"
+              ],
+              "title": "CommitsLoadedGit4DSessionEventType",
+              "type": "string"
+            }
+          },
+          "required": [
+            "commit_count",
+            "type"
+          ],
+          "title": "CommitsLoadedGit4DSessionEvent",
+          "type": "object"
+        },
+        {
+          "properties": {
+            "branch_count": {
+              "format": "uint",
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "branch_names": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "type": {
+              "enum": [
+                "branches_updated"
+              ],
+              "title": "BranchesUpdatedGit4DSessionEventType",
+              "type": "string"
+            }
+          },
+          "required": [
+            "branch_count",
+            "branch_names",
+            "type"
+          ],
+          "title": "BranchesUpdatedGit4DSessionEvent",
+          "type": "object"
+        },
+        {
+          "properties": {
+            "position": {
+              "items": {
+                "format": "float",
+                "type": "number"
+              },
+              "maxItems": 3,
+              "minItems": 3,
+              "type": "array"
+            },
+            "target": {
+              "items": {
+                "format": "float",
+                "type": "number"
+              },
+              "maxItems": 3,
+              "minItems": 3,
+              "type": "array"
+            },
+            "type": {
+              "enum": [
+                "camera_updated"
+              ],
+              "title": "CameraUpdatedGit4DSessionEventType",
+              "type": "string"
+            }
+          },
+          "required": [
+            "position",
+            "target",
+            "type"
+          ],
+          "title": "CameraUpdatedGit4DSessionEvent",
+          "type": "object"
+        },
+        {
+          "properties": {
+            "pixel_bytes": {
+              "format": "uint",
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "type": {
+              "enum": [
+                "render_complete"
+              ],
+              "title": "RenderCompleteGit4DSessionEventType",
+              "type": "string"
+            }
+          },
+          "required": [
+            "pixel_bytes",
+            "type"
+          ],
+          "title": "RenderCompleteGit4DSessionEvent",
+          "type": "object"
+        },
+        {
+          "properties": {
+            "interaction": {
+              "type": "string"
+            },
+            "type": {
+              "enum": [
+                "interaction_processed"
+              ],
+              "title": "InteractionProcessedGit4DSessionEventType",
+              "type": "string"
+            }
+          },
+          "required": [
+            "interaction",
+            "type"
+          ],
+          "title": "InteractionProcessedGit4DSessionEvent",
+          "type": "object"
+        },
+        {
+          "properties": {
+            "message": {
+              "type": "string"
+            },
+            "type": {
+              "enum": [
+                "error"
+              ],
+              "title": "ErrorGit4DSessionEventType",
+              "type": "string"
+            }
+          },
+          "required": [
+            "message",
+            "type"
+          ],
+          "title": "ErrorGit4DSessionEvent",
+          "type": "object"
+        },
+        {
+          "properties": {
+            "status": {
+              "$ref": "#/definitions/Git4DSessionStatus"
+            },
+            "type": {
+              "enum": [
+                "session_status_changed"
+              ],
+              "title": "SessionStatusChangedGit4DSessionEventType",
+              "type": "string"
+            }
+          },
+          "required": [
+            "status",
+            "type"
+          ],
+          "title": "SessionStatusChangedGit4DSessionEvent",
+          "type": "object"
+        }
+      ]
+    },
+    "Git4DSessionStatus": {
+      "enum": [
+        "starting",
+        "active",
+        "paused",
+        "stopping",
+        "stopped",
+        "error"
+      ],
+      "type": "string"
+    }
+  },
+  "properties": {
+    "event": {
+      "$ref": "#/definitions/Git4DSessionEvent"
+    },
+    "sequence": {
+      "format": "uint64",
+      "minimum": 0.0,
+      "type": "integer"
+    },
+    "sessionId": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "event",
+    "sequence",
+    "sessionId"
+  ],
+  "title": "Git4DSessionEventNotification",
+  "type": "object"
+}

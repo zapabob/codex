@@ -1,151 +1,106 @@
-# Codex-RS: The Next-Gen AI Coding Agent / 次世代AIコーディングエージェント
+# Codex CLI (Rust Implementation)
 
-[![Rust](https://img.shields.io/badge/built_with-Rust-dca282.svg)](https://www.rust-lang.org/)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Tokio](https://img.shields.io/badge/async-Tokio-green.svg)](https://tokio.rs/)
-[![Ratatui](https://img.shields.io/badge/TUI-Ratatui-yellow.svg)](https://ratatui.rs/)
+We provide Codex CLI as a standalone executable to ensure a zero-dependency install.
 
-> A high-performance, modular AI coding assistant designed for speed, safety, and extensibility.
->
-> 高速性、安全性、拡張性を追求した、Rust製ハイパフォーマンスAIコーディングアシスタント。
+## Installing Codex
 
----
+Today, the easiest way to install Codex is via `npm`:
 
-## 🚀 Vision / ビジョン
-
-Codex-RS redefines the AI coding experience by moving away from heavy, dependency-laden environments to a **single, native binary**. Built on Rust, it offers unparalleled performance, memory safety, and a robust architecture capable of handling complex engineering tasks.
-
-Codex-RSは、依存関係の重い環境から脱却し、**単一のネイティブバイナリ**としてAIコーディング体験を再定義します。Rustで構築されており、圧倒的なパフォーマンス、メモリ安全性、そして複雑なエンジニアリングタスクを処理できる堅牢なアーキテクチャを提供します。
-
----
-
-## ✨ Unique Features / 独自機能と特徴
-
-### 1. Dual Interface: CLI & TUI
-
-**Professional-grade tools for every workflow.**
-
-- **Headless CLI**: Automate tasks via `codex exec`. Pipe inputs, script workflows, and integrate into CI/CD pipelines.
-- **Immersive TUI**: A rich, terminal-based user interface built with **Ratatui**. Features syntax highlighting, multi-tab management, and real-time feedback without leaving your keyboard.
-
-**あらゆるワークフローに対応するプロフェッショナルツール**
-
-- **ヘッドレスCLI**: `codex exec`によるタスク自動化。入力のパイプ処理、ワークフローのスクリプト化、CI/CDパイプラインへの統合が可能です。
-- **没入型TUI**: **Ratatui**で構築されたリッチな端末ユーザーインターフェース。シンタックスハイライト、マルチタブ管理、リアルタイムフィードバックを、キーボードから手を離すことなく提供します。
-
-### 2. Model Context Protocol (MCP) Native
-
-**Seamless ecosystem integration.**
-
-- **Client & Server**: Codex is not just a tool; it's a platform. It functions as both an MCP Client (connecting to external tools) and an MCP Server (serving its capabilities to other agents).
-- **Chrome & Git Integration**: specialized bridges for browser automation and version control operations.
-
-**シームレスなエコシステム統合**
-
-- **クライアント & サーバー**: Codexは単なるツールではなく、プラットフォームです。MCPクライアント（外部ツールへの接続）としても、MCPサーバー（他のエージェントへの機能提供）としても機能します。
-- **Chrome & Git統合**: ブラウザ自動化やバージョン管理操作のための専用ブリッジを搭載。
-
-### 3. Granular Sandboxing / 堅牢なサンドボックス
-
-**Safety first execution.**
-
-- Supports strict execution policies on macOS (Seatbelt), Linux (Landlock), and Windows.
-- Configurable modes: `read-only`, `workspace-write`, and `danger-full-access`.
-
-**安全第一の実行環境**
-
-- macOS (Seatbelt)、Linux (Landlock)、Windowsでの厳格な実行ポリシーをサポート。
-- `read-only`、`workspace-write`、`danger-full-access`など、設定可能なモードを提供。
-
-### 4. Advanced DevOps Integration / 高度なDevOps統合
-
-**Built for speed.**
-
-- **sccache Support**: Optimized for 6-core parallel builds, drastically reducing compilation time.
-- **Atomic Updates**: `just fast-build-install` and `fast_build.ps1` wrap a shared Python pipeline for zero-downtime updates during development.
-
-**スピードを追求**
-
-- **sccacheサポート**: 6コア並列ビルドに最適化されており、コンパイル時間を大幅に短縮。
-- **アトミック更新**: `just fast-build-install` と `fast_build.ps1` が共通Pythonパイプラインを呼び出し、開発中のゼロダウンタイム更新を実現。
-
----
-
-## 🏗️ Architecture / アーキテクチャ
-
-The project follows a clean, modular workspace structure:
-プロジェクトは、クリーンでモジュール化されたワークスペース構造を採用しています:
-
-| Module / モジュール | Description / 説明                                                                                                                                                        |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`core/`**         | The brain of Codex. Contains business logic, LLM integration, and context management. <br> Codexの頭脳。ビジネスロジック、LLM統合、コンテキスト管理を含みます。           |
-| **`tui/`**          | The frontend. A sophisticated terminal UI driven by modern async Rust patterns. <br> フロントエンド。最新の非同期Rustパターンで駆動する洗練されたターミナルUI。           |
-| **`cli/`**          | The entry point. Handles argument parsing, subcommands, and tool orchestration. <br> エントリーポイント。引数解析、サブコマンド、ツールオーケストレーションを処理します。 |
-| **`exec/`**         | The automation engine. Runs non-interactive tasks and scripts. <br> 自動化エンジン。非対話型タスクやスクリプトを実行します。                                              |
-| **`mcp-*/`**        | Modular bridges for the Model Context Protocol ecosystem. <br> Model Context Protocolエコシステムのためのモジュール式ブリッジ。                                           |
-
----
-
-## 🛠️ Getting Started / クイックスタート
-
-### Prerequisites / 前提条件
-
-- Rust (latest stable)
-- Node.js (for some optional integrations)
-- `sccache` (recommended for fast builds)
-
-### Fast Build & Install / 高速ビルドとインストール
-
-For developers who value speed, utilize our optimized PowerShell workflow:
-スピードを重視する開発者向けに、最適化されたPowerShellワークフローを提供しています:
-
-```powershell
-# Default: 6 parallel jobs (override with CODEX_FAST_BUILD_JOBS or --jobs)
-# 既定: 6並列（`CODEX_FAST_BUILD_JOBS` または `--jobs` で上書き）
-just fast-build-install codex-cli codex-tui
-# Windows wrapper
-.\fast_build.ps1 -Task fast-build-install -Targets codex-cli,codex-tui
-```
-
-### Standard Usage / 基本的な使い方
-
-```bash
-# Start the TUI / TUIを起動
+```shell
+npm i -g @openai/codex
 codex
-
-# Run a quick command / クイックコマンド実行
-codex exec "Analyze this project structure"
-
-# Start as MCP Server / MCPサーバーとして起動
-codex mcp-server
 ```
 
----
+You can also install via Homebrew (`brew install --cask codex`) or download a platform-specific release directly from our [GitHub Releases](https://github.com/openai/codex/releases).
 
-## 📄 Documentation / ドキュメント
+## Documentation quickstart
 
-- **[Getting Started / 入門](../docs/getting-started.md)**: First-time setup and walkthrough.
-- **[Configuration / 設定](../docs/config.md)**: Deep dive into `config.toml`.
-- **[Architecture Guide / 設計ガイド](../docs/architecture.md)**: Internal design details for contributors.
+- First run with Codex? Start with [`docs/getting-started.md`](../docs/getting-started.md) (links to the walkthrough for prompts, keyboard shortcuts, and session management).
+- Want deeper control? See [`docs/config.md`](../docs/config.md) and [`docs/install.md`](../docs/install.md).
 
----
+## What's new in the Rust CLI
 
-> **Note to Recruiters / 採用担当者様へ**
->
-> This project demonstrates mastery of:
->
-> - **System Programming**: Low-level resource management and cross-platform compatibility.
-> - **Async Concurrency**: Complex Tokio runtimes and actor-like patterns.
-> - **Modern AI/LLM Application Design**: RAG, tool use, and agentic workflows.
-> - **Production-Grade Engineering**: CI/CD, testing, and documentation standards.
->
-> 本プロジェクトは、以下の領域における高い技術力を示しています:
->
-> - **システムプログラミング**: 低レイヤーのリソース管理とクロスプラットフォーム互換性。
-> - **非同期並行処理**: 複雑なTokioランタイムとアクターモデル的パターン。
-> - **最新AI/LLMアプリケーション設計**: RAG、ツール利用、エージェンティックワークフロー。
-> - **プロダクショングレードのエンジニアリング**: CI/CD、テスト、ドキュメンテーション標準。
+The Rust implementation is now the maintained Codex CLI and serves as the default experience. It includes a number of features that the legacy TypeScript CLI never supported.
 
----
+### Config
 
-_Built with ❤️ in Rust._
+Codex supports a rich set of configuration options. Note that the Rust CLI uses `config.toml` instead of `config.json`. See [`docs/config.md`](../docs/config.md) for details.
+
+### Model Context Protocol Support
+
+#### MCP client
+
+Codex CLI functions as an MCP client that allows the Codex CLI and IDE extension to connect to MCP servers on startup. See the [`configuration documentation`](../docs/config.md#connecting-to-mcp-servers) for details.
+
+#### MCP server (experimental)
+
+Codex can be launched as an MCP _server_ by running `codex mcp-server`. This allows _other_ MCP clients to use Codex as a tool for another agent.
+
+Use the [`@modelcontextprotocol/inspector`](https://github.com/modelcontextprotocol/inspector) to try it out:
+
+```shell
+npx @modelcontextprotocol/inspector codex mcp-server
+```
+
+Use `codex mcp` to add/list/get/remove MCP server launchers defined in `config.toml`, and `codex mcp-server` to run the MCP server directly.
+
+### Notifications
+
+You can enable notifications by configuring a script that is run whenever the agent finishes a turn. The [notify documentation](../docs/config.md#notify) includes a detailed example that explains how to get desktop notifications via [terminal-notifier](https://github.com/julienXX/terminal-notifier) on macOS. When Codex detects that it is running under WSL 2 inside Windows Terminal (`WT_SESSION` is set), the TUI automatically falls back to native Windows toast notifications so approval prompts and completed turns surface even though Windows Terminal does not implement OSC 9.
+
+### `codex exec` to run Codex programmatically/non-interactively
+
+To run Codex non-interactively, run `codex exec PROMPT` (you can also pass the prompt via `stdin`) and Codex will work on your task until it decides that it is done and exits. If you provide both a prompt argument and piped stdin, Codex appends stdin as a `<stdin>` block after the prompt so patterns like `echo "my output" | codex exec "Summarize this concisely"` work naturally. Output is printed to the terminal directly. You can set the `RUST_LOG` environment variable to see more about what's going on.
+Use `codex exec --ephemeral ...` to run without persisting session rollout files to disk.
+
+### Experimenting with the Codex Sandbox
+
+To test to see what happens when a command is run under the sandbox provided by Codex, we provide the following subcommands in Codex CLI:
+
+```
+# macOS
+codex sandbox macos [--log-denials] [COMMAND]...
+
+# Linux
+codex sandbox linux [COMMAND]...
+
+# Windows
+codex sandbox windows [COMMAND]...
+
+# Legacy aliases
+codex debug seatbelt [--log-denials] [COMMAND]...
+codex debug landlock [COMMAND]...
+```
+
+To try a writable legacy sandbox mode with these commands, pass an explicit config override such
+as `-c 'sandbox_mode="workspace-write"'`.
+
+### Selecting a sandbox policy via `--sandbox`
+
+The Rust CLI exposes a dedicated `--sandbox` (`-s`) flag that lets you pick the sandbox policy **without** having to reach for the generic `-c/--config` option:
+
+```shell
+# Run Codex with the default, read-only sandbox
+codex --sandbox read-only
+
+# Allow the agent to write within the current workspace while still blocking network access
+codex --sandbox workspace-write
+
+# Danger! Disable sandboxing entirely (only do this if you are already running in a container or other isolated env)
+codex --sandbox danger-full-access
+```
+
+The same setting can be persisted in `~/.codex/config.toml` via the top-level `sandbox_mode = "MODE"` key, e.g. `sandbox_mode = "workspace-write"`.
+In `workspace-write`, Codex also includes `~/.codex/memories` in its writable roots so memory maintenance does not require an extra approval.
+
+## Code Organization
+
+This folder is the root of a Cargo workspace. It contains quite a bit of experimental code, but here are the key crates:
+
+- [`core/`](./core) contains the business logic for Codex. Ultimately, we hope this becomes a library crate that is generally useful for building other Rust/native applications that use Codex.
+- [`exec/`](./exec) "headless" CLI for use in automation.
+- [`tui/`](./tui) CLI that launches a fullscreen TUI built with [Ratatui](https://ratatui.rs/).
+- [`cli/`](./cli) CLI multitool that provides the aforementioned CLIs via subcommands.
+
+If you want to contribute or inspect behavior in detail, start by reading the module-level `README.md` files under each crate and run the project workspace from the top-level `codex-rs` directory so shared config, features, and build scripts stay aligned.
+

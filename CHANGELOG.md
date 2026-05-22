@@ -1,5 +1,28 @@
 # Changelog
 
+## v3.2.0 - 2026-05-22
+
+### Changed
+
+- Synchronized the fork with official Codex `rust-v0.133.0` and upstream main `24faf49b2a70f8813e522afb0e701add9b15b0bd`.
+- Bumped the fork semantic version from `3.1.0` to `3.2.0` across release-visible manifests and Rust workspace metadata.
+- Rewrote the root `README.md` around the v3.2.0 upstream base, Git4D app-server bridge, release channels, and verification commands.
+- Updated Git4D capability detection so AR/VR requests fall back to desktop mode when no `OPENXR_RUNTIME_JSON` runtime is configured.
+- Replaced VR/AR initialization stdout writes with tracing so app-server JSON-RPC output stays protocol-clean.
+
+### Added
+
+- Python overlay merge driver at `scripts/upstream_overlay_merge.py` with Markdown and JSON reports in `_docs/`.
+- Official app-server Git4D methods for capabilities, session start, session list, session watch, and session unwatch.
+- App-server integration coverage for Git4D capability fallback, session round trips, buffered watch replay, and unwatch behavior.
+- Official `thread/search` protocol and backing rollout/thread-store search support.
+- Official plugin hook behavior with the separate plugin-hooks feature flag removed upstream.
+
+### Security
+
+- Reviewed the official Codex advisory `GHSA-w5fx-fh39-j5rw` during the upstream sync.
+- Pulled the official dependency and lockfile refresh surface from the latest upstream workspace before applying zapabob-specific reinjection.
+
 ## v3.1.0 - 2026-04-18
 
 ### Changed

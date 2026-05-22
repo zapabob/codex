@@ -1,43 +1,83 @@
-# Codex v3.1.0 Release Notes
+# Codex v3.2.0 Release Notes
 
-> Current release document for the v3.1.0 line.
+> Current release document for the v3.2.0 line.
 > Legacy v2.x release notes are archived at `releases/legacy/v2.x/RELEASE_NOTES.md`.
 
 ## Release Channels
 
-- Stable channel: `v3.1.0-stable.0` from `release/3.1.0-stable`
-- Mainline channel: `v3.1.0` from `main`
-- Primary asset: Windows `tar.gz` bundle containing `codex.exe`, `README.md`, `LICENSE`, and `VERSION`
+- Stable channel: `v3.2.0-stable.0` from `release/3.2.0-stable`
+- Mainline channel: `v3.2.0` from `main`
+- Primary asset: Windows `tar.gz` bundle containing the executable, `README.md`, `LICENSE`, `VERSION`, release notes, and merge evidence
+- Windows asset: `codex-v3.2.0-windows-x86_64.tar.gz`
+- Windows asset SHA256: `E2508EC70DC888A0DA4AC1813124F7F9C3D5F65FF6F73067CFBFF5630207FF59`
 
 ## Canonical Versioning
 
 - Canonical source: root `VERSION`
-- Fork version: `3.1.0`
-- Upstream base: `rust-v0.121.0`
-- Release date: 2026-04-18
+- Fork version: `3.2.0`
+- Upstream release base: `rust-v0.133.0`
+- Upstream main commit: `b14f11d3d2ca048bdae1872ef66087a2ce3f6b0c`
+- Release date: 2026-05-22
 
-## What Changed In v3.1.0
+## What Changed In v3.2.0
 
-### Product positioning
+### Official Codex imports
 
-- Rewrote the root README around a public-facing TL;DR, release-channel guidance, architecture snapshot, and migration status.
-- Clarified that the official Codex surfaces are the baseline product story for this fork: `codex`, `codex app`, `codex app-server`, and plugins.
-- Tightened the public explanation of what remains fork-specific and what is intentionally being retired or migrated.
+- Adopted official Codex changes through `rust-v0.133.0` and upstream main `b14f11d3d2ca048bdae1872ef66087a2ce3f6b0c`, observed on 2026-05-22.
+- Brought in Python SDK login, account, turn lifecycle, retry, streaming, and example updates.
+- Brought in app-server protocol additions for plugin sharing, marketplace upgrade/remove, hooks, model provider capabilities, goals, process notifications, and Windows sandbox readiness.
+- Brought in default-on goals, case-insensitive `thread/search`, and plugin hook behavior after the upstream feature flag removal.
+- Brought in parallel read-only MCP tool calls, compact large tool-schema support, local `$ref`/`$defs` tool-schema support, extension-tool conversation history, and Node managed-proxy environment propagation.
+- Brought in TUI startup, session picker, permission, status, and update-flow changes.
+- Brought in Windows sandbox, V8, Bazel, CI, packaging, and release hardening changes.
 
-### Fork-only highlights
+### Zapabob extension retention
 
-- DeepResearch remains available as a plugin-facing workflow on top of the official Codex surfaces.
-- Git4D remains positioned as an optional visualization capability instead of a permanent core fork seam.
-- VR and AR remain opt-in capabilities with graceful fallback when no device or WebXR path is available.
-- Repo-local plugin marketplace support remains the main vehicle for shipping distinctive zapabob functionality without carrying a permanently divergent core.
+- Preserved Git4D as an optional app-server bridge instead of a separate product path.
+- Preserved AR/VR capability handling with deterministic desktop fallback when no XR runtime is configured.
+- Preserved repo-local plugin marketplace support for zapabob extension delivery.
+- Preserved DeepResearch as a plugin-facing workflow layered onto official Codex surfaces.
 
-### Release alignment
+### Protocol and tests
 
-- Aligned the root package manifests and release-visible metadata to `3.1.0`.
-- Published both a stable branch release and a mainline release for the same release line.
-- Standardized the Windows release bundle naming around the tag-specific `tar.gz` artifact.
+- Added `git4d/capabilities/read`.
+- Added `git4d/session/start`.
+- Added `git4d/session/list`.
+- Added `git4d/session/watch`.
+- Added `git4d/session/unwatch`.
+- Added app-server integration tests covering fallback, session lifecycle, buffered event replay, and unwatch behavior.
+- Kept VR/AR initialization off stdout so JSON-RPC framing remains valid.
 
-### Upstream-first operations
+### Security and maintenance
 
-- Kept `scripts/upstream_sync.py` as the authoritative sync and closeout driver.
-- Preserved the native Windows verification note that full `cargo test --workspace` can still be gated by the `v8` symlink privilege prerequisite.
+- Reviewed official advisory `GHSA-w5fx-fh39-j5rw` while syncing.
+- Kept dependency and lockfile updates aligned with the official workspace before applying fork-specific versioning.
+- Kept the fork semantic version at `3.2.0` to signal a compatible feature release, not a breaking major release.
+
+## Verification Snapshot
+
+Commands run during this release line:
+
+```powershell
+python -m py_compile scripts\upstream_overlay_merge.py scripts\resolve_merge_conflicts.py
+cargo metadata --no-deps --format-version 1
+cargo fmt --all
+cargo test -p codex-app-server-protocol git4d -- --nocapture
+cargo check -p codex-core -j 6
+cargo check -p codex-app-server -j 6
+cargo check -p codex-tui -j 6
+cargo test -p codex-app-server git4d -- --nocapture
+cargo build --release -p codex-cli -j 6
+H:\codex-main-release-target-3.2.0\release\codex.exe --version
+```
+
+Release build result:
+
+- `codex-cli 3.2.0`
+- `releases/codex-v3.2.0-windows-x86_64.tar.gz`
+- size: 85,263,562 bytes
+- SHA256: `E2508EC70DC888A0DA4AC1813124F7F9C3D5F65FF6F73067CFBFF5630207FF59`
+
+`just bazel-lock-update` and `just bazel-lock-check` passed. The full `just argument-comment-lint` command is blocked here by Bazel's Windows test-toolchain resolution, so the changed crates were checked with the prebuilt argument-comment linter.
+
+Additional release gates are recorded in `_docs/2026-05-22_v3.2.0_upstream_sync_git4d_release.md`.

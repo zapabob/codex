@@ -40,7 +40,7 @@ pub struct ResponsesApiTool {
 #[derive(Debug, Clone, Serialize, PartialEq)]
 #[serde(tag = "type")]
 #[allow(clippy::large_enum_variant)]
-pub enum ToolSearchOutputTool {
+pub enum LoadableToolSpec {
     #[allow(dead_code)]
     #[serde(rename = "function")]
     Function(ResponsesApiTool),
@@ -55,7 +55,7 @@ pub struct ResponsesApiNamespace {
     pub tools: Vec<ResponsesApiNamespaceTool>,
 }
 
-pub(crate) fn default_namespace_description(namespace_name: &str) -> String {
+pub fn default_namespace_description(namespace_name: &str) -> String {
     format!("Tools in the {namespace_name} namespace.")
 }
 
@@ -72,6 +72,36 @@ pub fn dynamic_tool_to_responses_api_tool(
     Ok(tool_definition_to_responses_api_tool(parse_dynamic_tool(
         tool,
     )?))
+}
+
+pub fn coalesce_loadable_tool_specs(
+    specs: impl IntoIterator<Item = LoadableToolSpec>,
+) -> Vec<LoadableToolSpec> {
+    let mut coalesced_specs = Vec::new();
+    for spec in specs {
+        match spec {
+            LoadableToolSpec::Function(tool) => {
+                coalesced_specs.push(LoadableToolSpec::Function(tool));
+            }
+            LoadableToolSpec::Namespace(mut namespace) => {
+                if let Some(existing_namespace) =
+                    coalesced_specs.iter_mut().find_map(|spec| match spec {
+                        LoadableToolSpec::Namespace(existing_namespace)
+                            if existing_namespace.name == namespace.name =>
+                        {
+                            Some(existing_namespace)
+                        }
+                        LoadableToolSpec::Function(_) | LoadableToolSpec::Namespace(_) => None,
+                    })
+                {
+                    existing_namespace.tools.append(&mut namespace.tools);
+                } else {
+                    coalesced_specs.push(LoadableToolSpec::Namespace(namespace));
+                }
+            }
+        }
+    }
+    coalesced_specs
 }
 
 pub fn mcp_tool_to_responses_api_tool(

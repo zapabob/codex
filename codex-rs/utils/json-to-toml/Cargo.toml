@@ -1,8 +1,8 @@
 [package]
-edition.workspace = true
 name = "codex-utils-json-to-toml"
-license = { workspace = true }
 version.workspace = true
+edition.workspace = true
+license.workspace = true
 
 [dependencies]
 serde_json = { workspace = true }
@@ -13,3 +13,7 @@ pretty_assertions = { workspace = true }
 
 [lints]
 workspace = true
+
+[lib]
+doctest = false
+

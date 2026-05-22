@@ -14,19 +14,9 @@ user.bazelrc
 build/
 out/
 storybook-static/
-target/
-codex-rs/target_locked_backup/
 
 # ignore README for publishing
 codex-cli/README.md
-
-# Sensitive information logs
-_docs/*password*
-_docs/*token*
-_docs/*secret*
-_docs/*auth*
-_docs/*key*
-_docs/2026-01-04_テック企業採用担当者目線リポジトリ徹底整理完了.md
 
 # ignore Nix derivation results
 result
@@ -40,6 +30,7 @@ result
 *~
 
 # cli tools
+CLAUDE.md
 .claude/
 AGENTS.override.md
 
@@ -61,6 +52,7 @@ yarn-error.log*
 # env
 .env*
 !.env.example
+.venv/
 
 # package
 *.tgz
@@ -100,18 +92,23 @@ CHANGELOG.ignore.md
 # Python bytecode files
 __pycache__/
 *.pyc
-
+target/
+codex-rs/target_locked_backup/
+# Sensitive information logs
+_docs/*password*
+_docs/*token*
+_docs/*secret*
+_docs/*auth*
+_docs/*key*
+_docs/2026-01-04_テック企業採用担当者目線リポジトリ徹底整理完了.md
 # Archive and development artifacts (automatically organized)
 archive/
 docs/development-logs/
-
 # Legacy analysis outputs
 primeband_outputs/
 primeband_fastcg_outputs/
-
 # Personal files
 _docs/Ryo_Minegishi_CV.*
-
 # Build artifacts
 codex-rs/codex.exe
 release-package/
@@ -121,13 +118,10 @@ release-package/
 releases/*.exe
 releases/*.tar
 releases/*.tar.gz
-
 # Worktrees
 .codex-worktrees/
-
 # Development artifacts
 .cursor/commands/fix.md
-
 # Conversation history (contains potential secrets)
 *.txt
 *.py
@@ -138,11 +132,7 @@ releases/*.tar.gz
 !plugins/zapabob-legacy-suite/servers/test_legacy_suite_mcp.py
 C:\Users\downl\Desktop\codex-main\.specstory\history\2026-01-16_05-43Z-未来のai開発と統合エコシステム.md
 codex-rs/build_error.txt
-codex-rs/build_error.txt
 codex-rs/build_log_utf8.txt
-codex-rs/build_log.txt
-codex-rs/build_error.txt
-codex-rs/build_error.txt
 codex-rs/build_log.txt
 gui/gui_build.txt
 gui/gui_build_utf8.txt
@@ -151,22 +141,16 @@ gui/gui_build_final_utf8.txt
 gui/gui_build_final_v2.txt
 codex-rs/build_error_utf8.txt
 gui/gui_error_utf8.txt
-codex-rs/build_error_utf8.txt
 gui/gui_build_final_1_tail_utf8.txt
 gui/gui_build_final_2.txt
 gui/gui_build_final_1_utf8.txt
 gui/gui_build_final_1.txt
-gui/gui_build_final_1_utf8.txt
 codex-rs/check_error.txt
 codex-rs/build_err.txt
 codex-rs/build_err_2.txt
-codex-rs/build_err_2.txt
 codex-rs/build_err_3.txt
-
 # Exclude specstory history files with very long Japanese names (>255 bytes)
 .specstory/history/2026-01-28_17-09Z-@*
-
-
 # Build log files (auto-generated, should not be tracked)
 codex-rs/*.txt
 !codex-rs/tui/tooltips.txt
@@ -174,7 +158,5 @@ codex-rs/*.txt
 codex-rs/codex-rs/
 codex-rs/tui/build_errors.txt
 codex-rs/tui/check_output*.txt
-
-*.txt
-*.log
 *.tmp
+

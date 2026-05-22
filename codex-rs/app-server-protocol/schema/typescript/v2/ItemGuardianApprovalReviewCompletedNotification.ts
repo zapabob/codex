@@ -6,10 +6,18 @@ import type { GuardianApprovalReview } from "./GuardianApprovalReview";
 import type { GuardianApprovalReviewAction } from "./GuardianApprovalReviewAction";
 
 /**
- * [UNSTABLE] Temporary notification payload for guardian automatic approval
- * review. This shape is expected to change soon.
+ * [UNSTABLE] Temporary notification payload for approval auto-review. This
+ * shape is expected to change soon.
  */
 export type ItemGuardianApprovalReviewCompletedNotification = { threadId: string, turnId: string,
+/**
+ * Unix timestamp (in milliseconds) when this review started.
+ */
+startedAtMs: number,
+/**
+ * Unix timestamp (in milliseconds) when this review completed.
+ */
+completedAtMs: number,
 /**
  * Stable identifier for this review.
  */

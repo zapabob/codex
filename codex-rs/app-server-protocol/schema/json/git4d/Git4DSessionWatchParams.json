@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "Git4DSessionWatchReplayMode": {
+      "enum": [
+        "buffered",
+        "liveOnly"
+      ],
+      "type": "string"
+    }
+  },
+  "properties": {
+    "replayMode": {
+      "$ref": "#/definitions/Git4DSessionWatchReplayMode"
+    },
+    "sessionId": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "replayMode",
+    "sessionId"
+  ],
+  "title": "Git4DSessionWatchParams",
+  "type": "object"
+}

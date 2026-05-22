@@ -37,7 +37,7 @@ async fn forward_events_cancelled_while_send_blocked_shuts_down_delegate() {
     let (tx_events, rx_events) = bounded(1);
     let (tx_sub, rx_sub) = bounded(SUBMISSION_CHANNEL_CAPACITY);
     let (_agent_status_tx, agent_status) = watch::channel(AgentStatus::PendingInit);
-    let (session, ctx, _rx_evt) = crate::codex::make_session_and_context_with_rx().await;
+    let (session, ctx, _rx_evt) = crate::session::tests::make_session_and_context_with_rx().await;
     let codex = Arc::new(Codex {
         tx_sub,
         rx_event: rx_events,
@@ -114,7 +114,7 @@ async fn forward_ops_preserves_submission_trace_context() {
     let (tx_sub, rx_sub) = bounded(SUBMISSION_CHANNEL_CAPACITY);
     let (_tx_events, rx_events) = bounded(SUBMISSION_CHANNEL_CAPACITY);
     let (_agent_status_tx, agent_status) = watch::channel(AgentStatus::PendingInit);
-    let (session, _ctx, _rx_evt) = crate::codex::make_session_and_context_with_rx().await;
+    let (session, _ctx, _rx_evt) = crate::session::tests::make_session_and_context_with_rx().await;
     let codex = Arc::new(Codex {
         tx_sub,
         rx_event: rx_events,
@@ -154,9 +154,35 @@ async fn forward_ops_preserves_submission_trace_context() {
 }
 
 #[tokio::test]
+async fn run_codex_thread_interactive_respects_pre_cancelled_spawn() {
+    let (parent_session, parent_ctx, _rx_events) =
+        crate::session::tests::make_session_and_context_with_rx().await;
+    let cancel_token = CancellationToken::new();
+    cancel_token.cancel();
+
+    let result = timeout(
+        Duration::from_secs(/*secs*/ 1),
+        run_codex_thread_interactive(
+            parent_ctx.config.as_ref().clone(),
+            Arc::clone(&parent_session.services.auth_manager),
+            Arc::clone(&parent_session.services.models_manager),
+            parent_session,
+            parent_ctx,
+            cancel_token,
+            SubAgentSource::Review,
+            /*initial_history*/ None,
+        ),
+    )
+    .await
+    .expect("cancelled delegate spawn should not hang");
+
+    assert!(matches!(result, Err(CodexErr::TurnAborted)));
+}
+
+#[tokio::test]
 async fn handle_request_permissions_uses_tool_call_id_for_round_trip() {
     let (parent_session, parent_ctx, rx_events) =
-        crate::codex::make_session_and_context_with_rx().await;
+        crate::session::tests::make_session_and_context_with_rx().await;
     *parent_session.active_turn.lock().await = Some(crate::state::ActiveTurn::default());
 
     let (tx_sub, rx_sub) = bounded(SUBMISSION_CHANNEL_CAPACITY);
@@ -179,9 +205,13 @@ async fn handle_request_permissions_uses_tool_call_id_for_round_trip() {
             ..RequestPermissionProfile::default()
         },
         scope: PermissionGrantScope::Turn,
+        strict_auto_review: false,
     };
+    #[allow(deprecated)]
+    let delegated_cwd = parent_ctx.cwd.join("delegated-cwd");
     let cancel_token = CancellationToken::new();
     let request_call_id = call_id.clone();
+    let request_cwd = delegated_cwd.clone();
 
     let handle = tokio::spawn({
         let codex = Arc::clone(&codex);
@@ -196,6 +226,7 @@ async fn handle_request_permissions_uses_tool_call_id_for_round_trip() {
                 RequestPermissionsEvent {
                     call_id: request_call_id,
                     turn_id: "child-turn-1".to_string(),
+                    started_at_ms: 0,
                     reason: Some("need access".to_string()),
                     permissions: RequestPermissionProfile {
                         network: Some(NetworkPermissions {
@@ -203,6 +234,7 @@ async fn handle_request_permissions_uses_tool_call_id_for_round_trip() {
                         }),
                         ..RequestPermissionProfile::default()
                     },
+                    cwd: Some(request_cwd),
                 },
                 &cancel_token,
             )
@@ -218,6 +250,7 @@ async fn handle_request_permissions_uses_tool_call_id_for_round_trip() {
         panic!("expected RequestPermissions event");
     };
     assert_eq!(request.call_id, call_id.clone());
+    assert_eq!(request.cwd, Some(delegated_cwd));
 
     parent_session
         .notify_request_permissions_response(&call_id, expected_response.clone())
@@ -244,10 +277,10 @@ async fn handle_request_permissions_uses_tool_call_id_for_round_trip() {
 #[tokio::test]
 async fn handle_exec_approval_uses_call_id_for_guardian_review_and_approval_id_for_reply() {
     let (parent_session, parent_ctx, rx_events) =
-        crate::codex::make_session_and_context_with_rx().await;
+        crate::session::tests::make_session_and_context_with_rx().await;
     let mut parent_ctx = Arc::try_unwrap(parent_ctx).expect("single turn context ref");
     let mut config = (*parent_ctx.config).clone();
-    config.approvals_reviewer = ApprovalsReviewer::GuardianSubagent;
+    config.approvals_reviewer = ApprovalsReviewer::AutoReview;
     parent_ctx.config = Arc::new(config);
     parent_ctx
         .approval_policy
@@ -282,6 +315,7 @@ async fn handle_exec_approval_uses_call_id_for_guardian_review_and_approval_id_f
                     call_id: "command-item-1".to_string(),
                     approval_id: Some("callback-approval-1".to_string()),
                     turn_id: "child-turn-1".to_string(),
+                    started_at_ms: 0,
                     command: vec!["rm".to_string(), "-rf".to_string(), "tmp".to_string()],
                     cwd: test_path_buf("/tmp").abs(),
                     reason: Some("unsafe subcommand".to_string()),
@@ -356,10 +390,10 @@ async fn handle_exec_approval_uses_call_id_for_guardian_review_and_approval_id_f
 #[tokio::test]
 async fn delegated_mcp_guardian_abort_returns_synthetic_decline_answer() {
     let (parent_session, parent_ctx, _rx_events) =
-        crate::codex::make_session_and_context_with_rx().await;
+        crate::session::tests::make_session_and_context_with_rx().await;
     let mut parent_ctx = Arc::try_unwrap(parent_ctx).expect("single turn context ref");
     let mut config = (*parent_ctx.config).clone();
-    config.approvals_reviewer = ApprovalsReviewer::GuardianSubagent;
+    config.approvals_reviewer = ApprovalsReviewer::AutoReview;
     parent_ctx.config = Arc::new(config);
     parent_ctx
         .approval_policy

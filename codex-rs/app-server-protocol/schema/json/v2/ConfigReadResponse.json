@@ -97,9 +97,10 @@
       "type": "object"
     },
     "ApprovalsReviewer": {
-      "description": "Configures who approval requests are routed to for review. Examples include sandbox escapes, blocked network access, MCP approval prompts, and ARC escalations. Defaults to `user`. `guardian_subagent` uses a carefully prompted subagent to gather relevant context and apply a risk-based decision framework before approving or denying the request.",
+      "description": "Configures who approval requests are routed to for review. Examples include sandbox escapes, blocked network access, MCP approval prompts, and ARC escalations. Defaults to `user`. `auto_review` uses a carefully prompted subagent to gather relevant context and apply a risk-based decision framework before approving or denying the request. The legacy value `guardian_subagent` is accepted for compatibility.",
       "enum": [
         "user",
+        "auto_review",
         "guardian_subagent"
       ],
       "type": "string"
@@ -187,6 +188,25 @@
         }
       ]
     },
+    "AutoCompactTokenLimitScope": {
+      "description": "Selects which part of the active context is charged against `model_auto_compact_token_limit`.",
+      "oneOf": [
+        {
+          "description": "Count the full active context against the limit.",
+          "enum": [
+            "total"
+          ],
+          "type": "string"
+        },
+        {
+          "description": "Count sampled output and later growth after the carried window prefix.",
+          "enum": [
+            "body_after_prefix"
+          ],
+          "type": "string"
+        }
+      ]
+    },
     "Config": {
       "additionalProperties": true,
       "properties": {
@@ -227,6 +247,13 @@
             "null"
           ]
         },
+        "desktop": {
+          "additionalProperties": true,
+          "type": [
+            "object",
+            "null"
+          ]
+        },
         "developer_instructions": {
           "type": [
             "string",
@@ -234,9 +261,13 @@
           ]
         },
         "forced_chatgpt_workspace_id": {
-          "type": [
-            "string",
-            "null"
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ForcedChatgptWorkspaceIds"
+            },
+            {
+              "type": "null"
+            }
           ]
         },
         "forced_login_method": {
@@ -266,6 +297,16 @@
           "type": [
             "integer",
             "null"
+          ]
+        },
+        "model_auto_compact_token_limit_scope": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/AutoCompactTokenLimitScope"
+            },
+            {
+              "type": "null"
+            }
           ]
         },
         "model_context_window": {
@@ -351,13 +392,9 @@
           ]
         },
         "service_tier": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/ServiceTier"
-            },
-            {
-              "type": "null"
-            }
+          "type": [
+            "string",
+            "null"
           ]
         },
         "tools": {
@@ -485,6 +522,13 @@
               ],
               "description": "This is the path to the user's config.toml file, though it is not guaranteed to exist."
             },
+            "profile": {
+              "description": "Name of the selected profile-v2 config layered on top of the base user config, when this layer represents one.",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
             "type": {
               "enum": [
                 "user"
@@ -577,6 +621,20 @@
         }
       ]
     },
+    "ForcedChatgptWorkspaceIds": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      ],
+      "description": "Backward-compatible API shape for ChatGPT workspace login restrictions."
+    },
     "ForcedLoginMethod": {
       "enum": [
         "chatgpt",
@@ -657,13 +715,9 @@
           ]
         },
         "service_tier": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/ServiceTier"
-            },
-            {
-              "type": "null"
-            }
+          "type": [
+            "string",
+            "null"
           ]
         },
         "tools": {
@@ -753,21 +807,8 @@
       },
       "type": "object"
     },
-    "ServiceTier": {
-      "enum": [
-        "fast",
-        "flex"
-      ],
-      "type": "string"
-    },
     "ToolsV2": {
       "properties": {
-        "view_image": {
-          "type": [
-            "boolean",
-            "null"
-          ]
-        },
         "web_search": {
           "anyOf": [
             {

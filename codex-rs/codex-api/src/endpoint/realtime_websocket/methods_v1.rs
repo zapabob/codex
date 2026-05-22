@@ -21,7 +21,7 @@ pub(super) fn conversation_item_create_message(text: String) -> RealtimeOutbound
             r#type: ConversationItemType::Message,
             role: ConversationRole::User,
             content: vec![ConversationItemContent {
-                r#type: ConversationContentType::Text,
+                r#type: ConversationContentType::InputText,
                 text,
             }],
         }),
@@ -55,6 +55,7 @@ pub(super) fn session_update_session(
                     rate: REALTIME_AUDIO_SAMPLE_RATE,
                 },
                 noise_reduction: None,
+                transcription: None,
                 turn_detection: None,
             },
             output: Some(SessionAudioOutput {

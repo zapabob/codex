@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "sessionId": {
+      "type": "string"
+    },
+    "unsubscribed": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "sessionId",
+    "unsubscribed"
+  ],
+  "title": "Git4DSessionUnwatchResponse",
+  "type": "object"
+}

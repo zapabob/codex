@@ -19,8 +19,8 @@ use toml::Value;
 pub struct CliConfigOverrides {
     /// Override a configuration value that would otherwise be loaded from
     /// `~/.codex/config.toml`. Use a dotted path (`foo.bar.baz`) to override
-    /// nested values. The `value` portion is parsed as JSON. If it fails to
-    /// parse as JSON, the raw string is used as a literal.
+    /// nested values. The `value` portion is parsed as TOML. If it fails to
+    /// parse as TOML, the raw string is used as a literal.
     ///
     /// Examples:
     ///   - `-c model="o3"`
@@ -37,6 +37,13 @@ pub struct CliConfigOverrides {
 }
 
 impl CliConfigOverrides {
+    /// Prepend root-level config flags so they have lower precedence than
+    /// command-specific flags parsed after a subcommand.
+    pub fn prepend_root_overrides(&mut self, root_overrides: Self) {
+        self.raw_overrides
+            .splice(0..0, root_overrides.raw_overrides);
+    }
+
     /// Parse the raw strings captured from the CLI into a list of `(path,
     /// value)` tuples where `value` is a `serde_json::Value`.
     pub fn parse_overrides(&self) -> Result<Vec<(String, Value)>, String> {
@@ -59,7 +66,7 @@ impl CliConfigOverrides {
                     return Err(format!("Empty key in override: {s}"));
                 }
 
-                // Attempt to parse as JSON. If that fails, treat it as a raw
+                // Attempt to parse as TOML. If that fails, treat it as a raw
                 // string. This allows convenient usage such as
                 // `-c model=o3` without the quotes.
                 let value: Value = match parse_toml_value(value_str) {
@@ -160,6 +167,15 @@ mod tests {
     }
 
     #[test]
+    fn parses_bool() {
+        let true_literal = parse_toml_value("true").expect("parse");
+        assert_eq!(true_literal.as_bool(), Some(true));
+
+        let false_literal = parse_toml_value("false").expect("parse");
+        assert_eq!(false_literal.as_bool(), Some(false));
+    }
+
+    #[test]
     fn fails_on_unquoted_string() {
         assert!(parse_toml_value("hello").is_err());
     }
@@ -179,6 +195,24 @@ mod tests {
         let parsed = overrides.parse_overrides().expect("parse_overrides");
         assert_eq!(parsed[0].0.as_str(), "features.use_legacy_landlock");
         assert_eq!(parsed[0].1.as_bool(), Some(true));
+    }
+
+    #[test]
+    fn prepends_root_overrides() {
+        let mut subcommand_overrides = CliConfigOverrides {
+            raw_overrides: vec![r#"model="gpt-5.2""#.to_string()],
+        };
+        subcommand_overrides.prepend_root_overrides(CliConfigOverrides {
+            raw_overrides: vec![r#"model="gpt-5.1""#.to_string()],
+        });
+
+        assert_eq!(
+            subcommand_overrides.raw_overrides,
+            vec![
+                r#"model="gpt-5.1""#.to_string(),
+                r#"model="gpt-5.2""#.to_string(),
+            ]
+        );
     }
 
     #[test]

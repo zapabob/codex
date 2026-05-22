@@ -14,7 +14,7 @@ use codex_core::config::Config;
 use codex_core::config::edit::ConfigEditsBuilder;
 use codex_core::config::find_codex_home;
 use codex_core::config::load_global_mcp_servers;
-use codex_core::plugins::PluginsManager;
+use codex_core_plugins::PluginsManager;
 use codex_mcp::McpOAuthLoginSupport;
 use codex_mcp::ResolvedMcpOAuthScopes;
 use codex_mcp::compute_auth_statuses;
@@ -199,6 +199,7 @@ async fn perform_oauth_login_retry_without_scopes(
     http_headers: Option<HashMap<String, String>>,
     env_http_headers: Option<HashMap<String, String>>,
     resolved_scopes: &ResolvedMcpOAuthScopes,
+    oauth_client_id: Option<&str>,
     oauth_resource: Option<&str>,
     callback_port: Option<u16>,
     callback_url: Option<&str>,
@@ -210,6 +211,7 @@ async fn perform_oauth_login_retry_without_scopes(
         http_headers.clone(),
         env_http_headers.clone(),
         &resolved_scopes.scopes,
+        oauth_client_id,
         oauth_resource,
         callback_port,
         callback_url,
@@ -226,6 +228,7 @@ async fn perform_oauth_login_retry_without_scopes(
                 http_headers,
                 env_http_headers,
                 &[],
+                oauth_client_id,
                 oauth_resource,
                 callback_port,
                 callback_url,
@@ -298,7 +301,7 @@ async fn run_add(config_overrides: &CliConfigOverrides, add_args: AddArgs) -> Re
 
     let new_entry = McpServerConfig {
         transport: transport.clone(),
-        experimental_environment: None,
+        environment_id: codex_config::DEFAULT_MCP_SERVER_ENVIRONMENT_ID.to_string(),
         enabled: true,
         required: false,
         supports_parallel_tool_calls: false,
@@ -309,6 +312,7 @@ async fn run_add(config_overrides: &CliConfigOverrides, add_args: AddArgs) -> Re
         enabled_tools: None,
         disabled_tools: None,
         scopes: None,
+        oauth: None,
         oauth_resource: None,
         tools: HashMap::new(),
     };
@@ -338,6 +342,7 @@ async fn run_add(config_overrides: &CliConfigOverrides, add_args: AddArgs) -> Re
                 oauth_config.http_headers,
                 oauth_config.env_http_headers,
                 &resolved_scopes,
+                /*oauth_client_id*/ None,
                 /*oauth_resource*/ None,
                 config.mcp_oauth_callback_port,
                 config.mcp_oauth_callback_url.as_deref(),
@@ -397,7 +402,7 @@ async fn run_login(config_overrides: &CliConfigOverrides, login_args: LoginArgs)
     let mcp_manager = McpManager::new(Arc::new(PluginsManager::new(
         config.codex_home.to_path_buf(),
     )));
-    let mcp_servers = mcp_manager.effective_servers(&config, /*auth*/ None).await;
+    let mcp_servers = mcp_manager.configured_servers(&config).await;
 
     let LoginArgs { name, scopes } = login_args;
 
@@ -431,6 +436,7 @@ async fn run_login(config_overrides: &CliConfigOverrides, login_args: LoginArgs)
         http_headers,
         env_http_headers,
         &resolved_scopes,
+        server.oauth_client_id(),
         server.oauth_resource.as_deref(),
         config.mcp_oauth_callback_port,
         config.mcp_oauth_callback_url.as_deref(),
@@ -450,7 +456,7 @@ async fn run_logout(config_overrides: &CliConfigOverrides, logout_args: LogoutAr
     let mcp_manager = McpManager::new(Arc::new(PluginsManager::new(
         config.codex_home.to_path_buf(),
     )));
-    let mcp_servers = mcp_manager.effective_servers(&config, /*auth*/ None).await;
+    let mcp_servers = mcp_manager.configured_servers(&config).await;
 
     let LogoutArgs { name } = logout_args;
 
@@ -482,12 +488,17 @@ async fn run_list(config_overrides: &CliConfigOverrides, list_args: ListArgs) ->
     let mcp_manager = McpManager::new(Arc::new(PluginsManager::new(
         config.codex_home.to_path_buf(),
     )));
-    let mcp_servers = mcp_manager.effective_servers(&config, /*auth*/ None).await;
+    let mcp_servers = mcp_manager.configured_servers(&config).await;
+    let effective_mcp_servers = mcp_manager.effective_servers(&config, /*auth*/ None).await;
 
     let mut entries: Vec<_> = mcp_servers.iter().collect();
     entries.sort_by(|(a, _), (b, _)| a.cmp(b));
-    let auth_statuses =
-        compute_auth_statuses(mcp_servers.iter(), config.mcp_oauth_credentials_store_mode).await;
+    let auth_statuses = compute_auth_statuses(
+        effective_mcp_servers.iter(),
+        config.mcp_oauth_credentials_store_mode,
+        /*auth*/ None,
+    )
+    .await;
 
     if list_args.json {
         let json_entries: Vec<_> = entries
@@ -733,7 +744,7 @@ async fn run_get(config_overrides: &CliConfigOverrides, get_args: GetArgs) -> Re
     let mcp_manager = McpManager::new(Arc::new(PluginsManager::new(
         config.codex_home.to_path_buf(),
     )));
-    let mcp_servers = mcp_manager.effective_servers(&config, /*auth*/ None).await;
+    let mcp_servers = mcp_manager.configured_servers(&config).await;
 
     let Some(server) = mcp_servers.get(&get_args.name) else {
         bail!("No MCP server named '{name}' found.", name = get_args.name);

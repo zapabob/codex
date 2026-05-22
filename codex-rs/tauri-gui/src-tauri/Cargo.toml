@@ -3,7 +3,7 @@ authors = ["zapabob"]
 description = "Codex AI-Native OS Resident GUI Client"
 edition = "2024"
 name = "codex-tauri-gui"
-version = "3.0.0"
+version = "3.2.0"
 license = { workspace = true }
 
 [features]

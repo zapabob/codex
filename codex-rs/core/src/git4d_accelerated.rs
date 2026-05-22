@@ -1,3 +1,4 @@
+#[cfg(all(feature = "custom-features", feature = "cuda"))]
 use crate::cuda_accelerator::CudaGit4DAccelerator;
 use crate::cuda_accelerator::{GitCommitVertex, RenderParameters, TransformationMatrix};
 use crate::vr_ar_integration::{VRARIntegration, VREvent, VRInteraction, XRPlatform};
@@ -93,13 +94,16 @@ fn detect_virtual_desktop() -> bool {
     false
 }
 
+fn openxr_runtime_configured() -> bool {
+    std::env::var_os("OPENXR_RUNTIME_JSON").is_some_and(|value| !value.is_empty())
+}
+
 /// Accelerated Git4D visualization with CUDA and VR/AR support
 pub struct Git4DAcceleratedVisualizer {
     #[cfg(all(feature = "custom-features", feature = "cuda"))]
     cuda_accelerator: Option<CudaGit4DAccelerator>,
     vr_ar_integration: Option<VRARIntegration>,
     pub(crate) repository: Repository,
-    #[cfg(feature = "custom-features")]
     commit_cache: Mutex<HashMap<Oid, GitCommitVertex>>,
     branch_cache: Mutex<HashMap<String, Vec<Oid>>>,
     time_range: Mutex<(f32, f32)>,
@@ -109,7 +113,7 @@ pub struct Git4DAcceleratedVisualizer {
     interaction_sender: mpsc::Sender<VRInteraction>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum Git4DEvent {
     CommitsLoaded {
@@ -333,6 +337,13 @@ pub async fn check_vr_ar_device_availability(mode: &str) -> anyhow::Result<Devic
         }
     }
 
+    if !openxr_runtime_configured() {
+        return Ok(DeviceAvailability::NotAvailable {
+            reason: "OPENXR_RUNTIME_JSON is not configured; using desktop Git4D fallback"
+                .to_string(),
+        });
+    }
+
     match VRARIntegration::new() {
         Ok(mut vr_integration) => {
             let platform = if mode == "vr" || mode == "ar" {
@@ -345,7 +356,7 @@ pub async fn check_vr_ar_device_availability(mode: &str) -> anyhow::Result<Devic
                 Ok(_) => {
                     tracing::info!("VR/AR device available: {:?}", platform);
                     Ok(DeviceAvailability::Available {
-                        platform,
+                        platform: platform.clone(),
                         device_name: Some(format!("{platform:?}")),
                     })
                 }

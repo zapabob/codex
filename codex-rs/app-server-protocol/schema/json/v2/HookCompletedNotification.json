@@ -8,9 +8,14 @@
     "HookEventName": {
       "enum": [
         "preToolUse",
+        "permissionRequest",
         "postToolUse",
+        "preCompact",
+        "postCompact",
         "sessionStart",
         "userPromptSubmit",
+        "subagentStart",
+        "subagentStop",
         "stop"
       ],
       "type": "string"
@@ -159,6 +164,8 @@
         "project",
         "mdm",
         "sessionFlags",
+        "plugin",
+        "cloudRequirements",
         "legacyManagedConfigFile",
         "legacyManagedConfigMdm",
         "unknown"

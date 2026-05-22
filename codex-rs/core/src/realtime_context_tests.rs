@@ -35,7 +35,7 @@ fn stored_thread(cwd: &str, title: &str, first_user_message: &str) -> StoredThre
         preview: first_user_message.to_string(),
         name: (!title.is_empty()).then(|| title.to_string()),
         model_provider: "test-provider".to_string(),
-        model: Some("gpt-5".to_string()),
+        model: Some("gpt-5.2".to_string()),
         reasoning_effort: None,
         created_at: Utc
             .timestamp_opt(1_709_251_100, 0)
@@ -49,6 +49,7 @@ fn stored_thread(cwd: &str, title: &str, first_user_message: &str) -> StoredThre
         cwd: PathBuf::from(cwd),
         cli_version: "test".to_string(),
         source: SessionSource::Cli,
+        thread_source: None,
         agent_nickname: None,
         agent_role: None,
         agent_path: None,
@@ -70,7 +71,6 @@ fn message(role: &str, content: ContentItem) -> ResponseItem {
         id: None,
         role: role.to_string(),
         content: vec![content],
-        end_turn: None,
         phase: None,
     }
 }

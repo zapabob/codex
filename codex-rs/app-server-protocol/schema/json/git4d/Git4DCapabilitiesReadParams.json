@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "Git4DMode": {
+      "enum": [
+        "desktop",
+        "vr",
+        "ar"
+      ],
+      "type": "string"
+    }
+  },
+  "properties": {
+    "mode": {
+      "$ref": "#/definitions/Git4DMode"
+    }
+  },
+  "required": [
+    "mode"
+  ],
+  "title": "Git4DCapabilitiesReadParams",
+  "type": "object"
+}
