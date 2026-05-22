@@ -1,124 +1,105 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Codex - AI Coding Assistant</title>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      body {
-        font-family:
-          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
-        color: #fff;
-        min-height: 100vh;
-      }
-      .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 40px 20px;
-      }
-      header {
-        text-align: center;
-        padding: 60px 20px;
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(10px);
-        border-radius: 20px;
-        margin-bottom: 40px;
-      }
-      h1 {
-        font-size: 3rem;
-        margin-bottom: 20px;
-        background: linear-gradient(90deg, #00d4ff, #7c3aed);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-      }
-      .subtitle {
-        font-size: 1.2rem;
-        color: #a0a0c0;
-        margin-bottom: 30px;
-      }
-      .btn {
-        display: inline-block;
-        padding: 15px 40px;
-        background: linear-gradient(90deg, #00d4ff, #7c3aed);
-        color: #fff;
-        text-decoration: none;
-        border-radius: 30px;
-        font-weight: bold;
-        transition: transform 0.3s;
-      }
-      .btn:hover {
-        transform: scale(1.05);
-      }
-      .features {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 30px;
-        margin-top: 60px;
-      }
-      .feature {
-        background: rgba(255, 255, 255, 0.05);
-        padding: 30px;
-        border-radius: 15px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-      }
-      .feature h3 {
-        margin-bottom: 15px;
-        color: #00d4ff;
-      }
-      .version {
-        color: #7c3aed;
-        font-size: 0.9rem;
-        margin-top: 20px;
-      }
-    </style>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Codex v3.2.0</title>
+    <meta
+      name="description"
+      content="Codex v3.2.0 keeps pace with official OpenAI Codex while preserving Git4D, DeepResearch, repo-local plugins, and Windows-first release operations."
+    />
+    <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <div class="container">
-      <header>
-        <h1>Codex</h1>
-        <p class="subtitle">
-          Next-generation AI Coding Assistant | 次世代AIコーディングアシスタント
-        </p>
-        <p class="version">Current Release: v2.14.1</p>
-        <a
-          href="https://github.com/zapabob/codex/releases/tag/v2.14.1"
-          class="btn"
-          >Download v2.14.1</a
-        >
-      </header>
-      <div class="features">
-        <div class="feature">
-          <h3>🚀 High Performance</h3>
+    <header class="site-header" aria-label="Codex release navigation">
+      <a class="brand" href="#top" aria-label="Codex v3.2.0 home">Codex</a>
+      <nav>
+        <a href="#features">Features</a>
+        <a href="#release">Release</a>
+        <a href="#proof">Proof</a>
+        <a href="https://github.com/zapabob/Codex/releases/tag/v3.2.0">Download</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <img class="hero-art" src="./assets/codex-v3.2.0-hero.png" alt="" />
+        <div class="hero-copy">
+          <p class="eyebrow">Upstream-first fork release</p>
+          <h1 id="hero-title">Codex v3.2.0</h1>
+          <p class="lead">
+            Official Codex through rust-v0.133.0, with Git4D, DeepResearch,
+            repo-local plugins, and Windows release automation on the official API path.
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="https://github.com/zapabob/Codex/releases/tag/v3.2.0">Get v3.2.0</a>
+            <a class="button secondary" href="https://github.com/zapabob/Codex">View source</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="feature-strip" id="features" aria-label="Custom features">
+        <article>
+          <span>Git4D</span>
+          <h2>4D repo sessions on app-server protocol</h2>
+          <p>Git4D uses <code>git4d/session/*</code> methods, buffered replay, and deterministic desktop fallback.</p>
+        </article>
+        <article>
+          <span>DeepResearch</span>
+          <h2>Research workflow as plugin value</h2>
+          <p>DeepResearch stays layered on official Codex surfaces instead of replacing the product shell.</p>
+        </article>
+        <article>
+          <span>Local Plugins</span>
+          <h2>Repo-local marketplace delivery</h2>
+          <p>Bundled zapabob plugins remain discoverable while upstream plugin protocol changes are preserved.</p>
+        </article>
+      </section>
+
+      <section class="release-band" id="release">
+        <div>
+          <p class="eyebrow">Release channels</p>
+          <h2>Main and stable carry the same verified build.</h2>
+        </div>
+        <dl class="release-grid">
+          <div>
+            <dt>Mainline</dt>
+            <dd><code>main</code> / <code>v3.2.0</code></dd>
+          </div>
+          <div>
+            <dt>Stable</dt>
+            <dd><code>release/3.2.0-stable</code> / <code>v3.2.0-stable.0</code></dd>
+          </div>
+          <div>
+            <dt>Windows bundle</dt>
+            <dd><code>codex-v3.2.0-windows-x86_64.tar.gz</code></dd>
+          </div>
+          <div>
+            <dt>SHA256</dt>
+            <dd><code>E2508EC70DC888A0DA4AC1813124F7F9C3D5F65FF6F73067CFBFF5630207FF59</code></dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="proof-band" id="proof">
+        <div class="proof-copy">
+          <p class="eyebrow">Release proof</p>
+          <h2>Built, installed, and checked on Windows.</h2>
           <p>
-            Rust 2024 core with sub-millisecond latency and thread-safe
-            orchestration.
+            The shipped executable reports <code>codex-cli 3.2.0</code>. The release path used six build jobs,
+            isolated <code>H:</code> target and temp directories, Bazel lock refresh, focused app-server protocol tests,
+            and a tar.gz asset with merge evidence.
           </p>
         </div>
-        <div class="feature">
-          <h3>🔒 Enterprise Security</h3>
-          <p>
-            Zero-trust sandboxing with native Windows isolation and audit
-            trails.
-          </p>
-        </div>
-        <div class="feature">
-          <h3>🤖 Autonomous Agents</h3>
-          <p>
-            Parallel sub-agents with A2A coordination for 2.6x development
-            speedup.
-          </p>
-        </div>
-        <div class="feature">
-          <h3>🎮 VR/AR Visualization</h3>
-          <p>Git4D 3D visualization with immersive architectural reviews.</p>
-        </div>
-      </div>
-    </div>
+        <ol class="proof-list" aria-label="Verification commands">
+          <li><code>cargo test -p codex-app-server-protocol git4d</code></li>
+          <li><code>cargo test -p codex-app-server git4d</code></li>
+          <li><code>cargo check -p codex-core -j 6</code></li>
+          <li><code>cargo check -p codex-app-server -j 6</code></li>
+          <li><code>cargo check -p codex-tui -j 6</code></li>
+          <li><code>cargo build --release -p codex-cli -j 6</code></li>
+        </ol>
+      </section>
+    </main>
   </body>
 </html>
