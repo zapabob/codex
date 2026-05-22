@@ -10,6 +10,7 @@
 - Primary asset: Windows `tar.gz` bundle containing the executable, `README.md`, `LICENSE`, `VERSION`, release notes, and merge evidence
 - Windows asset: `codex-v3.2.0-windows-x86_64.tar.gz`
 - Windows asset SHA256: `E2508EC70DC888A0DA4AC1813124F7F9C3D5F65FF6F73067CFBFF5630207FF59`
+- GitHub Pages: <https://zapabob.github.io/codex/>
 
 ## Canonical Versioning
 
@@ -77,6 +78,7 @@ Release build result:
 - `releases/codex-v3.2.0-windows-x86_64.tar.gz`
 - size: 85,263,562 bytes
 - SHA256: `E2508EC70DC888A0DA4AC1813124F7F9C3D5F65FF6F73067CFBFF5630207FF59`
+- GitHub Pages status: built and serving `Codex v3.2.0` from `gh-pages`
 
 `just bazel-lock-update` and `just bazel-lock-check` passed. The full `just argument-comment-lint` command is blocked here by Bazel's Windows test-toolchain resolution, so the changed crates were checked with the prebuilt argument-comment linter.
 

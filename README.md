@@ -7,6 +7,7 @@ Codex is an upstream-first fork of [openai/codex](https://github.com/openai/code
 > Stable tag: `v3.2.0-stable.0`
 > Main tag: `v3.2.0`
 > Official base: `rust-v0.133.0` plus upstream main `b14f11d3d2ca048bdae1872ef66087a2ce3f6b0c`
+> GitHub Pages: <https://zapabob.github.io/codex/>
 
 ## What This Release Does
 
@@ -82,6 +83,12 @@ flowchart LR
 - branch: `main`
 - tag: `v3.2.0`
 - intent: latest upstream-first sync state plus the same verified zapabob extension set
+
+### GitHub Pages
+
+- site: <https://zapabob.github.io/codex/>
+- source branch: `gh-pages`
+- focus: Apple-site-inspired release guide generated from the gptimage2 visual direction, emphasizing Git4D, DeepResearch, repo-local plugins, and upstream-first safety
 
 ### Download And Extract
 
