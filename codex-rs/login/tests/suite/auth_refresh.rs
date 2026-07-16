@@ -1,9 +1,10 @@
+<<<<<<<< HEAD:codex-rs/core/tests/suite/auth_refresh.rs
+========
 use anyhow::Context;
 use anyhow::Result;
 use base64::Engine;
 use chrono::Duration;
 use chrono::Utc;
-use codex_app_server_protocol::AuthMode;
 use codex_config::types::AuthCredentialsStoreMode;
 use codex_login::AuthDotJson;
 use codex_login::AuthKeyringBackendKind;
@@ -15,6 +16,7 @@ use codex_login::load_auth_dot_json;
 use codex_login::save_auth;
 use codex_login::token_data::IdTokenInfo;
 use codex_login::token_data::TokenData;
+use codex_protocol::auth::AuthMode;
 use codex_protocol::auth::RefreshTokenFailedReason;
 use core_test_support::skip_if_no_network;
 use pretty_assertions::assert_eq;
@@ -1325,3 +1327,4 @@ fn build_tokens(access_token: &str, refresh_token: &str) -> TokenData {
         account_id: Some("account-id".to_string()),
     }
 }
+>>>>>>>> upstream/main:codex-rs/login/tests/suite/auth_refresh.rs

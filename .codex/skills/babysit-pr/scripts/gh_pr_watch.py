@@ -889,14 +889,3 @@ def main():
 
 if __name__ == "__main__":
     raise SystemExit(main())
-def normalize_review_comments(items):
-    review_comment_items = normalize_review_comments(review_comment_payload)
-    # silently treating it as seen. This avoids missing already-pending review
-GREEN_STATE_MAX_POLL_SECONDS = 60 * 60
-def recommend_actions(pr, checks_summary, failed_runs, new_review_items, retries_used, max_retries):
-        actions.append("stop_ready_to_merge")
-    has_failed_pr_checks = checks_summary["failed_count"] > 0
-            or "stop_ready_to_merge" in actions
-        if not green:
-            poll_seconds = min(poll_seconds * 2, GREEN_STATE_MAX_POLL_SECONDS)
-

@@ -35,9 +35,8 @@ In the codex-rs folder where the rust code lives:
 - When working with MCP tool calls, prefer using `codex-rs/codex-mcp/src/mcp_connection_manager.rs` to handle mutation of tools and tool calls. Aim to minimize the footprint of changes and leverage existing abstractions rather than plumbing code through multiple levels of function calls.
 - Do not call `reset_client_session` unnecessarily; let the incremental check logic decide whether to reuse the previous request.
 - If you change Rust dependencies (`Cargo.toml` or `Cargo.lock`), run `just bazel-lock-update` from the
-  repo root to refresh `MODULE.bazel.lock`, and include that lockfile update in the same change.
-- After dependency changes, run `just bazel-lock-check` from the repo root so lockfile drift is caught
-  locally before CI.
+  repo root to refresh `MODULE.bazel.lock`, and include that lockfile update in the same change. CI
+  verifies lockfile drift.
 - Bazel does not automatically make source-tree files available to compile-time Rust file access. If
   you add `include_str!`, `include_bytes!`, `sqlx::migrate!`, or similar build-time file or
   directory reads, update the crate's `BUILD.bazel` (`compile_data`, `build_script_data`, or test
@@ -220,10 +219,13 @@ Use `just bench-smoke` to dry-run the benchmark for a single iteration to ensure
   - Under Bazel, binaries and resources may live under runfiles; use `codex_utils_cargo_bin::cargo_bin` to resolve absolute paths that remain stable after `chdir`.
 - When locating fixture files or test resources under Bazel, avoid `env!("CARGO_MANIFEST_DIR")`. Prefer `codex_utils_cargo_bin::find_resource!` so paths resolve correctly under both Cargo and Bazel runfiles.
 
-### Integration tests (core)
+### Integration tests
+
+#### codex_core integration testing
 
 - Prefer the utilities in `core_test_support::responses` when writing end-to-end Codex tests.
-
+- Use `TestCodexBuilder::build_with_auto_env()` by default to ensure that new tests work with
+  foreign app/exec OSes. See $remote-tests for details.
 - All `mount_sse*` helpers return a `ResponseMock`; hold onto it so you can assert against outbound `/responses` POST bodies.
 - Use `ResponseMock::single_request()` when a test should only issue one POST, or `ResponseMock::requests()` to inspect every captured `ResponsesRequest`.
 - `ResponsesRequest` exposes helpers (`body_json`, `input`, `function_call_output`, `custom_tool_call_output`, `call_output`, `header`, `path`, `query_param`) so assertions can target structured payloads instead of manual JSON digging.
@@ -246,6 +248,14 @@ Use `just bench-smoke` to dry-run the benchmark for a single iteration to ensure
   let request = mock.single_request();
   // assert using request.function_call_output(call_id) or request.json_body() or other helpers.
   ```
+
+#### app-server integration testing
+
+- Tests should exercise app-server's public JSON-RPC API.
+- Use similar server mocking as for core integration tests.
+- Use `TestAppServer::builder().build()` and `TestAppServer::send_thread_start_request_with_auto_env()`
+  by default to ensure that new tests work with foreign app/exec OSes. See `$remote-tests` for
+  details.
 
 ## App-server API Development Best Practices
 
@@ -307,56 +317,6 @@ closest `pyproject.toml`'s `requires-python` field to see what minimum runtime v
 ## Platform Support
 
 Tests and features must support Linux, macOS and Windows unless feature is explicitly OS-specific.
-- When running Rust commands (e.g. `just fix` or `cargo test`) be patient with the command and never try to kill them using the PID. Rust lock can make the execution slow, this is expected.
-Run `just fmt` (in `codex-rs` directory) automatically after you have finished making Rust code changes; do not ask for approval to run it. Additionally, run the tests:
-1. Run the test for the specific project that was changed. For example, if changes were made in `codex-rs/tui`, run `cargo test -p codex-tui`.
-2. Once those pass, if any changes were made in common, core, or protocol, run the complete test suite with `cargo test` (or `just test` if `cargo-nextest` is installed). Avoid `--all-features` for routine local runs because it expands the build matrix and can significantly increase `target/` disk usage; use it only when you specifically need full feature coverage. project-specific or individual tests can be run without asking the user, but do ask the user before running the complete test suite.
-  - `cargo test -p codex-tui`
-- Validate with `cargo test -p codex-app-server-protocol`.
-# AGENTS.md
-This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
-- When using format! and you can inline variables into `{}`, always do that.
-- Always collapse if statements per <https://rust-lang.github.io/rust-clippy/master/index.html#collapsible_if>
-- Always inline format! args when possible per <https://rust-lang.github.io/rust-clippy/master/index.html#uninlined_format_args>
-- Use method references over closures when possible per <https://rust-lang.github.io/rust-clippy/master/index.html#redundant_closure_for_method_calls>
-  - If you add one of these comments, the parameter name must exactly match the callee signature.
-- When making a change that adds or changes an API, ensure that the documentation in the `docs/` folder is up to date if applicable.
-- If you change Rust dependencies (`Cargo.toml` or `Cargo.lock`), run `just bazel-lock-update` from the repo root to refresh `MODULE.bazel.lock`, and include that lockfile update in the same change.
-- After dependency changes, run `just bazel-lock-check` from the repo root so lockfile drift is caught locally before CI.
-- Bazel does not automatically make source-tree files available to compile-time Rust file access. If you add `include_str!`, `include_bytes!`, `sqlx::migrate!`, or similar build-time file or directory reads, update the crate's `BUILD.bazel` (`compile_data`, `build_script_data`, or test data) or Bazel may fail even when Cargo passes.
-  - If a file exceeds roughly 800 LoC, add new functionality in a new module instead of extending the existing file unless there is a strong documented reason not to.
-  - This rule applies especially to high-touch files that already attract unrelated changes, such as `codex-rs/tui/src/app.rs`, `codex-rs/tui/src/bottom_pane/chat_composer.rs`, `codex-rs/tui/src/bottom_pane/footer.rs`, `codex-rs/tui/src/chatwidget.rs`, `codex-rs/tui/src/bottom_pane/mod.rs`, and similarly central orchestration modules.
-  - When extracting code from a large module, move the related tests and module/type docs toward the new implementation so the invariants stay close to the code that owns them.
-Codex is an AI coding assistant platform forked from OpenAI/codex with extensive enhancements (zapabob extensions). The core is a Rust workspace (`codex-rs/`) with 69 crates, plus a Next.js GUI (`gui/`), a Node.js CLI (`codex-cli/`), and supporting services.
-**Version**: 3.1.0 | **Rust edition**: 2024 | **Toolchain**: 1.93.0
-## Build & Development Commands
-Also run `just argument-comment-lint` to ensure the codebase is clean of comment lint errors.
-```bash
-# Task runner (just) — working directory is automatically set to codex-rs/
-just fmt                        # Format code (cargo fmt with imports_granularity=Item)
-just clippy                     # Lint all crates
-just fix -p <crate>             # Auto-fix clippy issues for a specific crate
-just test                       # Run all tests with cargo-nextest
-just install                    # Fetch dependencies, show active toolchain
-just codex                      # Run codex from source (cargo run --bin codex)
-just exec "prompt"              # Run codex exec mode
-# Direct cargo commands (from codex-rs/)
-cargo build --release -p codex-cli          # Release build of CLI
-cargo install --path cli --force            # Install globally
-cargo test -p codex-tui                     # Test a single crate
-cargo test --all-features -p codex-core     # Test with all features
-cargo nextest run --no-fail-fast            # Fast test runner (preferred)
-cargo clippy -p codex-cli -- -D warnings    # Lint a specific crate
-- When a change lands in `codex-rs/tui` and `codex-rs/tui_app_server` has a parallel implementation of the same behavior, reflect the change in `codex-rs/tui_app_server` too unless there is a documented reason not to.
-  - Basic spans: use `"text".into()`
-  - Styled spans: use `"text".red()`, `"text".green()`, `"text".magenta()`, `"text".dim()`, etc.
-    - Desired: `vec!["  └ ".into(), "M".red(), " ".dim(), "tui/src/app.rs".dim()]`
-# Dependency checks
-cargo shear                                 # Find unused dependencies
-cargo deny check                            # License/security audit
-```
-### Windows fast-build scripts (from codex-rs/)
-```powershell
-.\ultra-fast-build-install.ps1   # Fastest incremental build
-.\clean-build-install.ps1        # Clean rebuild
 
+Codex supports running connected app-server and exec-server on different operating systems. See the
+`$remote-tests` skill for details about integration testing these configurations.

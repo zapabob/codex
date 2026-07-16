@@ -1,0 +1,14 @@
+feat: enhance slash commands and skills for VRChat/Blender/YMM4/research
+
+- Fix slash command descriptions: VrChat/Blender/Yukkuri/Yolo now show
+  correct descriptions instead of "Git 4D visualization" placeholder
+- Add /research slash command (DeepResearch) for multi-source web research
+- Update handlers: use 'codex delegate' prefix for proper agent dispatch
+- Enhance .cursor/skills/vrchat-dev/SKILL.md with full VRChatSDK3 spec:
+  UdonSharp 2.x, Modular Avatar 1.10+, liltoon 1.9+, PhysBones, VRCFury
+- Enhance .cursor/skills/blender-cad/SKILL.md with Blender 4.x Python API:
+  Geometry Nodes, STEP import via FreeCAD, RTX/OptiX rendering, glTF export
+- Enhance .cursor/skills/yukkuri-movie/SKILL.md with YMM4 full automation:
+  VOICEVOX API integration, JSON project generation, timeline management
+- Add agent YAML files: vrchat-dev.yaml, blender-cad.yaml,
+  yukkuri-movie.yaml, web-search-deepresearch.yaml

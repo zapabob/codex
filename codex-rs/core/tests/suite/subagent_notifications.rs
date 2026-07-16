@@ -3,7 +3,9 @@ use codex_core::StartThreadOptions;
 use codex_core::ThreadConfigSnapshot;
 use codex_core::config::AgentRoleConfig;
 use codex_features::Feature;
+use codex_models_manager::bundled_models_response;
 use codex_protocol::ThreadId;
+use codex_protocol::config_types::ReasoningSummary;
 use codex_protocol::models::PermissionProfile;
 use codex_protocol::openai_models::ReasoningEffort;
 use codex_protocol::protocol::AskForApproval;
@@ -12,12 +14,12 @@ use codex_protocol::protocol::InitialHistory;
 use codex_protocol::protocol::Op;
 use codex_protocol::protocol::SessionSource;
 use codex_protocol::protocol::SubAgentSource;
+use codex_protocol::protocol::ThreadHistoryMode;
 use codex_protocol::user_input::UserInput;
 use core_test_support::hooks::trust_discovered_hooks;
 use core_test_support::responses::ResponsesRequest;
 use core_test_support::responses::ev_assistant_message;
 use core_test_support::responses::ev_completed;
-use core_test_support::responses::ev_function_call;
 use core_test_support::responses::ev_function_call_with_namespace;
 use core_test_support::responses::ev_response_created;
 use core_test_support::responses::ev_tool_search_call;
@@ -40,19 +42,23 @@ use serde_json::Value;
 use serde_json::json;
 use std::fs;
 use std::path::Path;
+use std::sync::Mutex;
 use std::time::Duration;
 use test_case::test_case;
 use tokio::time::Instant;
 use tokio::time::sleep;
+use tracing::Level;
+use tracing_test::internal::MockWriter;
 use wiremock::MockServer;
 
 const SPAWN_CALL_ID: &str = "spawn-call-1";
 const MULTI_AGENT_V1_NAMESPACE: &str = "multi_agent_v1";
+const MULTI_AGENT_V2_NAMESPACE: &str = "collaboration";
 const TURN_0_FORK_PROMPT: &str = "seed fork context";
 const TURN_1_PROMPT: &str = "spawn a child and continue";
 const TURN_2_NO_WAIT_PROMPT: &str = "follow up without wait";
 const CHILD_PROMPT: &str = "child: do work";
-const INHERITED_MODEL: &str = "gpt-5.3-codex";
+const INHERITED_MODEL: &str = "gpt-5.2";
 const INHERITED_REASONING_EFFORT: ReasoningEffort = ReasoningEffort::XHigh;
 const REQUESTED_MODEL: &str = "gpt-5.4";
 const REQUESTED_REASONING_EFFORT: ReasoningEffort = ReasoningEffort::Low;
@@ -63,6 +69,23 @@ const SUBAGENT_STOP_CONTINUATION: &str = "continue only the child";
 const INTERNAL_SUBAGENT_PROMPT: &str = "internal subagent: review";
 
 fn body_contains(req: &wiremock::Request, text: &str) -> bool {
+    decoded_body(req)
+        .and_then(|body| String::from_utf8(body).ok())
+        .is_some_and(|body| body.contains(text))
+}
+
+fn request_has_input_type(req: &wiremock::Request, ty: &str) -> bool {
+    decoded_body(req)
+        .and_then(|body| serde_json::from_slice::<Value>(&body).ok())
+        .and_then(|body| body.get("input").and_then(Value::as_array).cloned())
+        .is_some_and(|items| {
+            items
+                .iter()
+                .any(|item| item.get("type").and_then(Value::as_str) == Some(ty))
+        })
+}
+
+fn decoded_body(req: &wiremock::Request) -> Option<Vec<u8>> {
     let is_zstd = req
         .headers
         .get("content-encoding")
@@ -72,14 +95,18 @@ fn body_contains(req: &wiremock::Request, text: &str) -> bool {
                 .split(',')
                 .any(|entry| entry.trim().eq_ignore_ascii_case("zstd"))
         });
-    let bytes = if is_zstd {
+    if is_zstd {
         zstd::stream::decode_all(std::io::Cursor::new(&req.body)).ok()
     } else {
         Some(req.body.clone())
-    };
-    bytes
-        .and_then(|body| String::from_utf8(body).ok())
-        .is_some_and(|body| body.contains(text))
+    }
+}
+
+fn log_field<'a>(line: &'a str, name: &str) -> Option<&'a str> {
+    let prefix = format!("{name}=");
+    line.split_ascii_whitespace()
+        .find_map(|field| field.strip_prefix(&prefix))
+        .map(|value| value.trim_matches('"'))
 }
 
 fn has_subagent_notification(req: &ResponsesRequest) -> bool {
@@ -747,7 +774,9 @@ async fn subagent_stop_replaces_stop_and_skips_internal_subagents() -> Result<()
         .thread_manager
         .start_thread_with_options(StartThreadOptions {
             config: test.config.clone(),
+            allow_provider_model_fallback: false,
             initial_history: InitialHistory::New,
+            history_mode: None,
             session_source: Some(SessionSource::SubAgent(SubAgentSource::Review)),
             thread_source: None,
             dynamic_tools: Vec::new(),
@@ -830,8 +859,12 @@ async fn subagent_notification_is_included_without_wait() -> Result<()> {
     Ok(())
 }
 
+#[test_case(ThreadHistoryMode::Legacy; "legacy")]
+#[test_case(ThreadHistoryMode::Paginated; "paginated")]
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-async fn spawned_child_receives_forked_parent_context() -> Result<()> {
+async fn spawned_child_receives_forked_parent_context(
+    history_mode: ThreadHistoryMode,
+) -> Result<()> {
     skip_if_no_network!(Ok(()));
 
     let server = start_mock_server().await;
@@ -889,12 +922,14 @@ async fn spawned_child_receives_forked_parent_context() -> Result<()> {
     )
     .await;
 
-    let mut builder = test_codex().with_config(|config| {
-        config
-            .features
-            .enable(Feature::Collab)
-            .expect("test config should allow feature update");
-    });
+    let mut builder = test_codex()
+        .with_history_mode(history_mode)
+        .with_config(|config| {
+            config
+                .features
+                .enable(Feature::Collab)
+                .expect("test config should allow feature update");
+        });
     let test = builder.build(&server).await?;
 
     test.submit_turn(TURN_0_FORK_PROMPT).await?;
@@ -948,6 +983,80 @@ async fn spawn_agent_requested_model_and_reasoning_override_inherited_settings_w
     assert_eq!(
         child_snapshot.reasoning_effort,
         Some(REQUESTED_REASONING_EFFORT)
+    );
+
+    Ok(())
+}
+
+#[test_case(true, false; "unsupported child")]
+#[test_case(false, true; "supported child")]
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn spawned_agent_uses_summary_support_for_final_model(
+    parent_supports_summary: bool,
+    child_supports_summary: bool,
+) -> Result<()> {
+    skip_if_no_network!(Ok(()));
+
+    let server = start_mock_server().await;
+    let mut model_catalog = bundled_models_response().expect("bundled models.json should parse");
+    for (slug, supports_summary) in [
+        (INHERITED_MODEL, parent_supports_summary),
+        (REQUESTED_MODEL, child_supports_summary),
+    ] {
+        let model = model_catalog
+            .models
+            .iter_mut()
+            .find(|model| model.slug == slug)
+            .unwrap_or_else(|| panic!("{slug} should exist in bundled models.json"));
+        model.supports_reasoning_summary_parameter = supports_summary;
+    }
+
+    let (_test, _spawned_id, child_request_log) = setup_turn_one_with_custom_spawned_child(
+        &server,
+        json!({
+            "message": CHILD_PROMPT,
+            "model": REQUESTED_MODEL,
+        }),
+        /*child_response_delay*/ Some(Duration::from_secs(1)),
+        /*wait_for_parent_notification*/ false,
+        move |builder| {
+            builder.with_config(move |config| {
+                config.model_catalog = Some(model_catalog);
+                config.model_reasoning_summary = Some(ReasoningSummary::Detailed);
+                config
+                    .features
+                    .enable(Feature::ConcurrentReasoningSummaries)
+                    .expect("test config should allow feature update");
+            })
+        },
+    )
+    .await?;
+
+    let deadline = Instant::now() + Duration::from_secs(2);
+    let child_body = loop {
+        if let Some(body) = child_request_log
+            .requests()
+            .iter()
+            .map(ResponsesRequest::body_json)
+            .find(|body| body["model"] == REQUESTED_MODEL)
+        {
+            break body;
+        }
+        if Instant::now() >= deadline {
+            anyhow::bail!("timed out waiting for the child request");
+        }
+        sleep(Duration::from_millis(10)).await;
+    };
+    assert_eq!(child_body["model"], json!(REQUESTED_MODEL));
+    let expected_reasoning = if child_supports_summary {
+        json!({"effort": "medium", "summary": "detailed"})
+    } else {
+        json!({"effort": "medium"})
+    };
+    assert_eq!(child_body["reasoning"], expected_reasoning);
+    assert_eq!(
+        child_body.get("stream_options").is_some(),
+        child_supports_summary
     );
 
     Ok(())
@@ -1026,8 +1135,16 @@ async fn spawned_multi_agent_v2_child_inherits_parent_developer_context() -> Res
     Ok(())
 }
 
-#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[tokio::test]
 async fn encrypted_multi_agent_v2_spawn_sends_agent_message_to_child() -> Result<()> {
+    let output: &'static Mutex<Vec<u8>> = Box::leak(Box::new(Mutex::new(Vec::new())));
+    let subscriber = tracing_subscriber::fmt()
+        .with_ansi(false)
+        .with_max_level(Level::INFO)
+        .with_writer(MockWriter::new(output))
+        .finish();
+    let _guard = tracing::subscriber::set_default(subscriber);
+
     let server = start_mock_server().await;
     let encrypted_message = "opaque-encrypted-message";
     let spawn_args = serde_json::to_string(&json!({
@@ -1039,14 +1156,19 @@ async fn encrypted_multi_agent_v2_spawn_sends_agent_message_to_child() -> Result
         |req: &wiremock::Request| body_contains(req, TURN_1_PROMPT),
         sse(vec![
             ev_response_created("resp-parent-1"),
-            ev_function_call(SPAWN_CALL_ID, "spawn_agent", &spawn_args),
+            ev_function_call_with_namespace(
+                SPAWN_CALL_ID,
+                MULTI_AGENT_V2_NAMESPACE,
+                "spawn_agent",
+                &spawn_args,
+            ),
             ev_completed("resp-parent-1"),
         ]),
     )
     .await;
     let child_request_log = mount_sse_once_match(
         &server,
-        |req: &wiremock::Request| body_contains(req, "\"type\":\"agent_message\""),
+        |req: &wiremock::Request| request_has_input_type(req, "agent_message"),
         sse(vec![
             ev_response_created("resp-child-1"),
             ev_completed("resp-child-1"),
@@ -1056,7 +1178,7 @@ async fn encrypted_multi_agent_v2_spawn_sends_agent_message_to_child() -> Result
     mount_sse_once_match(
         &server,
         |req: &wiremock::Request| {
-            body_contains(req, SPAWN_CALL_ID) && !body_contains(req, "\"type\":\"agent_message\"")
+            body_contains(req, SPAWN_CALL_ID) && !request_has_input_type(req, "agent_message")
         },
         sse(vec![
             ev_response_created("resp-parent-2"),
@@ -1077,13 +1199,26 @@ async fn encrypted_multi_agent_v2_spawn_sends_agent_message_to_child() -> Result
             .expect("test config should allow feature update");
     });
     let test = builder.build(&server).await?;
+    let root_thread_id = test.session_configured.thread_id;
 
     test.submit_turn(TURN_1_PROMPT).await?;
 
-    let child_request = wait_for_requests(&child_request_log)
-        .await?
-        .pop()
-        .expect("child request");
+    // The response mock records candidate requests before its request matcher runs, so wait for
+    // the child request instead of assuming the latest recorded request is already it.
+    let deadline = Instant::now() + Duration::from_secs(2);
+    let child_request = loop {
+        if let Some(request) = child_request_log
+            .requests()
+            .into_iter()
+            .find(|request| !request.inputs_of_type("agent_message").is_empty())
+        {
+            break request;
+        }
+        if Instant::now() >= deadline {
+            anyhow::bail!("timed out waiting for child agent message request");
+        }
+        sleep(Duration::from_millis(10)).await;
+    };
     assert_eq!(
         strip_metadata_from_json(Value::Array(child_request.inputs_of_type("agent_message"))),
         Value::Array(vec![json!({
@@ -1102,6 +1237,41 @@ async fn encrypted_multi_agent_v2_spawn_sends_agent_message_to_child() -> Result
             ],
         })])
     );
+
+    let child_thread_id = test
+        .thread_manager
+        .list_thread_ids()
+        .await
+        .into_iter()
+        .find(|thread_id| *thread_id != root_thread_id)
+        .expect("child thread ID");
+    let logs = tokio::time::timeout(Duration::from_secs(5), async {
+        loop {
+            let logs = String::from_utf8(output.lock().expect("buffer lock").clone())
+                .expect("logs should be UTF-8");
+            if logs.contains("kind=\"spawn\"") && logs.contains("state=\"receive\"") {
+                break logs;
+            }
+            tokio::time::sleep(Duration::from_millis(10)).await;
+        }
+    })
+    .await
+    .expect("spawn communication logs should be emitted");
+    let send = logs
+        .lines()
+        .find(|line| line.contains("kind=\"spawn\"") && line.contains("state=\"send\""))
+        .expect("spawn send event");
+    assert!(send.contains(&format!("sender_thread_id={root_thread_id}")));
+    assert!(send.contains(&format!("receiver_thread_id={child_thread_id}")));
+    assert!(send.contains(&format!("content=\"{encrypted_message}\"")));
+
+    let communication_id = log_field(send, "communication_id").expect("communication ID");
+    logs.lines()
+        .find(|line| {
+            line.contains("state=\"receive\"")
+                && log_field(line, "communication_id") == Some(communication_id)
+        })
+        .expect("correlated receive event");
 
     Ok(())
 }
@@ -1128,7 +1298,12 @@ async fn plaintext_multi_agent_v2_completion_sends_agent_message(
         |req: &wiremock::Request| body_contains(req, TURN_1_PROMPT),
         sse(vec![
             ev_response_created("resp-parent-1"),
-            ev_function_call(SPAWN_CALL_ID, "spawn_agent", &spawn_args),
+            ev_function_call_with_namespace(
+                SPAWN_CALL_ID,
+                MULTI_AGENT_V2_NAMESPACE,
+                "spawn_agent",
+                &spawn_args,
+            ),
             ev_completed("resp-parent-1"),
         ]),
     )
@@ -1143,7 +1318,7 @@ async fn plaintext_multi_agent_v2_completion_sends_agent_message(
     };
     let child_request = mount_response_once_match(
         &server,
-        |req: &wiremock::Request| body_contains(req, "\"type\":\"agent_message\""),
+        |req: &wiremock::Request| request_has_input_type(req, "agent_message"),
         sse_response(sse(child_events)).set_delay(Duration::from_secs(1)),
     )
     .await;
@@ -1182,7 +1357,12 @@ async fn plaintext_multi_agent_v2_completion_sends_agent_message(
         },
         sse(vec![
             ev_response_created("resp-parent-3"),
-            ev_function_call("wait-agent-call", "wait_agent", "{}"),
+            ev_function_call_with_namespace(
+                "wait-agent-call",
+                MULTI_AGENT_V2_NAMESPACE,
+                "wait_agent",
+                "{}",
+            ),
             ev_completed("resp-parent-3"),
         ]),
     )

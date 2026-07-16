@@ -10,7 +10,8 @@
 //! current model preset's default, and it walks only efforts advertised by the
 //! active model. Unsupported efforts anchor to the model default, or the first
 //! advertised effort when the default is absent, before stepping through the
-//! advertised order.
+//! advertised order. Raising never silently crosses into Max or Ultra; those
+//! efforts require the explicit advanced-reasoning picker.
 
 use codex_protocol::config_types::ModeKind;
 use codex_protocol::openai_models::ModelPreset;
@@ -109,9 +110,43 @@ impl ChatWidget {
             return true;
         };
 
+        if direction == ReasoningShortcutDirection::Raise
+            && Self::is_advanced_reasoning_effort(&next_effort)
+        {
+            let advanced_label = choices
+                .iter()
+                .filter(|effort| Self::is_advanced_reasoning_effort(effort))
+                .map(Self::reasoning_effort_label)
+                .collect::<Vec<_>>()
+                .join(" and ");
+            let verb = if advanced_label.contains(" and ") {
+                "are"
+            } else {
+                "is"
+            };
+            let model_path = if current_model.starts_with("codex-auto-") {
+                current_model
+            } else {
+                format!("All models → {current_model}")
+            };
+            self.add_info_message(
+                format!(
+                    "{advanced_label} {verb} available under /model → {model_path} → More reasoning…"
+                ),
+                /*hint*/ None,
+            );
+            return true;
+        }
+
         if self.collaboration_modes_enabled() && self.active_mode_kind() == ModeKind::Plan {
+            let warning = self.ultra_reasoning_concurrency_warning(&next_effort);
             self.app_event_tx
                 .send(AppEvent::UpdatePlanModeReasoningEffort(Some(next_effort)));
+            if let Some(warning) = warning {
+                self.app_event_tx.send(AppEvent::InsertHistoryCell(Box::new(
+                    crate::history_cell::new_warning_event(warning),
+                )));
+            }
         } else {
             self.apply_model_and_effort_without_persist(current_model, Some(next_effort));
         }
@@ -130,11 +165,13 @@ impl ChatWidget {
 }
 
 fn reasoning_choices(preset: &ModelPreset) -> Vec<ReasoningEffortConfig> {
-    let mut choices: Vec<ReasoningEffortConfig> = preset
+    let (mut choices, mut advanced_choices): (Vec<_>, Vec<_>) = preset
         .supported_reasoning_efforts
         .iter()
         .map(|option| option.effort.clone())
-        .collect();
+        .partition(|effort| !ChatWidget::is_advanced_reasoning_effort(effort));
+    advanced_choices.sort_by_key(|effort| matches!(effort, ReasoningEffortConfig::Ultra));
+    choices.extend(advanced_choices);
     if choices.is_empty() {
         choices.push(preset.default_reasoning_effort.clone());
     }
@@ -225,7 +262,7 @@ mod tests {
 
     #[test]
     fn next_reasoning_effort_uses_advertised_order_for_custom_levels() {
-        let custom_effort = ReasoningEffortConfig::Custom("max".to_string());
+        let custom_effort = ReasoningEffortConfig::Custom("future".to_string());
         let choices = vec![
             ReasoningEffortConfig::High,
             ReasoningEffortConfig::Low,

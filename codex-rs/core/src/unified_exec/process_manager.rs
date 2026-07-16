@@ -2,6 +2,7 @@ use rand::Rng;
 use std::cmp::Reverse;
 use std::collections::HashMap;
 use std::collections::HashSet;
+use std::num::NonZeroUsize;
 use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering;
@@ -13,8 +14,10 @@ use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
 
 use crate::codex_thread::BackgroundTerminalInfo;
+use crate::exec_env::CODEX_PERMISSION_PROFILE_ENV_VAR;
 use crate::exec_env::CODEX_THREAD_ID_ENV_VAR;
 use crate::exec_env::create_env;
+use crate::exec_env::inject_permission_profile_env;
 use crate::exec_policy::ExecApprovalRequest;
 use crate::sandboxing::ExecOptions;
 use crate::sandboxing::ExecRequest;
@@ -26,6 +29,7 @@ use crate::tools::events::ToolEventStage;
 use crate::tools::network_approval::DeferredNetworkApproval;
 use crate::tools::network_approval::finish_deferred_network_approval;
 use crate::tools::orchestrator::ToolOrchestrator;
+use crate::tools::runtimes::is_managed_proxy_env_var;
 use crate::tools::runtimes::unified_exec::UnifiedExecRequest as UnifiedExecToolRequest;
 use crate::tools::runtimes::unified_exec::UnifiedExecRuntime;
 use crate::tools::sandboxing::SandboxAttempt;
@@ -60,7 +64,7 @@ use codex_protocol::error::SandboxErr;
 use codex_protocol::protocol::ExecCommandSource;
 use codex_sandboxing::SandboxCommand;
 use codex_tools::ToolName;
-use codex_utils_output_truncation::approx_token_count;
+use codex_utils_output_truncation::approx_tokens_from_byte_count;
 use codex_utils_path_uri::PathUri;
 
 const UNIFIED_EXEC_ENV: [(&str, &str); 10] = [
@@ -108,15 +112,19 @@ fn apply_unified_exec_env(mut env: HashMap<String, String>) -> HashMap<String, S
 fn exec_env_policy_from_shell_policy(
     policy: &ShellEnvironmentPolicy,
 ) -> codex_exec_server::ExecEnvPolicy {
+    let mut exclude = policy
+        .exclude
+        .iter()
+        .map(std::string::ToString::to_string)
+        .collect::<Vec<_>>();
+    exclude.push(CODEX_PERMISSION_PROFILE_ENV_VAR.to_string());
+    let mut r#set = policy.r#set.clone();
+    r#set.retain(|key, _| !key.eq_ignore_ascii_case(CODEX_PERMISSION_PROFILE_ENV_VAR));
     codex_exec_server::ExecEnvPolicy {
         inherit: policy.inherit.clone(),
         ignore_default_excludes: policy.ignore_default_excludes,
-        exclude: policy
-            .exclude
-            .iter()
-            .map(std::string::ToString::to_string)
-            .collect(),
-        r#set: policy.r#set.clone(),
+        exclude,
+        r#set,
         include_only: policy
             .include_only
             .iter()
@@ -131,7 +139,10 @@ fn env_overlay_for_exec_server(
 ) -> HashMap<String, String> {
     request_env
         .iter()
-        .filter(|(key, value)| local_policy_env.get(*key) != Some(*value))
+        .filter(|(key, value)| {
+            key.as_str() == CODEX_PERMISSION_PROFILE_ENV_VAR
+                || local_policy_env.get(*key) != Some(*value)
+        })
         .map(|(key, value)| (key.clone(), value.clone()))
         .collect()
 }
@@ -143,10 +154,16 @@ fn exec_server_env_for_request(
     HashMap<String, String>,
 ) {
     if let Some(exec_server_env_config) = &request.exec_server_env_config {
-        (
-            Some(exec_server_env_config.policy.clone()),
-            env_overlay_for_exec_server(&request.env, &exec_server_env_config.local_policy_env),
-        )
+        let mut env =
+            env_overlay_for_exec_server(&request.env, &exec_server_env_config.local_policy_env);
+        if request.exec_server_managed_network.is_some() {
+            for (key, value) in &request.env {
+                if is_managed_proxy_env_var(key, value) {
+                    env.insert(key.clone(), value.clone());
+                }
+            }
+        }
+        (Some(exec_server_env_config.policy.clone()), env)
     } else {
         (None, request.env.clone())
     }
@@ -175,6 +192,7 @@ fn exec_server_params_for_request(
         arg0: request.arg0.clone(),
         sandbox: request.exec_server_sandbox.clone(),
         enforce_managed_network: request.exec_server_enforce_managed_network,
+        managed_network: request.exec_server_managed_network.clone(),
     }
 }
 
@@ -470,22 +488,24 @@ impl UnifiedExecProcessManager {
             cancellation_token,
         } = process.output_handles();
         let deadline = start + Duration::from_millis(yield_time_ms);
-        let collected = Self::collect_output_until_deadline(
+        let collected_output = Self::collect_output_until_deadline(
             &output_buffer,
             &output_notify,
             &output_closed,
             &output_closed_notify,
             &cancellation_token,
-            Some(
-                context
-                    .session
-                    .subscribe_out_of_band_elicitation_pause_state(),
-            ),
+            Some(context.session.subscribe_elicitation_pause_state()),
             deadline,
         )
         .await;
         let wall_time = Instant::now().saturating_duration_since(start);
 
+        let original_token_count = usize::try_from(approx_tokens_from_byte_count(
+            collected_output.total_bytes(),
+        ))
+        .unwrap_or(usize::MAX);
+        let output_omitted_bytes = NonZeroUsize::new(collected_output.omitted_bytes());
+        let collected = collected_output.to_bytes_with_omission_marker();
         let text = String::from_utf8_lossy(&collected).to_string();
         let chunk_id = generate_chunk_id();
         if deferred_network_approval
@@ -552,7 +572,15 @@ impl UnifiedExecProcessManager {
                     {
                         return Err(fail_process_with_message(entry.process.as_ref(), message));
                     }
-                    process.check_for_sandbox_denial_with_text(&text).await?;
+                    process
+                        .check_for_sandbox_denial_with_text(&text)
+                        .await
+                        .map_err(|err| {
+                            err.with_output_collection_metadata(
+                                original_token_count,
+                                output_omitted_bytes,
+                            )
+                        })?;
                     (None, exit_code)
                 }
                 ProcessStatus::Unknown => {
@@ -560,9 +588,8 @@ impl UnifiedExecProcessManager {
                 }
             }
         } else {
-            // Short‑lived command: emit ExecCommandEnd immediately using the
-            // same helper as the background watcher, so all end events share
-            // one implementation.
+            // Short-lived command: emit the completed command item immediately
+            // using the same helper as the background watcher.
             let finish_result = finish_deferred_network_approval_after_process_exit_for_session(
                 Some(&context.session),
                 deferred_network_approval.take(),
@@ -600,11 +627,15 @@ impl UnifiedExecProcessManager {
             .await;
 
             self.release_process_id(request.process_id).await;
-            process.check_for_sandbox_denial_with_text(&text).await?;
+            process
+                .check_for_sandbox_denial_with_text(&text)
+                .await
+                .map_err(|err| {
+                    err.with_output_collection_metadata(original_token_count, output_omitted_bytes)
+                })?;
             (None, exit_code)
         };
 
-        let original_token_count = approx_token_count(&text);
         let response = ExecCommandToolOutput {
             event_call_id: context.call_id.clone(),
             chunk_id,
@@ -615,6 +646,7 @@ impl UnifiedExecProcessManager {
             process_id: response_process_id,
             exit_code,
             original_token_count: Some(original_token_count),
+            output_omitted_bytes,
             hook_command: Some(request.hook_command.clone()),
         };
 
@@ -687,7 +719,7 @@ impl UnifiedExecProcessManager {
         };
         let start = Instant::now();
         let deadline = start + Duration::from_millis(yield_time_ms);
-        let collected = Self::collect_output_until_deadline(
+        let collected_output = Self::collect_output_until_deadline(
             &output_buffer,
             &output_notify,
             &output_closed,
@@ -699,8 +731,12 @@ impl UnifiedExecProcessManager {
         .await;
         let wall_time = Instant::now().saturating_duration_since(start);
 
-        let text = String::from_utf8_lossy(&collected).to_string();
-        let original_token_count = approx_token_count(&text);
+        let original_token_count = usize::try_from(approx_tokens_from_byte_count(
+            collected_output.total_bytes(),
+        ))
+        .unwrap_or(usize::MAX);
+        let output_omitted_bytes = NonZeroUsize::new(collected_output.omitted_bytes());
+        let collected = collected_output.to_bytes_with_omission_marker();
         let chunk_id = generate_chunk_id();
         if network_approval
             .as_ref()
@@ -770,6 +806,7 @@ impl UnifiedExecProcessManager {
             process_id,
             exit_code,
             original_token_count: Some(original_token_count),
+            output_omitted_bytes,
             hook_command: Some(hook_command),
         };
 
@@ -822,7 +859,7 @@ impl UnifiedExecProcessManager {
         let pause_state = entry
             .session
             .upgrade()
-            .map(|session| session.subscribe_out_of_band_elicitation_pause_state());
+            .map(|session| session.subscribe_elicitation_pause_state());
         let session = entry.session.upgrade();
 
         Ok(PreparedProcessHandles {
@@ -1102,6 +1139,8 @@ impl UnifiedExecProcessManager {
             CODEX_THREAD_ID_ENV_VAR.to_string(),
             context.session.thread_id.to_string(),
         );
+        let active_permission_profile = context.turn.config.permissions.active_permission_profile();
+        inject_permission_profile_env(&mut env, active_permission_profile.as_ref());
         let env = apply_unified_exec_env(env);
         let exec_server_env_config = ExecServerEnvConfig {
             policy: exec_env_policy_from_shell_policy(
@@ -1193,10 +1232,10 @@ impl UnifiedExecProcessManager {
         cancellation_token: &CancellationToken,
         mut pause_state: Option<watch::Receiver<bool>>,
         mut deadline: Instant,
-    ) -> Vec<u8> {
+    ) -> HeadTailBuffer {
         const POST_EXIT_CLOSE_WAIT_CAP: Duration = Duration::from_millis(50);
 
-        let mut collected: Vec<u8> = Vec::with_capacity(4096);
+        let mut collected = HeadTailBuffer::default();
         let mut exit_signal_received = cancellation_token.is_cancelled();
         let mut post_exit_deadline: Option<Instant> = None;
         loop {
@@ -1206,17 +1245,20 @@ impl UnifiedExecProcessManager {
                 &mut post_exit_deadline,
             )
             .await;
-            let drained_chunks: Vec<Vec<u8>>;
+            let drained_output: HeadTailBuffer;
+            let has_drained_output: bool;
             let mut wait_for_output = None;
             {
                 let mut guard = output_buffer.lock().await;
-                drained_chunks = guard.drain_chunks();
-                if drained_chunks.is_empty() {
+                drained_output = guard.drain();
+                has_drained_output =
+                    drained_output.retained_bytes() > 0 || drained_output.omitted_bytes() > 0;
+                if !has_drained_output {
                     wait_for_output = Some(output_notify.notified());
                 }
             }
 
-            if drained_chunks.is_empty() {
+            if !has_drained_output {
                 exit_signal_received |= cancellation_token.is_cancelled();
                 if exit_signal_received && output_closed.load(std::sync::atomic::Ordering::Acquire)
                 {
@@ -1261,9 +1303,7 @@ impl UnifiedExecProcessManager {
                 continue;
             }
 
-            for chunk in drained_chunks {
-                collected.extend_from_slice(&chunk);
-            }
+            collected.push_buffer(drained_output);
 
             exit_signal_received |= cancellation_token.is_cancelled();
             if Instant::now() >= deadline {

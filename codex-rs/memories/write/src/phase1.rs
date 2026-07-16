@@ -412,8 +412,10 @@ mod job {
                     Some(communication.to_model_input_item())
                 }
                 RolloutItem::SessionMeta(_)
+                | RolloutItem::InterAgentCommunicationMetadata { .. }
                 | RolloutItem::Compacted(_)
                 | RolloutItem::TurnContext(_)
+                | RolloutItem::WorldState(_)
                 | RolloutItem::EventMsg(_) => None,
             })
             .collect::<Vec<_>>();
@@ -648,6 +650,11 @@ fn emit_metrics(context: &StageOneRequestContext, counts: &Stats) {
         );
         context.histogram(
             MEMORY_PHASE_ONE_TOKEN_USAGE,
+            token_usage.cache_write_input_tokens.max(0),
+            &[("token_type", "cache_write_input")],
+        );
+        context.histogram(
+            MEMORY_PHASE_ONE_TOKEN_USAGE,
             token_usage.output_tokens.max(0),
             &[("token_type", "output")],
         );
@@ -791,6 +798,27 @@ mod tests {
     }
 
     #[test]
+    fn serializes_agent_message_response_items_for_memory() {
+        let communication = InterAgentCommunication::new(
+            AgentPath::root(),
+            AgentPath::root().join("worker").expect("agent path"),
+            Vec::new(),
+            "delegated task".to_string(),
+            /*trigger_turn*/ true,
+        );
+        let response_item = communication.to_model_input_item();
+
+        let serialized = job::serialize_filtered_rollout_response_items(&[
+            RolloutItem::InterAgentCommunicationMetadata { trigger_turn: true },
+            RolloutItem::ResponseItem(response_item.clone()),
+        ])
+        .expect("serialize");
+        let parsed: Vec<ResponseItem> = serde_json::from_str(&serialized).expect("parse");
+
+        assert_eq!(parsed, vec![response_item]);
+    }
+
+    #[test]
     fn count_outcomes_sums_token_usage_across_all_jobs() {
         let counts = aggregate_stats(vec![
             JobResult {
@@ -798,6 +826,7 @@ mod tests {
                 token_usage: Some(TokenUsage {
                     input_tokens: 10,
                     cached_input_tokens: 2,
+                    cache_write_input_tokens: 0,
                     output_tokens: 3,
                     reasoning_output_tokens: 1,
                     total_tokens: 13,
@@ -808,6 +837,7 @@ mod tests {
                 token_usage: Some(TokenUsage {
                     input_tokens: 7,
                     cached_input_tokens: 1,
+                    cache_write_input_tokens: 0,
                     output_tokens: 2,
                     reasoning_output_tokens: 0,
                     total_tokens: 9,
@@ -828,6 +858,7 @@ mod tests {
             Some(TokenUsage {
                 input_tokens: 17,
                 cached_input_tokens: 3,
+                cache_write_input_tokens: 0,
                 output_tokens: 5,
                 reasoning_output_tokens: 1,
                 total_tokens: 22,

@@ -39,4 +39,3 @@ tempfile = { workspace = true }
 
 [lib]
 doctest = false
-

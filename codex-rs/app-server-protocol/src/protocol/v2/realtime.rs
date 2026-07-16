@@ -70,15 +70,19 @@ pub struct ThreadRealtimeStartParams {
     /// them automatically. Defaults to false.
     #[ts(optional = nullable)]
     pub client_managed_handoffs: Option<bool>,
+    /// Routes any transcript tail remaining at session end through Codex. Defaults to false.
+    /// TODO: Remove this rollout knob once transcript-tail flushing is always enabled.
+    #[ts(optional = nullable)]
+    pub flush_transcript_tail_on_session_end: Option<bool>,
     /// Sends automatic Codex responses as realtime conversation items instead of handoff appends.
     #[ts(optional = nullable)]
     pub codex_responses_as_items: Option<bool>,
     /// Optional prefix added to automatic Codex response items when `codexResponsesAsItems` is true.
     #[ts(optional = nullable)]
     pub codex_response_item_prefix: Option<String>,
-    /// Optional prefix added to automatic V1 Codex commentary sent with
-    /// `conversation.handoff.append` when `codexResponsesAsItems` is not true. Final answers are
-    /// sent without the prefix.
+    /// Optional prefix added to automatic V1 or V3 Codex commentary sent through the selected
+    /// Bidi handoff wire event when `codexResponsesAsItems` is not true. Final answers are sent
+    /// without the prefix.
     #[ts(optional = nullable)]
     pub codex_response_handoff_prefix: Option<String>,
     /// Overrides the configured realtime model for this session only.

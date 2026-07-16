@@ -7,8 +7,8 @@
 use serde::Serialize;
 use std::time::Duration;
 
-use codex_app_server_protocol::AuthMode as ApiAuthMode;
-use codex_client::CodexHttpClient;
+use codex_http_client::HttpClient;
+use codex_protocol::auth::AuthMode;
 
 use super::manager::REFRESH_TOKEN_URL_OVERRIDE_ENV_VAR;
 use super::manager::REVOKE_TOKEN_URL;
@@ -77,25 +77,25 @@ fn revocable_token(auth_dot_json: &AuthDotJson) -> Option<(&str, RevokeTokenKind
 }
 
 fn managed_chatgpt_tokens(auth_dot_json: &AuthDotJson) -> Option<&TokenData> {
-    if resolved_auth_mode(auth_dot_json) == ApiAuthMode::Chatgpt {
+    if resolved_auth_mode(auth_dot_json) == AuthMode::Chatgpt {
         auth_dot_json.tokens.as_ref()
     } else {
         None
     }
 }
 
-fn resolved_auth_mode(auth_dot_json: &AuthDotJson) -> ApiAuthMode {
+fn resolved_auth_mode(auth_dot_json: &AuthDotJson) -> AuthMode {
     if let Some(mode) = auth_dot_json.auth_mode {
         return mode;
     }
     if auth_dot_json.openai_api_key.is_some() {
-        return ApiAuthMode::ApiKey;
+        return AuthMode::ApiKey;
     }
-    ApiAuthMode::Chatgpt
+    AuthMode::Chatgpt
 }
 
 async fn revoke_oauth_token(
-    client: &CodexHttpClient,
+    client: &HttpClient,
     endpoint: &str,
     token: &str,
     kind: RevokeTokenKind,
@@ -155,6 +155,9 @@ fn derive_revoke_token_endpoint(refresh_endpoint: &str) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use codex_http_client::ClientRouteClass;
+    use codex_http_client::HttpClientFactory;
+    use codex_http_client::OutboundProxyPolicy;
     use core_test_support::skip_if_no_network;
     use wiremock::Mock;
     use wiremock::MockServer;
@@ -181,8 +184,10 @@ mod tests {
             .mount(&server)
             .await;
 
-        let client = CodexHttpClient::new(reqwest::Client::new());
         let endpoint = format!("{}/oauth/revoke", server.uri());
+        let client = HttpClientFactory::new(OutboundProxyPolicy::ReqwestDefault)
+            .build_client(&endpoint, ClientRouteClass::Auth)
+            .expect("test HTTP client should build");
         let error = revoke_oauth_token(
             &client,
             endpoint.as_str(),

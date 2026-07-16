@@ -114,26 +114,3 @@ under `rusty-v8-v<crate_version>`.
 
 Do not mix artifacts across crate versions. The archive and binding must match
 the exact resolved `v8` crate version in `codex-rs/Cargo.lock`.
-- `openai/codex` release assets for published musl release pairs
-Cargo builds still use prebuilt `rusty_v8` archives by default. Only Bazel
-overrides `RUSTY_V8_ARCHIVE`/`RUSTY_V8_SRC_BINDING_PATH` in `MODULE.bazel` to
-select source-built local archives for its consumer builds.
-Source-built Bazel V8 artifacts enable V8's in-process sandbox by default, and
-the Bazel `v8` crate feature selection tracks those targets. A full consumer
-rollout still needs matching sandbox-enabled archives for every non-source-built
-target. Until that artifact migration lands, the rusty_v8 publishing workflows
-use `--config=v8-release-compat` to preserve the current non-sandboxed release
-artifact contract.
-- Rust crate: `v8 = =147.4.0`
-- Embedded upstream V8 source for Bazel-produced release builds: `14.7.173.20`
-used by `rusty_v8 v147.4.0`, compiles published artifact targets with
-the final static archive so Cargo consumers can link it with the `v8` crate's
-default `use_custom_libcxx` feature. The config keeps the object files and the
-bundled runtime on Chromium's `std::__Cr` ABI namespace instead of mixing those
-objects with the toolchain libc++ default namespace.
-Cargo musl builds use `RUSTY_V8_ARCHIVE` plus a downloaded
-`RUSTY_V8_SRC_BINDING_PATH` to point at those `openai/codex` release assets
-directly. We do not use `RUSTY_V8_MIRROR` for musl because the upstream `v8`
-crate hardcodes a `v<crate_version>` tag layout, while our musl artifacts are
-published under `rusty-v8-v<crate_version>`.
-

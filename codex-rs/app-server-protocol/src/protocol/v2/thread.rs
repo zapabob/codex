@@ -4,6 +4,7 @@ use super::AskForApproval;
 use super::SandboxMode;
 use super::SandboxPolicy;
 use super::Thread;
+use super::ThreadHistoryMode;
 use super::ThreadItem;
 use super::ThreadSource;
 use super::Turn;
@@ -57,6 +58,11 @@ pub struct ThreadStartParams {
     pub model: Option<String>,
     #[ts(optional = nullable)]
     pub model_provider: Option<String>,
+    /// Allow a provider with an authoritative static model catalog to replace an unavailable
+    /// requested model with its default.
+    #[experimental("thread/start.allowProviderModelFallback")]
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub allow_provider_model_fallback: bool,
     #[serde(
         default,
         deserialize_with = "crate::protocol::serde_helpers::deserialize_double_option",
@@ -100,6 +106,10 @@ pub struct ThreadStartParams {
     pub multi_agent_mode: Option<MultiAgentMode>,
     #[ts(optional = nullable)]
     pub ephemeral: Option<bool>,
+    /// Persisted thread history contract to use for this new thread.
+    #[experimental("thread/start.historyMode")]
+    #[ts(optional = nullable)]
+    pub history_mode: Option<ThreadHistoryMode>,
     #[ts(optional = nullable)]
     pub session_start_source: Option<ThreadStartSource>,
     /// Optional client-supplied analytics source classification for this thread.
@@ -425,6 +435,20 @@ pub struct ThreadResumeResponse {
     #[experimental("thread/resume.initialTurnsPage")]
     #[serde(default)]
     pub initial_turns_page: Option<TurnsPage>,
+    /// Opaque head cursor for hydrating paginated turns backwards.
+    ///
+    /// Pass this as `cursor` to `thread/turns/list` with
+    /// `sortDirection: "desc"`. The first page includes the cursor's head turn.
+    #[experimental("thread/resume.turnsBackwardsCursor")]
+    #[serde(default)]
+    pub turns_backwards_cursor: Option<String>,
+    /// Opaque head cursor for hydrating paginated items backwards.
+    ///
+    /// Pass this as `cursor` to `thread/items/list` with
+    /// `sortDirection: "desc"`. The first page includes the cursor's head item.
+    #[experimental("thread/resume.itemsBackwardsCursor")]
+    #[serde(default)]
+    pub items_backwards_cursor: Option<String>,
 }
 
 impl ThreadResumeResponse {
@@ -483,6 +507,19 @@ impl From<ThreadTurnsListResponse> for TurnsPage {
 /// Prefer using thread_id whenever possible.
 pub struct ThreadForkParams {
     pub thread_id: String,
+
+    /// Optional last turn id to fork through, inclusive.
+    ///
+    /// When specified, turns after `last_turn_id` are omitted from the fork.
+    /// The referenced turn cannot be in progress.
+    #[ts(optional = nullable)]
+    pub last_turn_id: Option<String>,
+
+    /// Optional turn id to fork before, excluding that turn and all later turns.
+    /// Cannot be combined with `last_turn_id`.
+    #[experimental("thread/fork.beforeTurnId")]
+    #[ts(optional = nullable)]
+    pub before_turn_id: Option<String>,
 
     /// [UNSTABLE] Specify the rollout path to fork from.
     /// If specified, the thread_id param will be ignored.
@@ -544,6 +581,12 @@ pub struct ThreadForkParams {
     #[experimental("thread/fork.excludeTurns")]
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub exclude_turns: bool,
+    /// When true, carry the source thread's current goal into the fork without
+    /// starting its initial automatic continuation. The next explicit turn owns
+    /// the goal lifecycle, and normal automatic continuation resumes after it.
+    #[experimental("thread/fork.deferGoalContinuation")]
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub defer_goal_continuation: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS, ExperimentalApi)]
@@ -668,7 +711,7 @@ pub struct ThreadIncrementElicitationParams {
 #[ts(export_to = "v2/")]
 pub struct ThreadIncrementElicitationResponse {
     /// Current out-of-band elicitation count after the increment.
-    pub count: u64,
+    pub count: i64,
     /// Whether timeout accounting is paused after applying the increment.
     pub paused: bool,
 }
@@ -688,7 +731,7 @@ pub struct ThreadDecrementElicitationParams {
 #[ts(export_to = "v2/")]
 pub struct ThreadDecrementElicitationResponse {
     /// Current out-of-band elicitation count after the decrement.
-    pub count: u64,
+    pub count: i64,
     /// Whether timeout accounting remains paused after applying the decrement.
     pub paused: bool,
 }
@@ -1025,6 +1068,7 @@ pub struct ThreadBackgroundTerminalsTerminateResponse {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
+/// DEPRECATED: `thread/rollback` will be removed soon.
 pub struct ThreadRollbackParams {
     pub thread_id: String,
     /// The number of turns to drop from the end of the thread. Must be >= 1.
@@ -1086,10 +1130,15 @@ pub struct ThreadListParams {
     /// Optional substring filter for the extracted thread title.
     #[ts(optional = nullable)]
     pub search_term: Option<String>,
-    /// Optional direct parent thread filter.
+    /// Optional direct parent thread filter. Mutually exclusive with `ancestorThreadId`.
     #[experimental("thread/list.parentThreadId")]
     #[ts(optional = nullable)]
     pub parent_thread_id: Option<String>,
+    /// Optional ancestor thread filter. Returns spawned descendants at any depth, excluding the
+    /// ancestor itself. Mutually exclusive with `parentThreadId`.
+    #[experimental("thread/list.ancestorThreadId")]
+    #[ts(optional = nullable)]
+    pub ancestor_thread_id: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
@@ -1314,9 +1363,11 @@ pub struct ThreadTurnsListResponse {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
-pub struct ThreadTurnsItemsListParams {
+pub struct ThreadItemsListParams {
     pub thread_id: String,
-    pub turn_id: String,
+    /// Optional turn id to filter by. When omitted, returns items across the thread.
+    #[ts(optional = nullable)]
+    pub turn_id: Option<String>,
     /// Opaque cursor to pass to the next call to continue after the last item.
     #[ts(optional = nullable)]
     pub cursor: Option<String>,
@@ -1331,8 +1382,17 @@ pub struct ThreadTurnsItemsListParams {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
-pub struct ThreadTurnsItemsListResponse {
-    pub data: Vec<ThreadItem>,
+pub struct ThreadItemEntry {
+    /// Turn containing this item.
+    pub turn_id: String,
+    pub item: ThreadItem,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub struct ThreadItemsListResponse {
+    pub data: Vec<ThreadItemEntry>,
     /// Opaque cursor to pass to the next call to continue after the last item.
     /// if None, there are no more items to return.
     pub next_cursor: Option<String>,
@@ -1348,6 +1408,18 @@ pub struct ThreadTokenUsageUpdatedNotification {
     pub thread_id: String,
     pub turn_id: String,
     pub token_usage: ThreadTokenUsage,
+}
+
+/// Internal-only notification containing the exact usage from one upstream
+/// Responses API completion.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
+pub struct RawResponseCompletedNotification {
+    pub thread_id: String,
+    pub turn_id: String,
+    pub response_id: String,
+    pub usage: Option<TokenUsageBreakdown>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
@@ -1381,6 +1453,9 @@ pub struct TokenUsageBreakdown {
     pub input_tokens: i64,
     #[ts(type = "number")]
     pub cached_input_tokens: i64,
+    #[serde(default)]
+    #[ts(type = "number")]
+    pub cache_write_input_tokens: i64,
     #[ts(type = "number")]
     pub output_tokens: i64,
     #[ts(type = "number")]
@@ -1393,6 +1468,7 @@ impl From<CoreTokenUsage> for TokenUsageBreakdown {
             total_tokens: value.total_tokens,
             input_tokens: value.input_tokens,
             cached_input_tokens: value.cached_input_tokens,
+            cache_write_input_tokens: value.cache_write_input_tokens,
             output_tokens: value.output_tokens,
             reasoning_output_tokens: value.reasoning_output_tokens,
         }

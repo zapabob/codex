@@ -9,9 +9,7 @@ use codex_protocol::permissions::FileSystemSandboxPolicy;
 use codex_protocol::permissions::FileSystemSpecialPath;
 use codex_protocol::permissions::NetworkSandboxPolicy;
 use codex_protocol::permissions::project_roots_glob_pattern;
-use codex_protocol::protocol::AskForApproval;
-use codex_protocol::protocol::SandboxPolicy;
-use codex_protocol::protocol::TurnContextItem;
+use codex_utils_absolute_path::AbsolutePathBuf;
 use codex_utils_absolute_path::test_support::PathBufExt;
 use core_test_support::test_path_buf;
 use pretty_assertions::assert_eq;
@@ -88,7 +86,7 @@ fn serialize_workspace_write_environment_context() {
 
 #[test]
 fn serialize_environment_context_with_foreign_windows_cwd() {
-    let context = environment_state(
+    let mut context = environment_state(
         [environment(
             "remote",
             PathUri::parse("file:///C:/windows").expect("Windows cwd URI"),
@@ -99,12 +97,17 @@ fn serialize_environment_context_with_foreign_windows_cwd() {
         /*network*/ None,
         /*subagents*/ None,
     );
+    context.filesystem = Some(FileSystemContext::from_permission_profile(
+        &PermissionProfile::Disabled,
+        &[PathUri::parse("file:///D:/workspace").expect("Windows workspace root URI")],
+    ));
 
     assert_eq!(
         context.render(),
         r#"<environment_context>
   <cwd>C:\windows</cwd>
   <shell>powershell</shell>
+  <filesystem><workspace_roots><root>D:\workspace</root></workspace_roots><permission_profile type="disabled"><file_system type="unrestricted" /></permission_profile></filesystem>
 </environment_context>"#
     );
 }
@@ -152,7 +155,7 @@ fn workspace_write_permission_profile_with_private_denials() -> PermissionProfil
             },
             FileSystemSandboxEntry {
                 path: FileSystemPath::Special {
-                    value: FileSystemSpecialPath::project_roots(Some(PathBuf::from("private"))),
+                    value: FileSystemSpecialPath::project_roots(Some("private".to_string())),
                 },
                 access: FileSystemAccessMode::Deny,
             },
@@ -190,7 +193,10 @@ fn serialize_environment_context_with_full_filesystem_profile() {
     );
     context.filesystem = Some(FileSystemContext::from_permission_profile(
         &workspace_write_permission_profile_with_private_denials(),
-        &[repo.clone(), other_repo.clone()],
+        &[
+            PathUri::from_abs_path(&repo),
+            PathUri::from_abs_path(&other_repo),
+        ],
     ));
 
     let expected = format!(
@@ -209,58 +215,6 @@ fn serialize_environment_context_with_full_filesystem_profile() {
     );
 
     assert_eq!(context.render(), expected);
-}
-
-#[test]
-fn turn_context_item_filesystem_uses_workspace_roots_instead_of_cwd() {
-    let repo = test_abs_path("/repo");
-    let other_repo = test_abs_path("/other-repo");
-    let repo_private = repo.join("private");
-    let item = TurnContextItem {
-        turn_id: None,
-        cwd: test_abs_path("/not-the-workspace"),
-        workspace_roots: Some(vec![repo.clone(), other_repo.clone()]),
-        current_date: None,
-        timezone: None,
-        approval_policy: AskForApproval::Never,
-        sandbox_policy: SandboxPolicy::new_read_only_policy(),
-        permission_profile: Some(workspace_write_permission_profile_with_private_denials()),
-        network: None,
-        file_system_sandbox_policy: None,
-        model: "gpt-5".to_string(),
-        comp_hash: None,
-        personality: None,
-        collaboration_mode: None,
-        multi_agent_version: None,
-        multi_agent_mode: None,
-        realtime_active: None,
-        effort: None,
-        summary: codex_protocol::config_types::ReasoningSummary::Auto,
-    };
-
-    let context = EnvironmentsState::from_turn_context_item(&item).render();
-
-    assert!(
-        context.contains(&format!(
-            "<root>{}</root><root>{}</root>",
-            repo.to_string_lossy(),
-            other_repo.to_string_lossy()
-        )),
-        "{context}"
-    );
-    assert!(
-        context.contains(&format!("<path>{}</path>", repo_private.to_string_lossy())),
-        "{context}"
-    );
-    assert!(
-        !context.contains(
-            test_abs_path("/not-the-workspace")
-                .join("private")
-                .to_string_lossy()
-                .as_ref()
-        ),
-        "{context}"
-    );
 }
 
 #[test]

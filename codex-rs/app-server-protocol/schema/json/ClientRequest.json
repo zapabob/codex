@@ -125,7 +125,6 @@
         {
           "enum": [
             "untrusted",
-            "on-failure",
             "on-request",
             "never"
           ],
@@ -210,6 +209,7 @@
               "type": "string"
             },
             "path": {
+              "description": "Absolute path for the root in the selected environment.",
               "type": "string"
             },
             "type": {
@@ -556,6 +556,13 @@
     },
     "ConsumeAccountRateLimitResetCreditParams": {
       "properties": {
+        "creditId": {
+          "description": "Opaque reset-credit identifier to redeem. When omitted, the backend selects the next available credit.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "idempotencyKey": {
           "description": "Identifies one logical reset attempt. A UUID is recommended; reuse the same value when retrying that attempt.",
           "type": "string"
@@ -803,6 +810,20 @@
         "includeHome": {
           "description": "If true, include detection under the user's home directory.",
           "type": "boolean"
+        },
+        "migrationSource": {
+          "description": "Optional migration-source selector. Missing or unrecognized values use the default source.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source": {
+          "description": "Deprecated field retained for compatibility. This field is ignored; use `migrationSource` to select the migration source.",
+          "type": [
+            "string",
+            "null"
+          ]
         }
       },
       "type": "object"
@@ -815,8 +836,15 @@
           },
           "type": "array"
         },
+        "migrationSource": {
+          "description": "Migration-source selector used to produce the migration items. Pass the same value to detection and import; missing or unrecognized values use the default source.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "source": {
-          "description": "Source product that produced the migration items. Missing means unspecified.",
+          "description": "Optional identifier for the product that initiated the import.",
           "type": [
             "string",
             "null"
@@ -870,6 +898,7 @@
         "SUBAGENTS",
         "HOOKS",
         "COMMANDS",
+        "MEMORY",
         "SESSIONS"
       ],
       "type": "string"
@@ -1456,6 +1485,17 @@
         },
         {
           "properties": {
+            "appBrand": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/LoginAppBrand"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
             "codexStreamlinedLogin": {
               "type": "boolean"
             },
@@ -1465,6 +1505,9 @@
               ],
               "title": "ChatgptLoginAccountParamsType",
               "type": "string"
+            },
+            "useHostedLoginSuccessPage": {
+              "type": "boolean"
             }
           },
           "required": [
@@ -1522,8 +1565,40 @@
           ],
           "title": "ChatgptAuthTokensLoginAccountParams",
           "type": "object"
+        },
+        {
+          "description": "[UNSTABLE] Managed Amazon Bedrock login is experimental.",
+          "properties": {
+            "apiKey": {
+              "type": "string"
+            },
+            "region": {
+              "type": "string"
+            },
+            "type": {
+              "enum": [
+                "amazonBedrock"
+              ],
+              "title": "AmazonBedrockLoginAccountParamsType",
+              "type": "string"
+            }
+          },
+          "required": [
+            "apiKey",
+            "region",
+            "type"
+          ],
+          "title": "AmazonBedrockLoginAccountParams",
+          "type": "object"
         }
       ]
+    },
+    "LoginAppBrand": {
+      "enum": [
+        "codex",
+        "chatgpt"
+      ],
+      "type": "string"
     },
     "MarketplaceAddParams": {
       "properties": {
@@ -1619,6 +1694,12 @@
             "null"
           ]
         },
+        "threadId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "timeoutSecs": {
           "format": "int64",
           "type": [
@@ -1709,6 +1790,12 @@
           },
           "type": "array"
         },
+        "memory": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "plugins": {
           "default": [],
           "items": {
@@ -1720,6 +1807,13 @@
           "default": [],
           "items": {
             "$ref": "#/definitions/SessionMigration"
+          },
+          "type": "array"
+        },
+        "skills": {
+          "default": [],
+          "items": {
+            "$ref": "#/definitions/SkillMigration"
           },
           "type": "array"
         },
@@ -1773,13 +1867,29 @@
       "type": "object"
     },
     "MultiAgentMode": {
-      "description": "Controls whether the model receives multi-agent delegation instructions and, when it does, whether it should only spawn sub-agents after an explicit user request or may delegate proactively when doing so would help. `none` leaves the multi-agent tools available without injecting delegation instructions.",
-      "enum": [
-        "none",
-        "explicitRequestOnly",
-        "proactive"
-      ],
-      "type": "string"
+      "description": "Controls the effective multi-agent delegation instructions for a turn. `custom` means the configured mode hint defines the policy instead of a built-in policy.",
+      "oneOf": [
+        {
+          "enum": [
+            "explicitRequestOnly",
+            "proactive"
+          ],
+          "type": "string"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "custom": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "custom"
+          ],
+          "title": "CustomMultiAgentMode",
+          "type": "object"
+        }
+      ]
     },
     "NetworkAccess": {
       "enum": [
@@ -2143,7 +2253,8 @@
     "RealtimeConversationVersion": {
       "enum": [
         "v1",
-        "v2"
+        "v2",
+        "v3"
       ],
       "type": "string"
     },
@@ -2669,6 +2780,12 @@
             },
             "name": {
               "type": "string"
+            },
+            "namespace": {
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "status": {
               "type": [
@@ -3407,6 +3524,17 @@
       ],
       "type": "object"
     },
+    "SkillMigration": {
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    },
     "SkillsConfigWriteParams": {
       "properties": {
         "enabled": {
@@ -3607,6 +3735,13 @@
         "ephemeral": {
           "type": "boolean"
         },
+        "lastTurnId": {
+          "description": "Optional last turn id to fork through, inclusive.\n\nWhen specified, turns after `last_turn_id` are omitted from the fork. The referenced turn cannot be in progress.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "model": {
           "description": "Configuration overrides for the forked thread, if any.",
           "type": [
@@ -3720,6 +3855,13 @@
         "usageLimited",
         "budgetLimited",
         "complete"
+      ],
+      "type": "string"
+    },
+    "ThreadHistoryMode": {
+      "enum": [
+        "legacy",
+        "paginated"
       ],
       "type": "string"
     },
@@ -4150,6 +4292,7 @@
       "type": "object"
     },
     "ThreadRollbackParams": {
+      "description": "DEPRECATED: `thread/rollback` will be removed soon.",
       "properties": {
         "numTurns": {
           "description": "The number of turns to drop from the end of the thread. Must be >= 1.\n\nThis only modifies the thread's history and does not revert local file changes that have been made by the agent. Clients are responsible for reverting these changes.",
@@ -4382,6 +4525,16 @@
         },
         "environmentId": {
           "type": "string"
+        },
+        "runtimeWorkspaceRoots": {
+          "description": "Environment-native runtime workspace roots. Omitted defaults to `cwd`.",
+          "items": {
+            "$ref": "#/definitions/LegacyAppPathString"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
         }
       },
       "required": [
@@ -6834,5 +6987,4 @@
     }
   ],
   "title": "ClientRequest"
-
 }

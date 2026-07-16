@@ -1,4 +1,5 @@
 use super::*;
+use codex_app_server_protocol::ImageGenerationItem;
 use codex_app_server_protocol::PluginAvailability;
 use pretty_assertions::assert_eq;
 
@@ -112,6 +113,7 @@ pub(super) fn snapshot(percent: f64) -> RateLimitSnapshot {
         secondary: None,
         credits: None,
         individual_limit: None,
+        spend_control_reached: None,
         plan_type: None,
         rate_limit_reached_type: None,
     }
@@ -227,7 +229,7 @@ pub(super) fn next_submit_op(op_rx: &mut tokio::sync::mpsc::UnboundedReceiver<Op
 pub(super) fn next_interrupt_op(op_rx: &mut tokio::sync::mpsc::UnboundedReceiver<Op>) {
     loop {
         match op_rx.try_recv() {
-            Ok(Op::Interrupt { .. }) => return,
+            Ok(Op::Interrupt) => return,
             Ok(_) => continue,
             Err(TryRecvError::Empty) => panic!("expected interrupt op but queue was empty"),
             Err(TryRecvError::Disconnected) => panic!("expected interrupt op but channel closed"),
@@ -275,7 +277,6 @@ fn test_model_info(slug: &str, priority: i32, supports_fast_mode: bool) -> Model
         "availability_nux": null,
         "upgrade": null,
         "base_instructions": "base instructions",
-        "supports_reasoning_summaries": false,
         "default_reasoning_summary": "none",
         "support_verbosity": false,
         "default_verbosity": null,
@@ -296,9 +297,7 @@ pub(crate) fn set_fast_mode_test_catalog(chat: &mut ChatWidget) {
                 "gpt-5.4", /*priority*/ 0, /*supports_fast_mode*/ true,
             ),
             test_model_info(
-                "gpt-5.3-codex",
-                /*priority*/ 1,
-                /*supports_fast_mode*/ false,
+                "gpt-5.2", /*priority*/ 1, /*supports_fast_mode*/ false,
             ),
         ],
     }
@@ -376,6 +375,7 @@ fn token_usage_breakdown(usage: TokenUsage) -> codex_app_server_protocol::TokenU
         total_tokens: usage.total_tokens,
         input_tokens: usage.input_tokens,
         cached_input_tokens: usage.cached_input_tokens,
+        cache_write_input_tokens: 0,
         output_tokens: usage.output_tokens,
         reasoning_output_tokens: usage.reasoning_output_tokens,
     }
@@ -679,7 +679,7 @@ pub(super) fn handle_patch_apply_end(
 pub(super) fn handle_view_image_tool_call(
     chat: &mut ChatWidget,
     call_id: impl Into<String>,
-    path: AbsolutePathBuf,
+    path: impl Into<LegacyAppPathString>,
 ) {
     chat.handle_server_notification(
         ServerNotification::ItemCompleted(ItemCompletedNotification {
@@ -688,7 +688,7 @@ pub(super) fn handle_view_image_tool_call(
             completed_at_ms: 0,
             item: AppServerThreadItem::ImageView {
                 id: call_id.into(),
-                path,
+                path: path.into(),
             },
         }),
         /*replay_kind*/ None,
@@ -707,13 +707,13 @@ pub(super) fn handle_image_generation_end(
             thread_id: thread_id(chat),
             turn_id: "turn-1".to_string(),
             completed_at_ms: 0,
-            item: AppServerThreadItem::ImageGeneration {
+            item: AppServerThreadItem::ImageGeneration(ImageGenerationItem {
                 id: call_id.into(),
                 status: status.into(),
                 revised_prompt,
                 result: String::new(),
                 saved_path,
-            },
+            }),
         }),
         /*replay_kind*/ None,
     );
@@ -1331,6 +1331,7 @@ pub(super) fn plugins_test_summary(
     PluginSummary {
         id: id.to_string(),
         remote_plugin_id: None,
+        version: None,
         local_version: None,
         name: name.to_string(),
         share_context: None,
@@ -1340,6 +1341,7 @@ pub(super) fn plugins_test_summary(
         installed,
         enabled,
         install_policy,
+        install_policy_source: None,
         auth_policy: PluginAuthPolicy::OnInstall,
         availability: PluginAvailability::Available,
         interface: Some(plugins_test_interface(
@@ -1361,6 +1363,7 @@ pub(super) fn plugins_test_remote_summary(
     PluginSummary {
         id: remote_plugin_id.to_string(),
         remote_plugin_id: Some(remote_plugin_id.to_string()),
+        version: None,
         local_version: None,
         name: name.to_string(),
         share_context: None,
@@ -1368,6 +1371,7 @@ pub(super) fn plugins_test_remote_summary(
         installed,
         enabled: true,
         install_policy: PluginInstallPolicy::Available,
+        install_policy_source: None,
         auth_policy: PluginAuthPolicy::OnInstall,
         availability: PluginAvailability::Available,
         interface: Some(plugins_test_interface(
@@ -1501,6 +1505,7 @@ pub(super) fn plugins_test_detail(
             .collect(),
         app_templates: Vec::new(),
         mcp_servers: mcp_servers.iter().map(|name| (*name).to_string()).collect(),
+        scheduled_tasks: None,
     }
 }
 
@@ -1520,6 +1525,7 @@ pub(super) fn plugins_test_remote_detail(
         apps: Vec::new(),
         app_templates: Vec::new(),
         mcp_servers: Vec::new(),
+        scheduled_tasks: None,
     }
 }
 

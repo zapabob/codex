@@ -51,6 +51,7 @@ use crate::legacy_core::config::ConfigBuilder;
 use crate::legacy_core::config::ConfigOverrides;
 use crate::legacy_core::config::PermissionProfileSnapshot;
 use crate::legacy_core::config::edit::ConfigEditsBuilder;
+use crate::managed_new_thread_defaults::apply_managed_new_thread_defaults;
 use crate::model_catalog::ModelCatalog;
 use crate::model_migration::ModelMigrationOutcome;
 use crate::model_migration::migration_copy_for_models;
@@ -88,7 +89,6 @@ use codex_app_server_protocol::AskForApproval;
 use codex_app_server_protocol::ClientRequest;
 use codex_app_server_protocol::CodexErrorInfo as AppServerCodexErrorInfo;
 use codex_app_server_protocol::ConfigBatchWriteParams;
-use codex_app_server_protocol::ConfigLayerSource;
 use codex_app_server_protocol::ConfigReadResponse;
 use codex_app_server_protocol::ConfigValueWriteParams;
 use codex_app_server_protocol::ConfigWriteResponse;
@@ -123,7 +123,6 @@ use codex_app_server_protocol::SkillsListResponse;
 use codex_app_server_protocol::ThreadItem;
 use codex_app_server_protocol::ThreadLoadedListParams;
 use codex_app_server_protocol::ThreadMemoryMode;
-use codex_app_server_protocol::ThreadRollbackResponse;
 use codex_app_server_protocol::ThreadStartSource;
 use codex_app_server_protocol::Turn;
 use codex_app_server_protocol::TurnError as AppServerTurnError;
@@ -214,6 +213,7 @@ mod platform_actions;
 mod plugin_mentions;
 mod replay_filter;
 mod resize_reflow;
+mod safety_buffering;
 mod session_lifecycle;
 mod side;
 mod startup_prompts;
@@ -577,6 +577,8 @@ pub(crate) struct App {
     pending_primary_events: VecDeque<ThreadBufferedEvent>,
     pending_app_server_requests: PendingAppServerRequests,
     pending_startup_thread_start: bool,
+    /// Invalidates in-flight full rate-limit reads when a newer rolling hard stop arrives.
+    rate_limit_hard_stop_generation: u64,
     // Serialize plugin enablement writes per plugin so stale completions cannot
     // overwrite a newer toggle, even if the plugin is toggled from different
     // cwd contexts.
@@ -795,7 +797,18 @@ impl App {
             None => app_server.bootstrap(&config).await?,
         };
         let bootstrap_ms = bootstrap.duration.as_millis();
-        let mut model = bootstrap.default_model;
+        if matches!(
+            &session_selection,
+            SessionSelection::StartFresh | SessionSelection::Exit
+        ) {
+            apply_managed_new_thread_defaults(
+                &mut config,
+                app_server.managed_new_thread_defaults(),
+                &cli_kv_overrides,
+                &harness_overrides,
+            );
+        }
+        let mut model = config.model.clone().unwrap_or(bootstrap.default_model);
         let available_models = bootstrap.available_models;
         let remote_connection = crate::status::remote_connection::remote_connection_status_value(
             &app_server_target,
@@ -914,8 +927,12 @@ impl App {
                 (chat_widget, None)
             }
             SessionSelection::Resume(target_session) => {
+                let model_settings = config_persistence::resume_model_settings_for_overrides(
+                    &config,
+                    &harness_overrides,
+                );
                 let resumed = app_server
-                    .resume_thread(config.clone(), target_session.thread_id)
+                    .resume_thread(config.clone(), target_session.thread_id, model_settings)
                     .await
                     .map_err(|err| session_start_error("resume", &target_session, err))?;
                 let init = crate::chatwidget::ChatWidgetInit {
@@ -1051,6 +1068,7 @@ See the Codex keymap documentation for supported actions and examples."
             pending_primary_events: VecDeque::new(),
             pending_app_server_requests: PendingAppServerRequests::default(),
             pending_startup_thread_start,
+            rate_limit_hard_stop_generation: 0,
             pending_plugin_enabled_writes: HashMap::new(),
             pending_hook_enabled_writes: HashMap::new(),
         };

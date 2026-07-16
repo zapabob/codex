@@ -97,10 +97,7 @@ fn extract_conversation_summary(
             _ => None,
         })?;
 
-    let preview = match preview.find(USER_MESSAGE_BEGIN) {
-        Some(idx) => preview[idx + USER_MESSAGE_BEGIN.len()..].trim(),
-        None => preview.as_str(),
-    };
+    let preview = strip_user_message_prefix(preview.as_str());
 
     let timestamp = if session_meta.timestamp.is_empty() {
         None
@@ -175,17 +172,6 @@ pub(crate) fn thread_response_active_permission_profile(
     active_permission_profile.map(Into::into)
 }
 
-pub(crate) fn thread_response_sandbox_policy(
-    permission_profile: &codex_protocol::models::PermissionProfile,
-    cwd: &Path,
-) -> codex_app_server_protocol::SandboxPolicy {
-    let sandbox_policy = codex_sandboxing::compatibility_sandbox_policy_for_permission_profile(
-        permission_profile,
-        cwd,
-    );
-    sandbox_policy.into()
-}
-
 pub(crate) fn thread_settings_from_config_snapshot(
     config_snapshot: &ThreadConfigSnapshot,
 ) -> ThreadSettings {
@@ -193,10 +179,7 @@ pub(crate) fn thread_settings_from_config_snapshot(
         cwd: config_snapshot.cwd().clone(),
         approval_policy: config_snapshot.approval_policy.into(),
         approvals_reviewer: config_snapshot.approvals_reviewer.into(),
-        sandbox_policy: thread_response_sandbox_policy(
-            &config_snapshot.permission_profile,
-            config_snapshot.cwd().as_path(),
-        ),
+        sandbox_policy: config_snapshot.sandbox_policy().into(),
         active_permission_profile: thread_response_active_permission_profile(
             config_snapshot.active_permission_profile.clone(),
         ),
@@ -228,7 +211,11 @@ pub(crate) fn thread_settings_from_core_snapshot(
         personality,
         collaboration_mode,
     } = snapshot;
-    let sandbox_policy = thread_response_sandbox_policy(&permission_profile, cwd.as_path());
+    let sandbox_policy = codex_sandboxing::compatibility_sandbox_policy_for_permission_profile(
+        &permission_profile,
+        cwd.as_path(),
+    )
+    .into();
     ThreadSettings {
         sandbox_policy,
         cwd,
@@ -314,11 +301,13 @@ pub(crate) fn summary_to_thread(
     let thread_id = conversation_id.to_string();
     Thread {
         id: thread_id.clone(),
+        extra: None,
         session_id: thread_id,
         forked_from_id: None,
         parent_thread_id: None,
         preview,
         ephemeral: false,
+        history_mode: ThreadHistoryMode::Legacy,
         model_provider,
         created_at: created_at.map(|dt| dt.timestamp()).unwrap_or(0),
         updated_at: updated_at.map(|dt| dt.timestamp()).unwrap_or(0),

@@ -53,6 +53,10 @@ def runtime_binary_name() -> str:
     return "codex.exe" if _is_windows() else "codex"
 
 
+def runtime_code_mode_host_name() -> str:
+    return "codex-code-mode-host.exe" if _is_windows() else "codex-code-mode-host"
+
+
 def staged_runtime_package_root(root: Path) -> Path:
     return root / RUNTIME_PACKAGE_ROOT
 
@@ -276,6 +280,9 @@ def _validate_codex_package_layout(package_dir: Path, package_archive: Path) -> 
     package_binary = package_dir / "bin" / runtime_binary_name()
     if not package_binary.is_file():
         missing_entries.append(str(Path("bin") / runtime_binary_name()))
+    code_mode_host = package_dir / "bin" / runtime_code_mode_host_name()
+    if not code_mode_host.is_file():
+        missing_entries.append(str(Path("bin") / runtime_code_mode_host_name()))
     if missing_entries:
         missing = ", ".join(missing_entries)
         raise RuntimeError(f"Missing Codex package layout entries in {package_archive}: {missing}")
@@ -609,6 +616,8 @@ def generate_v2_all(schema_dir: Path) -> None:
             cwd=sdk_root(),
         )
     _require_nullable_chatgpt_account_email(out_path)
+    _preserve_reasoning_effort_enum(out_path)
+    _preserve_thread_source_enum(out_path)
     _normalize_generated_timestamps(out_path)
 
 
@@ -634,6 +643,66 @@ def _require_nullable_chatgpt_account_email(out_path: Path) -> None:
         1,
     )
     out_path.write_text(source[:class_start] + class_source + source[class_end:])
+
+
+def _preserve_reasoning_effort_enum(out_path: Path) -> None:
+    """Keep the public effort constants while accepting future wire values."""
+    source = out_path.read_text()
+    class_start = source.find("class ReasoningEffort(RootModel[str]):")
+    if class_start == -1:
+        raise RuntimeError("Generated SDK is missing the open ReasoningEffort model")
+    class_end = source.find("\n\nclass ", class_start)
+    if class_end == -1:
+        class_end = len(source)
+
+    class_source = source[class_start:class_end]
+    if "min_length=1" not in class_source:
+        raise RuntimeError("Generated ReasoningEffort did not preserve the non-empty constraint")
+    open_enum = """class ReasoningEffort(str, Enum):
+    none = "none"
+    minimal = "minimal"
+    low = "low"
+    medium = "medium"
+    high = "high"
+    xhigh = "xhigh"
+
+    @classmethod
+    def _missing_(cls, value: object) -> ReasoningEffort | None:
+        if not isinstance(value, str) or not value:
+            return None
+        member = str.__new__(cls, value)
+        member._name_ = value
+        member._value_ = value
+        return member
+"""
+    out_path.write_text(source[:class_start] + open_enum + source[class_end:])
+
+
+def _preserve_thread_source_enum(out_path: Path) -> None:
+    """Keep the public thread-source constants while accepting future wire values."""
+    source = out_path.read_text()
+    class_start = source.find("class ThreadSource(RootModel[str]):")
+    if class_start == -1:
+        raise RuntimeError("Generated SDK is missing the open ThreadSource model")
+    class_end = source.find("\n\nclass ", class_start)
+    if class_end == -1:
+        class_end = len(source)
+
+    open_enum = """class ThreadSource(str, Enum):
+    user = "user"
+    subagent = "subagent"
+    memory_consolidation = "memory_consolidation"
+
+    @classmethod
+    def _missing_(cls, value: object) -> ThreadSource | None:
+        if not isinstance(value, str):
+            return None
+        member = str.__new__(cls, value)
+        member._name_ = value
+        member._value_ = value
+        return member
+"""
+    out_path.write_text(source[:class_start] + open_enum + source[class_end:])
 
 
 def _notification_specs(schema_dir: Path) -> list[tuple[str, str]]:
@@ -1210,7 +1279,7 @@ def generate_public_api_flat_methods() -> None:
     thread_fork_fields = _load_public_fields(
         "openai_codex.generated.v2_all",
         "ThreadForkParams",
-        exclude={"thread_id", *approval_fields},
+        exclude={"thread_id", "last_turn_id", *approval_fields},
     )
     thread_fork_fields = _replace_public_sandbox_field(thread_fork_fields, wire_name="sandbox")
     turn_start_fields = _load_public_fields(
@@ -1292,7 +1361,7 @@ def build_parser() -> argparse.ArgumentParser:
         required=True,
         help=(
             "Python SDK release version to write into the staged package. "
-            "Accepts PEP 440 versions such as 0.1.0b1."
+            "Accepts PEP 440 versions such as 0.144.4."
         ),
     )
 

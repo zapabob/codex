@@ -567,34 +567,3 @@ def test_real_examples_run_and_assert(
     elif folder == "14_turn_controls":
         assert "steer.result:" in out and "steer.final.status:" in out
         assert "interrupt.result:" in out and "interrupt.final.status:" in out
-def _runtime_compatibility_hint(
-            "\nCompatibility hint:\n"
-        f"{_runtime_compatibility_hint(runtime_env, stdout=result.stdout, stderr=result.stderr)}"
-            from codex_app_server import Codex
-            from codex_app_server import Codex, TextInput
-                result = thread.turn(TextInput("hello")).run()
-                persisted = thread.read(include_turns=True)
-                persisted_turn = next(
-                    (turn for turn in persisted.thread.turns or [] if turn.id == result.id),
-                    None,
-                    "items_count": len(result.items or []),
-                    "persisted_items_count": 0 if persisted_turn is None else len(persisted_turn.items or []),
-    assert isinstance(data["persisted_items_count"], int)
-            from codex_app_server import AsyncCodex, TextInput
-                    result = await (await thread.turn(TextInput("say ok"))).run()
-                    persisted = await thread.read(include_turns=True)
-                    persisted_turn = next(
-                        (turn for turn in persisted.thread.turns or [] if turn.id == result.id),
-                        None,
-                        "items_count": len(result.items or []),
-                        "persisted_items_count": 0 if persisted_turn is None else len(persisted_turn.items or []),
-            from codex_app_server import AsyncCodex
-            _notebook_cell_source(3),
-            _notebook_cell_source(7),
-                turn = thread.turn(TextInput("Reply with one short sentence."))
-                turn = thread.turn(TextInput("Count from 1 to 200 with commas."))
-                follow_up = thread.turn(TextInput("Say 'ok' only.")).run()
-        assert "Status:" in out and "Text:" in out
-        assert "persisted.items.count:" in out
-        assert "selected.model:" in out and "agent.message.params:" in out and "items.params:" in out
-

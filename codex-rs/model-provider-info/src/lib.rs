@@ -8,7 +8,7 @@
 use codex_api::Provider as ApiProvider;
 use codex_api::RetryConfig as ApiRetryConfig;
 use codex_api::is_azure_responses_provider;
-use codex_app_server_protocol::AuthMode;
+use codex_protocol::auth::AuthMode;
 use codex_protocol::config_types::ModelProviderAuthInfo;
 use codex_protocol::error::CodexErr;
 use codex_protocol::error::EnvVarError;
@@ -26,23 +26,35 @@ use std::time::Duration;
 const DEFAULT_STREAM_IDLE_TIMEOUT_MS: u64 = 300_000;
 const DEFAULT_STREAM_MAX_RETRIES: u64 = 5;
 const DEFAULT_REQUEST_MAX_RETRIES: u64 = 4;
+<<<<<<<< HEAD:codex-rs/core/src/model_provider_info.rs
+pub(crate) const DEFAULT_WEBSOCKET_CONNECT_TIMEOUT_MS: u64 = 15_000;
+========
 pub const DEFAULT_WEBSOCKET_CONNECT_TIMEOUT_MS: u64 = 15_000;
+>>>>>>>> upstream/main:codex-rs/model-provider-info/src/lib.rs
 /// Hard cap for user-configured `stream_max_retries`.
 const MAX_STREAM_MAX_RETRIES: u64 = 100;
 /// Hard cap for user-configured `request_max_retries`.
 const MAX_REQUEST_MAX_RETRIES: u64 = 100;
 
 const OPENAI_PROVIDER_NAME: &str = "OpenAI";
+<<<<<<<< HEAD:codex-rs/core/src/model_provider_info.rs
+pub const OPENAI_PROVIDER_ID: &str = "openai";
+========
+const OPENAI_ACTOR_AUTHORIZATION_HEADER: &str = "x-openai-actor-authorization";
 pub const OPENAI_PROVIDER_ID: &str = "openai";
 pub const CHATGPT_CODEX_BASE_URL: &str = "https://chatgpt.com/backend-api/codex";
 const AMAZON_BEDROCK_PROVIDER_NAME: &str = "Amazon Bedrock";
 pub const AMAZON_BEDROCK_PROVIDER_ID: &str = "amazon-bedrock";
 pub const AMAZON_BEDROCK_GPT_5_5_MODEL_ID: &str = "openai.gpt-5.5";
 pub const AMAZON_BEDROCK_GPT_5_4_MODEL_ID: &str = "openai.gpt-5.4";
+pub const AMAZON_BEDROCK_GPT_5_6_SOL_MODEL_ID: &str = "openai.gpt-5.6-sol";
+pub const AMAZON_BEDROCK_GPT_5_6_TERRA_MODEL_ID: &str = "openai.gpt-5.6-terra";
+pub const AMAZON_BEDROCK_GPT_5_6_LUNA_MODEL_ID: &str = "openai.gpt-5.6-luna";
 pub const AMAZON_BEDROCK_DEFAULT_BASE_URL: &str =
     "https://bedrock-mantle.us-east-1.api.aws/openai/v1";
 const AMAZON_BEDROCK_MANTLE_CLIENT_AGENT_HEADER: &str = "x-amzn-mantle-client-agent";
 const AMAZON_BEDROCK_MANTLE_CLIENT_AGENT_VALUE: &str = "codex";
+>>>>>>>> upstream/main:codex-rs/model-provider-info/src/lib.rs
 const CHAT_WIRE_API_REMOVED_ERROR: &str = "`wire_api = \"chat\"` is no longer supported.\nHow to fix: set `wire_api = \"responses\"` in your provider config.\nMore info: https://github.com/openai/codex/discussions/7782";
 pub const LEGACY_OLLAMA_CHAT_PROVIDER_ID: &str = "ollama-chat";
 pub const OLLAMA_CHAT_PROVIDER_REMOVED_ERROR: &str = "`ollama-chat` is no longer supported.\nHow to fix: replace `ollama-chat` with `ollama` in `model_provider`, `oss_provider`, or `--local-provider`.\nMore info: https://github.com/openai/codex/discussions/7782";
@@ -122,9 +134,17 @@ pub struct ModelProviderInfo {
     /// Idle timeout (in milliseconds) to wait for activity on a streaming response before treating
     /// the connection as lost.
     pub stream_idle_timeout_ms: Option<u64>,
+<<<<<<<< HEAD:codex-rs/core/src/model_provider_info.rs
+
     /// Maximum time (in milliseconds) to wait for a websocket connection attempt before treating
     /// it as failed.
     pub websocket_connect_timeout_ms: Option<u64>,
+
+========
+    /// Maximum time (in milliseconds) to wait for a websocket connection attempt before treating
+    /// it as failed.
+    pub websocket_connect_timeout_ms: Option<u64>,
+>>>>>>>> upstream/main:codex-rs/model-provider-info/src/lib.rs
     /// Does this provider require an OpenAI API Key or ChatGPT login token? If true,
     /// user is presented with login screen on first run, and login preference and token/key
     /// are stored in auth.json. If false (which is the default), login screen is skipped,
@@ -240,6 +260,7 @@ impl ModelProviderInfo {
             Some(
                 AuthMode::Chatgpt
                     | AuthMode::ChatgptAuthTokens
+                    | AuthMode::Headers
                     | AuthMode::AgentIdentity
                     | AuthMode::PersonalAccessToken
             )
@@ -392,6 +413,16 @@ impl ModelProviderInfo {
         self.name == OPENAI_PROVIDER_NAME
     }
 
+    pub fn uses_openai_actor_authorization(&self) -> bool {
+        !self.requires_openai_auth
+            && self.http_headers.as_ref().is_some_and(|headers| {
+                headers.iter().any(|(name, value)| {
+                    name.eq_ignore_ascii_case(OPENAI_ACTOR_AUTHORIZATION_HEADER)
+                        && !value.trim().is_empty()
+                })
+            })
+    }
+
     pub fn is_amazon_bedrock(&self) -> bool {
         self.name == AMAZON_BEDROCK_PROVIDER_NAME
     }
@@ -417,7 +448,10 @@ pub fn built_in_model_providers(
 ) -> HashMap<String, ModelProviderInfo> {
     use ModelProviderInfo as P;
     let openai_provider = P::create_openai_provider(openai_base_url);
+<<<<<<<< HEAD:codex-rs/core/src/model_provider_info.rs
+========
     let amazon_bedrock_provider = P::create_amazon_bedrock_provider(/*aws*/ None);
+>>>>>>>> upstream/main:codex-rs/model-provider-info/src/lib.rs
 
     // We do not want to be in the business of adjucating which third-party
     // providers are bundled with Codex CLI, so we only include the OpenAI and
@@ -425,7 +459,10 @@ pub fn built_in_model_providers(
     // `model_providers` in config.toml to add their own providers.
     [
         (OPENAI_PROVIDER_ID, openai_provider),
+<<<<<<<< HEAD:codex-rs/core/src/model_provider_info.rs
+========
         (AMAZON_BEDROCK_PROVIDER_ID, amazon_bedrock_provider),
+>>>>>>>> upstream/main:codex-rs/model-provider-info/src/lib.rs
         (
             OLLAMA_OSS_PROVIDER_ID,
             create_oss_provider(DEFAULT_OLLAMA_PORT, WireApi::Responses),

@@ -78,6 +78,7 @@ jobs:
             30. automations - Issues involving scheduled automation tasks or heartbeats.
             31. pets - Issues involving pets avatars and animations.
             32. agent - Fallback only for core agent loop or agent-related issues that do not fit app-server, connectivity, subagent, session, config, plan, computer-use, browser, memory, imagen, remote, performance, automations, or pets.
+            33. aws-bedrock - Issues involving the Amazon Bedrock model provider or Bedrock Mantle. Do not use for unrelated AWS services or generic AWS mentions.
 
             Issue number: ${{ github.event.issue.number }}
 
@@ -150,17 +151,3 @@ jobs:
         run: |
           gh issue edit "$ISSUE_NUMBER" --remove-label codex-label || true
           echo "Attempted to remove label: codex-label"
-    if: github.repository == 'zapabob/Codex' && (github.event.action == 'opened' || (github.event.action == 'labeled' && github.event.label.name == 'codex-label'))
-      - uses: actions/checkout@v6
-        uses: openai/codex-action@main
-            1. bug  EReproducible defects in Codex products (CLI, VS Code extension, web, auth).
-            2. enhancement  EFeature requests or usability improvements that ask for new capabilities, better ergonomics, or quality-of-life tweaks.
-            3. documentation  EUpdates or corrections needed in docs/README/config references (broken links, missing examples, outdated keys, clarification requests).
-            9. codex-exec - Problems related to the "codex exec" command or functionality.
-            10. context-management - Problems related to compaction, context windows, or available context reporting.
-            11. custom-model - Problems that involve using custom model providers, local models, or OSS models.
-            12. rate-limits - Problems related to token limits, rate limits, or token usage reporting.
-            13. sandbox - Issues related to local sandbox environments or tool call approvals to override sandbox restrictions.
-            14. tool-calls - Problems related to specific tool call invocations including unexpected errors, failures, or hangs.
-            15. TUI - Problems with the terminal user interface (TUI) including keyboard shortcuts, copy & pasting, menus, or screen update issues.
-

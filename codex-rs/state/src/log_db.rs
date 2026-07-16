@@ -53,9 +53,12 @@ const LOG_FLUSH_INTERVAL: Duration = Duration::from_secs(2);
 pub fn default_filter() -> Targets {
     Targets::new()
         .with_default(LevelFilter::TRACE)
+        .with_target("hyper_util", LevelFilter::WARN)
         .with_target("log", LevelFilter::OFF)
         .with_target("codex_otel.log_only", LevelFilter::OFF)
         .with_target("codex_otel.trace_safe", LevelFilter::OFF)
+        .with_target("rmcp::service", LevelFilter::INFO)
+        .with_target("codex_api::responses_websocket_timing", LevelFilter::OFF)
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -199,6 +202,13 @@ where
 
     fn on_event(&self, event: &Event<'_>, ctx: tracing_subscriber::layer::Context<'_, S>) {
         let metadata = event.metadata();
+        // `tracing-log` checks filters with the original log target before
+        // dispatching an event whose tracing target is `log`, so the outer
+        // target filter cannot reliably reject these bridged events.
+        if metadata.target() == "log" {
+            return;
+        }
+
         // The SDK emits DEBUG timer meta-events every second per process; these
         // were over 30% of retained logs in measured high-fanout Codex environments.
         if metadata.target() == "opentelemetry_sdk"

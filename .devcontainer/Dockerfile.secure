@@ -80,5 +80,3 @@ WORKDIR /workspace
 RUN curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain "${RUST_TOOLCHAIN}" \
     && rustup component add clippy rustfmt rust-src \
     && rustup target add x86_64-unknown-linux-musl aarch64-unknown-linux-musl
-ARG RUST_TOOLCHAIN=1.92.0
-

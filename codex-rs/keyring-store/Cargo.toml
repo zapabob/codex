@@ -26,4 +26,3 @@ keyring = { workspace = true, features = ["sync-secret-service"] }
 [lib]
 test = false
 doctest = false
-

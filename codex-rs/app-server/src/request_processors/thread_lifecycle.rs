@@ -316,6 +316,13 @@ pub(super) async fn ensure_listener_task_running(
                         thread_state.track_current_turn_event(&event.id, &event.msg);
                         thread_state.experimental_raw_events
                     };
+                    if matches!(
+                        &event.msg,
+                        EventMsg::RawResponseItem(_) | EventMsg::RawResponseCompleted(_)
+                    ) && !raw_events_enabled
+                    {
+                        continue;
+                    }
                     let subscribed_connection_ids = thread_state_manager
                         .subscribed_connection_ids(conversation_id)
                         .await;
@@ -324,19 +331,6 @@ pub(super) async fn ensure_listener_task_running(
                         subscribed_connection_ids,
                         conversation_id,
                     );
-
-                    if let EventMsg::RawResponseItem(raw_response_item_event) = &event.msg
-                        && !raw_events_enabled
-                    {
-                        maybe_emit_hook_prompt_item_completed(
-                            conversation_id,
-                            &event.id,
-                            &raw_response_item_event.item,
-                            &thread_outgoing,
-                        )
-                        .await;
-                        continue;
-                    }
 
                     apply_bespoke_event_handling(
                         event.clone(),
@@ -628,7 +622,27 @@ pub(super) async fn handle_pending_thread_resume_request(
         }
     }
 
+    let (turns_backwards_cursor, items_backwards_cursor) = if let Some(thread_store) =
+        pending.resume_cursor_store.as_ref()
+    {
+        match super::thread_processor::ThreadRequestProcessor::paginated_resume_backwards_cursors(
+            thread_store.as_ref(),
+            conversation_id,
+        )
+        .await
+        {
+            Ok(cursors) => cursors,
+            Err(error) => {
+                outgoing.send_error(request_id, error).await;
+                return;
+            }
+        }
+    } else {
+        (None, None)
+    };
+
     let config_snapshot = pending.config_snapshot;
+    let sandbox = config_snapshot.sandbox_policy().into();
     let cwd = config_snapshot.cwd().clone();
     let ThreadConfigSnapshot {
         model,
@@ -636,14 +650,13 @@ pub(super) async fn handle_pending_thread_resume_request(
         service_tier,
         approval_policy,
         approvals_reviewer,
-        permission_profile,
         active_permission_profile,
         workspace_roots,
         reasoning_effort,
+        originator,
         ..
     } = config_snapshot;
     let instruction_sources = pending.instruction_sources;
-    let sandbox = thread_response_sandbox_policy(&permission_profile, cwd.as_path());
     let active_permission_profile =
         thread_response_active_permission_profile(active_permission_profile);
     let session_id = conversation.session_configured().session_id.to_string();
@@ -664,8 +677,12 @@ pub(super) async fn handle_pending_thread_resume_request(
         reasoning_effort,
         multi_agent_mode: MultiAgentMode::ExplicitRequestOnly,
         initial_turns_page,
+        turns_backwards_cursor,
+        items_backwards_cursor,
     };
-    outgoing.send_response(request_id, response).await;
+    outgoing
+        .send_response_with_thread_originator(request_id, response, originator)
+        .await;
     // Match cold resume: metadata-only resume should attach the listener without
     // paying the cost of turn reconstruction for historical usage replay.
     if let Some(token_usage_thread) = token_usage_thread {
@@ -745,7 +762,7 @@ pub(crate) fn populate_thread_turns_from_history(
     items: &[RolloutItem],
     active_turn: Option<&Turn>,
 ) {
-    let mut turns = build_api_turns_from_rollout_items(items);
+    let mut turns = build_legacy_api_turns_from_rollout_items(items);
     if let Some(active_turn) = active_turn {
         merge_turn_history_with_active_turn(&mut turns, active_turn.clone());
     }

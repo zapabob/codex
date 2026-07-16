@@ -150,6 +150,7 @@
       "enum": [
         "auto",
         "prompt",
+        "writes",
         "approve"
       ],
       "type": "string"
@@ -249,13 +250,6 @@
           "description": "Under this policy, only \"known safe\" commands—as determined by `is_safe_command()`—that **only read files** are auto‑approved. Everything else will ask the user to approve.",
           "enum": [
             "untrusted"
-          ],
-          "type": "string"
-        },
-        {
-          "description": "DEPRECATED: *All* commands are auto‑approved, but they are expected to run inside a sandbox where network access is disabled and writes are confined to a specific set of paths. If the command fails, it will be escalated to the user to approve execution without a sandbox. Prefer `OnRequest` for interactive runs or `Never` for non-interactive runs.",
-          "enum": [
-            "on-failure"
           ],
           "type": "string"
         },
@@ -440,9 +434,6 @@
             "auth_elicitation": {
               "type": "boolean"
             },
-            "auto_compaction": {
-              "type": "boolean"
-            },
             "browser_use": {
               "type": "boolean"
             },
@@ -457,6 +448,9 @@
             },
             "code_mode": {
               "$ref": "#/definitions/FeatureToml_for_CodeModeConfigToml"
+            },
+            "code_mode_host": {
+              "type": "boolean"
             },
             "code_mode_only": {
               "type": "boolean"
@@ -474,6 +468,9 @@
               "type": "boolean"
             },
             "computer_use": {
+              "type": "boolean"
+            },
+            "concurrent_reasoning_summaries": {
               "type": "boolean"
             },
             "connectors": {
@@ -510,6 +507,9 @@
               "type": "boolean"
             },
             "experimental_windows_sandbox": {
+              "type": "boolean"
+            },
+            "external_agent_memory_import": {
               "type": "boolean"
             },
             "external_migration": {
@@ -653,7 +653,7 @@
             "skill_mcp_dependency_install": {
               "type": "boolean"
             },
-            "sleep_tool": {
+            "skill_search": {
               "type": "boolean"
             },
             "sqlite": {
@@ -823,16 +823,42 @@
         "clock_source": {
           "$ref": "#/definitions/CurrentTimeSource"
         },
+        "delivery_mode": {
+          "$ref": "#/definitions/CurrentTimeReminderDeliveryMode"
+        },
         "enabled": {
           "type": "boolean"
         },
-        "reminder_interval_model_requests": {
+        "reminder_interval_seconds": {
           "format": "uint64",
-          "minimum": 1.0,
+          "minimum": 0.0,
           "type": "integer"
+        },
+        "sleep_tool": {
+          "description": "Expose the input-interruptible `clock.sleep` tool.",
+          "type": "boolean"
         }
       },
       "type": "object"
+    },
+    "CurrentTimeReminderDeliveryMode": {
+      "description": "Which inference boundaries may receive current-time reminders.",
+      "oneOf": [
+        {
+          "description": "Allow a reminder before any inference request once the interval is due.",
+          "enum": [
+            "any_inference"
+          ],
+          "type": "string"
+        },
+        {
+          "description": "Allow reminders after user input or tool output; new context windows still force one.",
+          "enum": [
+            "after_user_or_tool_output"
+          ],
+          "type": "string"
+        }
+      ]
     },
     "CurrentTimeSource": {
       "enum": [
@@ -1393,6 +1419,25 @@
       },
       "type": "object"
     },
+    "McpServerAuth": {
+      "description": "Authentication flow Codex attempts after resolving an HTTP MCP server's configured bearer token and authorization headers, which always take precedence. ChatGPT authentication falls back to stored OAuth credentials when its session provider is unavailable; both modes ultimately fall back to an unauthenticated connection.",
+      "oneOf": [
+        {
+          "description": "Use stored MCP OAuth credentials when available. Starting an OAuth login is a separate operation.",
+          "enum": [
+            "oauth"
+          ],
+          "type": "string"
+        },
+        {
+          "description": "Use the current ChatGPT session for servers on the trusted first-party ChatGPT origin. If no ChatGPT session provider is available, startup can still fall back to stored OAuth credentials.",
+          "enum": [
+            "chatgpt"
+          ],
+          "type": "string"
+        }
+      ]
+    },
     "McpServerEnvVar": {
       "anyOf": [
         {
@@ -1695,6 +1740,10 @@
         "enabled": {
           "type": "boolean"
         },
+        "expose_spawn_agent_model_overrides": {
+          "description": "Exposes `model` and `reasoning_effort` on the multi-agent v2 spawn tool and adds corresponding guidance to root and subagent usage hints.",
+          "type": "boolean"
+        },
         "hide_spawn_agent_metadata": {
           "type": "boolean"
         },
@@ -1714,6 +1763,9 @@
           "maximum": 3600000.0,
           "minimum": 0.0,
           "type": "integer"
+        },
+        "multi_agent_mode_hint_text": {
+          "type": "string"
         },
         "non_code_mode_only": {
           "type": "boolean"
@@ -2088,7 +2140,7 @@
       "description": "Determine where Codex should store and read MCP credentials.",
       "oneOf": [
         {
-          "description": "`Keyring` when available; otherwise, `File`. Credentials stored in the keyring will only be readable by Codex unless the user explicitly grants access via OS-level keyring access.",
+          "description": "Prefer `Keyring` and use `File` when keyring storage is unavailable. Once an MCP client loads credentials from one store, that client keeps the resolved store for its lifetime so refreshes cannot switch to a possibly stale credential source. Credentials stored in the keyring will only be readable by Codex unless the user explicitly grants access via OS-level keyring access.",
           "enum": [
             "auto"
           ],
@@ -2436,6 +2488,14 @@
           },
           "type": "array"
         },
+        "auth": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/McpServerAuth"
+            }
+          ],
+          "default": null
+        },
         "bearer_token_env_var": {
           "type": "string"
         },
@@ -2583,7 +2643,8 @@
     "RealtimeConversationVersion": {
       "enum": [
         "v1",
-        "v2"
+        "v2",
+        "v3"
       ],
       "type": "string"
     },
@@ -2866,12 +2927,28 @@
     "TokenBudgetConfigToml": {
       "additionalProperties": false,
       "properties": {
+        "auto_compact_fallback_buffer_tokens": {
+          "description": "Additional tokens available after the compaction threshold for fallback note-taking.",
+          "format": "int64",
+          "minimum": 1.0,
+          "type": "integer"
+        },
+        "auto_compact_fallback_prompt": {
+          "description": "Developer message sampled before an automatic context-window rollover.",
+          "maxLength": 2000,
+          "type": "string"
+        },
         "enabled": {
           "type": "boolean"
         },
+        "guidance_message": {
+          "description": "Guidance appended to the context-window metadata in a developer message.",
+          "maxLength": 2000,
+          "type": "string"
+        },
         "reminder_message_template": {
           "description": "Reminder template. `{n_remaining}` is replaced with the tokens remaining before auto-compaction.",
-          "maxLength": 1000,
+          "maxLength": 2000,
           "minLength": 1,
           "type": "string"
         },
@@ -4751,9 +4828,6 @@
         "auth_elicitation": {
           "type": "boolean"
         },
-        "auto_compaction": {
-          "type": "boolean"
-        },
         "browser_use": {
           "type": "boolean"
         },
@@ -4768,6 +4842,9 @@
         },
         "code_mode": {
           "$ref": "#/definitions/FeatureToml_for_CodeModeConfigToml"
+        },
+        "code_mode_host": {
+          "type": "boolean"
         },
         "code_mode_only": {
           "type": "boolean"
@@ -4785,6 +4862,9 @@
           "type": "boolean"
         },
         "computer_use": {
+          "type": "boolean"
+        },
+        "concurrent_reasoning_summaries": {
           "type": "boolean"
         },
         "connectors": {
@@ -4821,6 +4901,9 @@
           "type": "boolean"
         },
         "experimental_windows_sandbox": {
+          "type": "boolean"
+        },
+        "external_agent_memory_import": {
           "type": "boolean"
         },
         "external_migration": {
@@ -4964,7 +5047,7 @@
         "skill_mcp_dependency_install": {
           "type": "boolean"
         },
-        "sleep_tool": {
+        "skill_search": {
           "type": "boolean"
         },
         "sqlite": {
@@ -5237,10 +5320,6 @@
     "model_reasoning_summary": {
       "$ref": "#/definitions/ReasoningSummary"
     },
-    "model_supports_reasoning_summaries": {
-      "description": "Override to force-enable reasoning summaries for the configured model.",
-      "type": "boolean"
-    },
     "model_verbosity": {
       "allOf": [
         {
@@ -5480,5 +5559,4 @@
   },
   "title": "ConfigToml",
   "type": "object"
-
 }

@@ -372,8 +372,12 @@ async fn backfill_scans_existing_rollouts() -> Result<()> {
                     model_provider: None,
                     base_instructions: None,
                     dynamic_tools: None,
+                    selected_capability_roots: Vec::new(),
                     memory_mode: None,
+                    history_mode: Default::default(),
+                    subagent_history_start_ordinal: None,
                     multi_agent_version: None,
+                    context_window: None,
                 },
                 git: None,
             };
@@ -381,10 +385,12 @@ async fn backfill_scans_existing_rollouts() -> Result<()> {
             let lines = [
                 RolloutLine {
                     timestamp: "2026-01-27T12:00:00Z".to_string(),
+                    ordinal: None,
                     item: RolloutItem::SessionMeta(session_meta_line),
                 },
                 RolloutLine {
                     timestamp: "2026-01-27T12:00:01Z".to_string(),
+                    ordinal: None,
                     item: RolloutItem::EventMsg(EventMsg::UserMessage(UserMessageEvent {
                         client_id: None,
                         message: "hello from backfill".to_string(),
@@ -656,6 +662,7 @@ async fn mcp_call_marks_thread_memory_mode_polluted_when_configured() -> Result<
         servers.insert(
             server_name.to_string(),
             McpServerConfig {
+                auth: Default::default(),
                 transport: McpServerTransportConfig::Stdio {
                     command: rmcp_test_server_bin,
                     args: Vec::new(),

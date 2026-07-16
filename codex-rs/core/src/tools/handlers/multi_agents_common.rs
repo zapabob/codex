@@ -1,4 +1,3 @@
-use crate::agent::AgentStatus;
 use crate::config::Config;
 use crate::config::DEFAULT_MULTI_AGENT_V2_MIN_WAIT_TIMEOUT_MS;
 use crate::config::HARD_MAX_MULTI_AGENT_V2_TIMEOUT_MS;
@@ -14,22 +13,29 @@ use codex_protocol::ThreadId;
 use codex_protocol::error::CodexErr;
 use codex_protocol::models::BaseInstructions;
 use codex_protocol::models::ResponseInputItem;
+use codex_protocol::openai_models::ModelPreset;
 use codex_protocol::openai_models::ReasoningEffort;
 use codex_protocol::openai_models::ReasoningEffortPreset;
-use codex_protocol::protocol::CollabAgentRef;
-use codex_protocol::protocol::CollabAgentStatusEntry;
-use codex_protocol::protocol::Op;
+use codex_protocol::protocol::MultiAgentVersion;
 use codex_protocol::protocol::SessionSource;
 use codex_protocol::protocol::SubAgentSource;
 use codex_protocol::user_input::UserInput;
 use serde::Serialize;
 use serde_json::Value as JsonValue;
-use std::collections::HashMap;
 
 /// Minimum wait timeout to prevent tight polling loops from burning CPU.
 pub(crate) const MIN_WAIT_TIMEOUT_MS: i64 = DEFAULT_MULTI_AGENT_V2_MIN_WAIT_TIMEOUT_MS;
 pub(crate) const DEFAULT_WAIT_TIMEOUT_MS: i64 = 30_000;
 pub(crate) const MAX_WAIT_TIMEOUT_MS: i64 = HARD_MAX_MULTI_AGENT_V2_TIMEOUT_MS;
+pub(crate) const MAX_SPAWN_AGENT_MODEL_OVERRIDES: usize = 5;
+
+pub(crate) fn model_supports_multi_agent_backend(
+    model: &ModelPreset,
+    multi_agent_version: MultiAgentVersion,
+) -> bool {
+    multi_agent_version != MultiAgentVersion::V2
+        || model.multi_agent_version == Some(multi_agent_version)
+}
 
 pub(crate) fn function_arguments(payload: ToolPayload) -> Result<String, FunctionCallError> {
     match payload {
@@ -70,43 +76,6 @@ where
     serde_json::to_value(value).unwrap_or_else(|err| {
         JsonValue::String(format!("failed to serialize {tool_name} result: {err}"))
     })
-}
-
-pub(crate) fn build_wait_agent_statuses(
-    statuses: &HashMap<ThreadId, AgentStatus>,
-    receiver_agents: &[CollabAgentRef],
-) -> Vec<CollabAgentStatusEntry> {
-    if statuses.is_empty() {
-        return Vec::new();
-    }
-
-    let mut entries = Vec::with_capacity(statuses.len());
-    let mut seen = HashMap::with_capacity(receiver_agents.len());
-    for receiver_agent in receiver_agents {
-        seen.insert(receiver_agent.thread_id, ());
-        if let Some(status) = statuses.get(&receiver_agent.thread_id) {
-            entries.push(CollabAgentStatusEntry {
-                thread_id: receiver_agent.thread_id,
-                agent_nickname: receiver_agent.agent_nickname.clone(),
-                agent_role: receiver_agent.agent_role.clone(),
-                status: status.clone(),
-            });
-        }
-    }
-
-    let mut extras = statuses
-        .iter()
-        .filter(|(thread_id, _)| !seen.contains_key(thread_id))
-        .map(|(thread_id, status)| CollabAgentStatusEntry {
-            thread_id: *thread_id,
-            agent_nickname: None,
-            agent_role: None,
-            status: status.clone(),
-        })
-        .collect::<Vec<_>>();
-    extras.sort_by_key(|entry| entry.thread_id.to_string());
-    entries.extend(extras);
-    entries
 }
 
 pub(crate) fn collab_spawn_error(err: CodexErr) -> FunctionCallError {
@@ -163,7 +132,7 @@ pub(crate) fn thread_spawn_source(
 pub(crate) fn parse_collab_input(
     message: Option<String>,
     items: Option<Vec<UserInput>>,
-) -> Result<Op, FunctionCallError> {
+) -> Result<Vec<UserInput>, FunctionCallError> {
     match (message, items) {
         (Some(_), Some(_)) => Err(FunctionCallError::RespondToModel(
             "Provide either message or items, but not both".to_string(),
@@ -180,8 +149,7 @@ pub(crate) fn parse_collab_input(
             Ok(vec![UserInput::Text {
                 text: message,
                 text_elements: Vec::new(),
-            }]
-            .into())
+            }])
         }
         (None, Some(items)) => {
             if items.is_empty() {
@@ -189,7 +157,7 @@ pub(crate) fn parse_collab_input(
                     "Items can't be empty".to_string(),
                 ));
             }
-            Ok(items.into())
+            Ok(items)
         }
     }
 }
@@ -289,9 +257,13 @@ pub(crate) async fn apply_requested_spawn_agent_model_overrides(
         let available_models = session
             .services
             .models_manager
-            .list_models(RefreshStrategy::Offline)
+            .list_models(RefreshStrategy::Offline, config.http_client_factory())
             .await;
-        let selected_model_name = find_spawn_agent_model_name(&available_models, requested_model)?;
+        let selected_model_name = find_spawn_agent_model_name(
+            &available_models,
+            requested_model,
+            turn.multi_agent_version,
+        )?;
         let selected_model_info = session
             .services
             .models_manager
@@ -381,16 +353,23 @@ pub(crate) async fn apply_spawn_agent_service_tier(
 }
 
 fn find_spawn_agent_model_name(
-    available_models: &[codex_protocol::openai_models::ModelPreset],
+    available_models: &[ModelPreset],
     requested_model: &str,
+    multi_agent_version: MultiAgentVersion,
 ) -> Result<String, FunctionCallError> {
     available_models
         .iter()
-        .find(|model| model.model == requested_model)
+        .find(|model| {
+            model.model == requested_model
+                && model_supports_multi_agent_backend(model, multi_agent_version)
+        })
         .map(|model| model.model.clone())
         .ok_or_else(|| {
             let available = available_models
                 .iter()
+                .filter(|model| model.show_in_picker)
+                .filter(|model| model_supports_multi_agent_backend(model, multi_agent_version))
+                .take(MAX_SPAWN_AGENT_MODEL_OVERRIDES)
                 .map(|model| model.model.as_str())
                 .collect::<Vec<_>>()
                 .join(", ");

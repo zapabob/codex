@@ -4,7 +4,9 @@
 //! actions are delegated to focused app submodules so the central match remains the routing layer.
 
 use super::resize_reflow::trailing_run_start;
+use super::session_lifecycle::ThreadAttachPresentation;
 use super::*;
+use crate::app_server_session::ForkGoalContinuation;
 use crate::config_update::format_config_error;
 use crate::external_agent_config_migration_flow::ExternalAgentConfigMigrationFlowOutcome;
 #[cfg(target_os = "windows")]
@@ -119,8 +121,8 @@ impl App {
                 )
                 .await
                 {
-                    Ok(ExternalAgentConfigMigrationFlowOutcome::Started(message)) => {
-                        self.chat_widget.add_info_message(message, /*hint*/ None);
+                    Ok(ExternalAgentConfigMigrationFlowOutcome::Started(lines)) => {
+                        self.chat_widget.add_plain_history_lines(lines);
                     }
                     Ok(ExternalAgentConfigMigrationFlowOutcome::NoItems) => {
                         self.chat_widget.add_info_message(
@@ -173,12 +175,20 @@ impl App {
                 if let Some(thread_id) = self.chat_widget.thread_id() {
                     self.refresh_in_memory_config_from_disk_best_effort("forking the thread")
                         .await;
-                    match app_server.fork_thread(self.config.clone(), thread_id).await {
+                    let mut fork_config = self.config.clone();
+                    fork_config.model = Some(self.chat_widget.current_model().to_string());
+                    fork_config.model_reasoning_effort =
+                        self.chat_widget.current_reasoning_effort();
+                    match app_server.fork_thread(fork_config, thread_id).await {
                         Ok(forked) => {
                             self.shutdown_current_thread(app_server).await;
                             match self
                                 .replace_chat_widget_with_app_server_thread(
-                                    tui, app_server, forked, /*initial_user_message*/ None,
+                                    tui,
+                                    app_server,
+                                    forked,
+                                    ThreadAttachPresentation::SessionLineage,
+                                    /*initial_user_message*/ None,
                                 )
                                 .await
                             {
@@ -218,6 +228,78 @@ impl App {
                     );
                 }
 
+                tui.frame_requester().schedule_frame();
+            }
+            AppEvent::ForkSessionForPromptEdit {
+                thread_id,
+                nth_user_message,
+                mut prompt,
+            } => {
+                if self.chat_widget.thread_id() != Some(thread_id) {
+                    return Ok(AppRunControl::Continue);
+                }
+                self.session_telemetry.counter(
+                    "codex.thread.fork",
+                    /*inc*/ 1,
+                    &[("source", "transcript")],
+                );
+                self.refresh_in_memory_config_from_disk_best_effort("forking the thread")
+                    .await;
+                let config = self.fresh_session_config();
+                let started = match app_server
+                    .thread_read(thread_id, /*include_turns*/ true)
+                    .await
+                {
+                    Ok(thread) => match crate::app_backtrack::backtrack_fork_before_turn_id(
+                        &thread.turns,
+                        nth_user_message,
+                        &mut prompt,
+                    ) {
+                        Ok(Some(before_turn_id)) => {
+                            app_server
+                                .fork_thread_at(
+                                    config.clone(),
+                                    thread_id,
+                                    /*last_turn_id*/ None,
+                                    /*before_turn_id*/ Some(before_turn_id),
+                                    ForkGoalContinuation::StartIfIdle,
+                                )
+                                .await
+                        }
+                        Ok(None) => {
+                            app_server
+                                .start_thread_with_session_start_source(
+                                    &config, /*session_start_source*/ None,
+                                )
+                                .await
+                        }
+                        Err(err) => Err(err),
+                    },
+                    Err(err) => Err(err),
+                };
+                match started {
+                    Ok(forked) => {
+                        self.shutdown_current_thread(app_server).await;
+                        match self
+                            .replace_chat_widget_with_app_server_thread(
+                                tui,
+                                app_server,
+                                forked,
+                                ThreadAttachPresentation::PromptEdit,
+                                /*initial_user_message*/ None,
+                            )
+                            .await
+                        {
+                            Ok(()) => self.chat_widget.restore_user_message_to_composer(prompt),
+                            Err(err) => {
+                                self.restore_backtrack_prompt_after_branch_error(prompt, err);
+                            }
+                        }
+                    }
+                    Err(err) => {
+                        self.restore_backtrack_prompt_after_branch_error(prompt, err);
+                    }
+                }
                 tui.frame_requester().schedule_frame();
             }
             AppEvent::BeginInitialHistoryReplayBuffer => {
@@ -284,11 +366,6 @@ impl App {
                 self.chat_widget.note_stream_consolidation_completed();
                 self.insert_pending_usage_output_after_stream_shutdown(tui);
             }
-            AppEvent::ApplyThreadRollback { num_turns } => {
-                if self.apply_non_pending_thread_rollback(num_turns) {
-                    tui.frame_requester().schedule_frame();
-                }
-            }
             AppEvent::StartCommitAnimation => {
                 if self
                     .commit_anim_running
@@ -334,11 +411,37 @@ impl App {
                 return Ok(AppRunControl::Exit(ExitReason::Fatal(message)));
             }
             AppEvent::CodexOp(op) => {
+                if matches!(&op, AppCommand::UserTurn { .. }) {
+                    self.handle_draw_pre_render(tui)?;
+                    if self.transcript_reflow.has_pending_reflow() {
+                        self.transcript_reflow.schedule_immediate();
+                        self.maybe_run_resize_reflow(tui)?;
+                    }
+                    self.chat_widget.pre_draw_tick();
+                    self.render_chat_widget_frame(tui)?;
+                }
                 self.chat_widget.prepare_local_op_submission(&op);
                 self.submit_active_thread_op(app_server, op).await?;
             }
-            AppEvent::RestoreCancelledTurn(prompt) => {
-                self.apply_cancelled_turn_edit(prompt);
+            AppEvent::RetrySafetyBufferedTurn {
+                thread_id,
+                turn_id,
+                model,
+                turn,
+                prompt,
+            } => {
+                self.retry_safety_buffered_turn(
+                    tui,
+                    app_server,
+                    super::safety_buffering::SafetyBufferedRetry {
+                        thread_id,
+                        turn_id,
+                        model,
+                        turn,
+                        prompt,
+                    },
+                )
+                .await;
             }
             AppEvent::AppendMessageHistoryEntry { thread_id, text } => {
                 self.append_message_history_entry(thread_id, text);
@@ -755,10 +858,19 @@ impl App {
                 self.chat_widget
                     .finish_add_credits_nudge_email_request(result);
             }
-            AppEvent::RateLimitsLoaded { origin, result } => match result {
+            AppEvent::RateLimitsLoaded {
+                origin,
+                hard_stop_generation,
+                result,
+            } => match result {
                 Ok(response) => {
                     let rate_limit_reset_credits = response.rate_limit_reset_credits.clone();
-                    let snapshots = app_server_rate_limit_snapshots(response);
+                    let snapshots = if hard_stop_generation == self.rate_limit_hard_stop_generation
+                    {
+                        app_server_rate_limit_snapshots(response)
+                    } else {
+                        Vec::new()
+                    };
                     match origin {
                         RateLimitRefreshOrigin::StartupPrefetch {
                             reset_hint_request_id,
@@ -792,6 +904,16 @@ impl App {
                         }
                         RateLimitRefreshOrigin::UsageMenu { request_id } => {
                             self.chat_widget.finish_usage_menu_rate_limit_refresh(
+                                request_id,
+                                snapshots,
+                                rate_limit_reset_credits.ok_or_else(|| {
+                                    "account/rateLimits/read response did not include rateLimitResetCredits"
+                                    .to_string()
+                                }),
+                            );
+                        }
+                        RateLimitRefreshOrigin::ResetPicker { request_id } => {
+                            self.chat_widget.finish_rate_limit_reset_credits_refresh(
                                 request_id,
                                 snapshots,
                                 rate_limit_reset_credits.ok_or_else(|| {
@@ -832,6 +954,13 @@ impl App {
                                 Err(err),
                             );
                         }
+                        RateLimitRefreshOrigin::ResetPicker { request_id } => {
+                            self.chat_widget.finish_rate_limit_reset_credits_refresh(
+                                request_id,
+                                Vec::new(),
+                                Err(err),
+                            );
+                        }
                     }
                 }
             },
@@ -841,38 +970,27 @@ impl App {
             }
             AppEvent::OpenRateLimitResetCredits => {
                 let request_id = self.chat_widget.show_rate_limit_reset_loading_popup();
-                self.refresh_rate_limit_reset_credits(app_server, request_id);
+                self.refresh_rate_limits(
+                    app_server,
+                    RateLimitRefreshOrigin::ResetPicker { request_id },
+                );
             }
-            AppEvent::RateLimitResetCreditsLoaded { request_id, result } => match result {
-                Ok(response) => {
-                    let rate_limit_reset_credits = response.rate_limit_reset_credits.clone();
-                    self.chat_widget.finish_rate_limit_reset_credits_refresh(
-                        request_id,
-                        app_server_rate_limit_snapshots(response),
-                        rate_limit_reset_credits.ok_or_else(|| {
-                            "account/rateLimits/read response did not include rateLimitResetCredits"
-                                .to_string()
-                        }),
-                    );
-                }
-                Err(err) => {
-                    tracing::warn!(
-                        "account/rateLimits/read failed during reset-credit refresh: {err}"
-                    );
-                    self.chat_widget.finish_rate_limit_reset_credits_refresh(
-                        request_id,
-                        Vec::new(),
-                        Err(err),
-                    );
-                }
-            },
-            AppEvent::ConsumeRateLimitResetCredit { idempotency_key } => {
+            AppEvent::ConsumeRateLimitResetCredit {
+                idempotency_key,
+                credit_id,
+            } => {
                 let request_id = self.chat_widget.show_rate_limit_reset_consuming_popup();
-                self.consume_rate_limit_reset_credit(app_server, request_id, idempotency_key);
+                self.consume_rate_limit_reset_credit(
+                    app_server,
+                    request_id,
+                    idempotency_key,
+                    credit_id,
+                );
             }
             AppEvent::RateLimitResetCreditConsumed {
                 request_id,
                 idempotency_key,
+                credit_id,
                 result,
             } => {
                 if let Err(err) = &result {
@@ -883,6 +1001,7 @@ impl App {
                 if self.chat_widget.finish_rate_limit_reset_consume(
                     request_id,
                     idempotency_key,
+                    credit_id,
                     result,
                 ) {
                     self.refresh_rate_limits(
@@ -945,6 +1064,42 @@ impl App {
             }
             AppEvent::OpenReasoningPopup { model } => {
                 self.chat_widget.open_reasoning_popup(model);
+            }
+            AppEvent::OpenAdvancedReasoningPopup { model } => {
+                self.chat_widget.open_advanced_reasoning_popup(model);
+            }
+            AppEvent::ApplyAdvancedReasoning { model, effort } => {
+                let default_effort =
+                    self.on_apply_advanced_reasoning(model.as_str(), effort.clone());
+                if let Some(mut params) =
+                    self.active_thread_model_setting_update_params(model.clone())
+                {
+                    params.effort = Some(effort.clone());
+                    self.send_thread_settings_update(app_server, params).await;
+                }
+                self.sync_active_thread_service_tier_to_cached_session()
+                    .await;
+
+                if let Some(default_effort) = default_effort.as_ref()
+                    && let Err(err) = crate::config_update::write_config_batch(
+                        app_server.request_handle(),
+                        crate::config_update::build_model_selection_edits(
+                            model.as_str(),
+                            Some(default_effort),
+                        ),
+                    )
+                    .await
+                {
+                    let error = format_config_error(&err);
+                    tracing::error!(error = %error, "failed to persist conversation model");
+                    self.chat_widget
+                        .add_error_message(format!("Failed to save default model: {error}"));
+                } else {
+                    self.chat_widget.add_info_message(
+                        format!("Model changed to {model} {effort} for this conversation"),
+                        /*hint*/ None,
+                    );
+                }
             }
             AppEvent::OpenPlanReasoningScopePrompt { model, effort } => {
                 self.chat_widget
@@ -1712,9 +1867,6 @@ impl App {
             AppEvent::SkipNextWorldWritableScan => {
                 self.windows_sandbox.skip_world_writable_scan_once = true;
             }
-            AppEvent::UpdateFullAccessWarningAcknowledged(ack) => {
-                self.chat_widget.set_full_access_warning_acknowledged(ack);
-            }
             AppEvent::UpdateWorldWritableWarningAcknowledged(ack) => {
                 self.chat_widget
                     .set_world_writable_warning_acknowledged(ack);
@@ -1723,25 +1875,9 @@ impl App {
                 self.chat_widget.set_rate_limit_switch_prompt_hidden(hidden);
             }
             AppEvent::UpdatePlanModeReasoningEffort(effort) => {
-                self.config.plan_mode_reasoning_effort = effort.clone();
-                self.chat_widget.set_plan_mode_reasoning_effort(effort);
+                self.on_update_plan_mode_reasoning_effort(effort);
                 self.sync_active_thread_plan_mode_reasoning_setting(app_server)
                     .await;
-            }
-            AppEvent::PersistFullAccessWarningAcknowledged => {
-                if let Err(err) = ConfigEditsBuilder::for_config(&self.config)
-                    .set_hide_full_access_warning(/*acknowledged*/ true)
-                    .apply()
-                    .await
-                {
-                    tracing::error!(
-                        error = %err,
-                        "failed to persist full access warning acknowledgement"
-                    );
-                    self.chat_widget.add_error_message(format!(
-                        "Failed to save full access confirmation preference: {err}"
-                    ));
-                }
             }
             AppEvent::PersistWorldWritableWarningAcknowledged => {
                 if let Err(err) = ConfigEditsBuilder::for_config(&self.config)

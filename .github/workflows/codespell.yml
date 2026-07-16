@@ -3,10 +3,7 @@
 name: Codespell
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_call:
 
 permissions:
   contents: read
@@ -28,11 +25,7 @@ jobs:
         uses: codespell-project/actions-codespell@8f01853be192eb0f849a5c7d721450e7a467c579 # v2.2
         with:
           ignore_words_file: .codespellignore
-        uses: actions/checkout@v4
-      - name: Create .codespellignore if not exists
-        run: |
-          if [ ! -f .codespellignore ]; then
-            echo "# Codespell ignore words list" > .codespellignore
-          fi
-        uses: codespell-project/codespell-problem-matcher@9ba2c57125d4908eade4308f32c4ff814c184633 # v1
 
+      - name: Check for a clean worktree
+        if: always() && !cancelled()
+        uses: ./.github/actions/check-clean-worktree

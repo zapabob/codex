@@ -241,6 +241,24 @@
             "null"
           ]
         },
+        "iconAssets": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "iconDarkAssets": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": [
+            "object",
+            "null"
+          ]
+        },
         "id": {
           "type": "string"
         },
@@ -450,7 +468,6 @@
         {
           "enum": [
             "untrusted",
-            "on-failure",
             "on-request",
             "never"
           ],
@@ -520,6 +537,13 @@
           "type": "string"
         },
         {
+          "description": "Backend auth supplied as request headers.",
+          "enum": [
+            "headers"
+          ],
+          "type": "string"
+        },
+        {
           "description": "Programmatic Codex auth backed by a registered Agent Identity.",
           "enum": [
             "agentIdentity"
@@ -574,6 +598,7 @@
         {
           "enum": [
             "contextWindowExceeded",
+            "sessionBudgetExceeded",
             "usageLimitExceeded",
             "serverOverloaded",
             "cyberPolicy",
@@ -1115,6 +1140,21 @@
       ],
       "type": "string"
     },
+    "EnvironmentConnectionNotification": {
+      "properties": {
+        "environmentId": {
+          "type": "string"
+        },
+        "threadId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "environmentId",
+        "threadId"
+      ],
+      "type": "object"
+    },
     "ErrorNotification": {
       "properties": {
         "error": {
@@ -1180,6 +1220,12 @@
           "type": "string"
         },
         "source": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "subErrorType": {
           "type": [
             "string",
             "null"
@@ -1275,6 +1321,7 @@
         "SUBAGENTS",
         "HOOKS",
         "COMMANDS",
+        "MEMORY",
         "SESSIONS"
       ],
       "type": "string"
@@ -1457,9 +1504,13 @@
               "type": "string"
             },
             "subpath": {
-              "type": [
-                "string",
-                "null"
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/LegacyAppPathString"
+                },
+                {
+                  "type": "null"
+                }
               ]
             }
           },
@@ -1511,9 +1562,13 @@
               "type": "string"
             },
             "subpath": {
-              "type": [
-                "string",
-                "null"
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/LegacyAppPathString"
+                },
+                {
+                  "type": "null"
+                }
               ]
             }
           },
@@ -2352,6 +2407,12 @@
         },
         "success": {
           "type": "boolean"
+        },
+        "threadId": {
+          "type": [
+            "string",
+            "null"
+          ]
         }
       },
       "required": [
@@ -2359,6 +2420,12 @@
         "success"
       ],
       "type": "object"
+    },
+    "McpServerStartupFailureReason": {
+      "enum": [
+        "reauthenticationRequired"
+      ],
+      "type": "string"
     },
     "McpServerStartupState": {
       "enum": [
@@ -2375,6 +2442,16 @@
           "type": [
             "string",
             "null"
+          ]
+        },
+        "failureReason": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/McpServerStartupFailureReason"
+            },
+            {
+              "type": "null"
+            }
           ]
         },
         "name": {
@@ -2398,6 +2475,18 @@
     },
     "McpToolCallAppContext": {
       "properties": {
+        "actionName": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "appName": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "connectorId": {
           "type": "string"
         },
@@ -2655,13 +2744,29 @@
       "type": "object"
     },
     "MultiAgentMode": {
-      "description": "Controls whether the model receives multi-agent delegation instructions and, when it does, whether it should only spawn sub-agents after an explicit user request or may delegate proactively when doing so would help. `none` leaves the multi-agent tools available without injecting delegation instructions.",
-      "enum": [
-        "none",
-        "explicitRequestOnly",
-        "proactive"
-      ],
-      "type": "string"
+      "description": "Controls the effective multi-agent delegation instructions for a turn. `custom` means the configured mode hint defines the policy instead of a built-in policy.",
+      "oneOf": [
+        {
+          "enum": [
+            "explicitRequestOnly",
+            "proactive"
+          ],
+          "type": "string"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "custom": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "custom"
+          ],
+          "title": "CustomMultiAgentMode",
+          "type": "object"
+        }
+      ]
     },
     "NetworkAccess": {
       "enum": [
@@ -2975,6 +3080,13 @@
               "type": "null"
             }
           ]
+        },
+        "spendControlReached": {
+          "description": "Backend-reported spend-control state. `None` is unavailable, not a sparse-update recovery.",
+          "type": [
+            "boolean",
+            "null"
+          ]
         }
       },
       "type": "object"
@@ -3008,7 +3120,8 @@
     "RealtimeConversationVersion": {
       "enum": [
         "v1",
-        "v2"
+        "v2",
+        "v3"
       ],
       "type": "string"
     },
@@ -3626,6 +3739,7 @@
           "description": "Optional Git metadata captured when the thread was created."
         },
         "id": {
+          "description": "Identifier for this thread. Codex-generated thread IDs are UUIDv7.",
           "type": "string"
         },
         "modelProvider": {
@@ -3765,6 +3879,10 @@
       ],
       "type": "object"
     },
+    "ThreadExtra": {
+      "description": "Extra app-server data for a thread.",
+      "type": "object"
+    },
     "ThreadGoal": {
       "properties": {
         "createdAt": {
@@ -3853,6 +3971,13 @@
         "threadId"
       ],
       "type": "object"
+    },
+    "ThreadHistoryMode": {
+      "enum": [
+        "legacy",
+        "paginated"
+      ],
+      "type": "string"
     },
     "ThreadId": {
       "type": "string"
@@ -4418,6 +4543,15 @@
             "query": {
               "type": "string"
             },
+            "results": {
+              "default": null,
+              "description": "Structured search results returned out-of-band by standalone web search.\n\nThese stay as opaque JSON at the extension/app-server boundary so new result fields and result types can pass through without a Codex release.",
+              "items": true,
+              "type": [
+                "array",
+                "null"
+              ]
+            },
             "type": {
               "enum": [
                 "webSearch"
@@ -4440,7 +4574,7 @@
               "type": "string"
             },
             "path": {
-              "$ref": "#/definitions/AbsolutePathBuf"
+              "$ref": "#/definitions/LegacyAppPathString"
             },
             "type": {
               "enum": [
@@ -4459,6 +4593,7 @@
           "type": "object"
         },
         {
+          "description": "Display item emitted by the interruptible `clock.sleep` tool.",
           "properties": {
             "durationMs": {
               "format": "uint64",
@@ -5051,6 +5186,11 @@
     },
     "TokenUsageBreakdown": {
       "properties": {
+        "cacheWriteInputTokens": {
+          "default": 0,
+          "format": "int64",
+          "type": "integer"
+        },
         "cachedInputTokens": {
           "format": "int64",
           "type": "integer"
@@ -5111,6 +5251,7 @@
           "description": "Only populated when the Turn's status is failed."
         },
         "id": {
+          "description": "Identifier for this turn. Codex-generated turn IDs are UUIDv7.",
           "type": "string"
         },
         "items": {
@@ -5864,6 +6005,46 @@
         "params"
       ],
       "title": "Thread/goal/clearedNotification",
+      "type": "object"
+    },
+    {
+      "properties": {
+        "method": {
+          "enum": [
+            "thread/environment/connected"
+          ],
+          "title": "Thread/environment/connectedNotificationMethod",
+          "type": "string"
+        },
+        "params": {
+          "$ref": "#/definitions/EnvironmentConnectionNotification"
+        }
+      },
+      "required": [
+        "method",
+        "params"
+      ],
+      "title": "Thread/environment/connectedNotification",
+      "type": "object"
+    },
+    {
+      "properties": {
+        "method": {
+          "enum": [
+            "thread/environment/disconnected"
+          ],
+          "title": "Thread/environment/disconnectedNotificationMethod",
+          "type": "string"
+        },
+        "params": {
+          "$ref": "#/definitions/EnvironmentConnectionNotification"
+        }
+      },
+      "required": [
+        "method",
+        "params"
+      ],
+      "title": "Thread/environment/disconnectedNotification",
       "type": "object"
     },
     {
@@ -7014,6 +7195,12 @@
       "type": "object"
     }
   ],
+  "properties": {
+    "emittedAtMs": {
+      "description": "Unix timestamp (in milliseconds) when app-server emitted this notification.",
+      "format": "int64",
+      "type": "integer"
+    }
+  },
   "title": "ServerNotification"
-
 }

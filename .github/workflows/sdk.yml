@@ -1,9 +1,7 @@
 name: sdk
 
 on:
-  push:
-    branches: [main]
-  pull_request: {}
+  workflow_call:
 
 jobs:
   python-sdk:
@@ -40,6 +38,10 @@ jobs:
               /tmp/uv/bin/uv run --frozen --no-sync ruff format --check .
               /tmp/uv/bin/uv run --frozen --no-sync pytest
             '
+
+      - name: Check for a clean worktree
+        if: always() && !cancelled()
+        uses: ./.github/actions/check-clean-worktree
 
   sdks:
     runs-on:
@@ -158,31 +160,9 @@ jobs:
         continue-on-error: true
         uses: actions/cache/save@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
         with:
-          path: |
-            ~/.cache/bazel-repo-cache
+          path: ${{ steps.setup_bazel.outputs.repository-cache-path }}
           key: bazel-cache-x86_64-unknown-linux-gnu-${{ hashFiles('MODULE.bazel', 'codex-rs/Cargo.lock', 'codex-rs/Cargo.toml') }}
-      group: codex-runners
-      labels: codex-linux-x64
-          # Run inside Alpine so dependency resolution exercises the pinned
-          # runtime wheel on the same Linux wheel family that CI installs.
-            python:3.12-alpine \
-              /tmp/uv/bin/uv sync --extra dev --frozen
-              /tmp/uv/bin/uv run --extra dev ruff check --output-format=github .
-              /tmp/uv/bin/uv run --extra dev ruff format --check .
-              /tmp/uv/bin/uv run --extra dev pytest
-        uses: actions/checkout@v4
-        uses: pnpm/action-setup@v5
-        uses: actions/setup-node@v4
-      - uses: dtolnay/rust-toolchain@1.93.0
-      - name: Install sccache
-        uses: mozilla-actions/sccache-action@v0.0.6
-      - name: build codex
-        run: cargo build --bin codex
-        working-directory: codex-rs
-      - name: Install SDK TypeScript dependencies
-        working-directory: sdk/typescript
-        run: npm install
-        run: npm run build
-        run: npm run lint
-        run: npm run test
 
+      - name: Check for a clean worktree
+        if: always() && !cancelled()
+        uses: ./.github/actions/check-clean-worktree

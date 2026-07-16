@@ -142,4 +142,3 @@ The server still accepts a narrow v1 compatibility surface for existing app clie
 ## Compatibility and stability
 
 This interface is experimental. Method names, fields, and event shapes may evolve. For the authoritative schema, consult `app-server-protocol/src/protocol/{common,v1,v2}.rs` and the corresponding server wiring in `app-server/`.
-

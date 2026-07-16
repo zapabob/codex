@@ -2,8 +2,8 @@ use super::*;
 use crate::auth::storage::FileAuthStorage;
 use crate::auth::storage::get_auth_file;
 use crate::token_data::IdTokenInfo;
-use codex_app_server_protocol::AuthMode;
 use codex_protocol::account::PlanType as AccountPlanType;
+use codex_protocol::auth::AuthMode;
 use codex_protocol::auth::KnownPlan as InternalKnownPlan;
 use codex_protocol::auth::PlanType as InternalPlanType;
 use codex_protocol::protocol::SessionSource;
@@ -162,7 +162,7 @@ async fn stored_agent_identity_jwt_keeps_auth_json_unchanged() -> anyhow::Result
     save_auth(
         codex_home.path(),
         &AuthDotJson {
-            auth_mode: Some(ApiAuthMode::AgentIdentity),
+            auth_mode: Some(AuthMode::AgentIdentity),
             openai_api_key: None,
             tokens: None,
             last_refresh: None,
@@ -584,7 +584,7 @@ async fn chatgpt_auth_registration_retry_exhaustion_is_fallback_eligible() -> an
         .await
         .expect_err("retry exhaustion should return an error");
 
-    assert!(AgentIdentityAuthError::is_bootstrap_unavailable(&err));
+    assert!(AgentIdentityAuthError::bootstrap_unavailable(&err).is_some());
     assert!(
         auth.stored_managed_chatgpt_agent_identity_record("account-123")
             .is_none()
@@ -648,7 +648,7 @@ async fn chatgpt_auth_task_registration_retry_exhaustion_is_fallback_eligible() 
         .await
         .expect_err("task retry exhaustion should return an error");
 
-    assert!(AgentIdentityAuthError::is_bootstrap_unavailable(&err));
+    assert!(AgentIdentityAuthError::bootstrap_unavailable(&err).is_some());
     record.task_id = None;
     assert_eq!(
         auth.stored_managed_chatgpt_agent_identity_record("account-123"),
@@ -701,7 +701,7 @@ async fn chatgpt_auth_non_retryable_registration_error_is_hard_failure() -> anyh
         .await
         .expect_err("hard registration failure should return an error");
 
-    assert!(!AgentIdentityAuthError::is_bootstrap_unavailable(&err));
+    assert!(AgentIdentityAuthError::bootstrap_unavailable(&err).is_none());
     assert!(
         auth.stored_managed_chatgpt_agent_identity_record("account-123")
             .is_none()
@@ -742,7 +742,7 @@ async fn agent_identity_jwt_task_registration_retry_exhaustion_is_strict() -> an
     .await
     .expect_err("agent identity jwt task retry exhaustion should fail");
 
-    assert!(!AgentIdentityAuthError::is_bootstrap_unavailable(&err));
+    assert!(AgentIdentityAuthError::bootstrap_unavailable(&err).is_none());
     Ok(())
 }
 
@@ -897,7 +897,7 @@ async fn loads_api_key_from_auth_json() {
 fn logout_removes_auth_file() -> Result<(), std::io::Error> {
     let dir = tempdir()?;
     let auth_dot_json = AuthDotJson {
-        auth_mode: Some(ApiAuthMode::ApiKey),
+        auth_mode: Some(AuthMode::ApiKey),
         openai_api_key: Some("sk-test-key".to_string()),
         tokens: None,
         last_refresh: None,
@@ -1015,19 +1015,6 @@ async fn refresh_failure_is_scoped_to_the_matching_auth_snapshot() {
     assert_eq!(manager.refresh_failure_for_auth(&updated_auth), None);
 }
 
-#[test]
-fn external_auth_tokens_without_chatgpt_metadata_cannot_seed_chatgpt_auth() {
-    let err = AuthDotJson::from_external_tokens(&ExternalAuthTokens::access_token_only(
-        "test-access-token",
-    ))
-    .expect_err("bearer-only external auth should not seed ChatGPT auth");
-
-    assert_eq!(
-        err.to_string(),
-        "external auth tokens are missing ChatGPT metadata"
-    );
-}
-
 #[tokio::test]
 async fn external_bearer_only_auth_manager_uses_cached_provider_token() {
     let script = ProviderAuthScript::new(&["provider-token", "next-token"]).unwrap();
@@ -1045,7 +1032,7 @@ async fn external_bearer_only_auth_manager_uses_cached_provider_token() {
     assert_eq!(first.as_deref(), Some("provider-token"));
     assert_eq!(second.as_deref(), Some("provider-token"));
     assert_eq!(manager.auth_mode(), Some(AuthMode::ApiKey));
-    assert_eq!(manager.get_api_auth_mode(), Some(ApiAuthMode::ApiKey));
+    assert_eq!(manager.get_api_auth_mode(), Some(AuthMode::ApiKey));
 }
 
 #[tokio::test]
@@ -1082,11 +1069,11 @@ async fn unauthorized_recovery_uses_external_refresh_for_bearer_manager() {
     let mut auth_config = script.auth_config();
     auth_config.refresh_interval_ms = 0;
     let manager = AuthManager::external_bearer_only(auth_config);
+    let mut recovery = manager.unauthorized_recovery();
     let initial_token = manager
         .auth()
         .await
         .and_then(|auth| auth.api_key().map(str::to_string));
-    let mut recovery = manager.unauthorized_recovery();
 
     assert!(recovery.has_next());
     assert_eq!(recovery.mode_name(), "external");
@@ -1104,6 +1091,61 @@ async fn unauthorized_recovery_uses_external_refresh_for_bearer_manager() {
         .and_then(|auth| auth.api_key().map(str::to_string));
     assert_eq!(initial_token.as_deref(), Some("provider-token"));
     assert_eq!(refreshed_token.as_deref(), Some("refreshed-provider-token"));
+}
+
+#[derive(Clone)]
+struct StaticExternalAuth(CodexAuth);
+
+impl ExternalAuth for StaticExternalAuth {
+    fn resolve(&self) -> ExternalAuthFuture<'_, CodexAuth> {
+        Box::pin(async { Ok(self.0.clone()) })
+    }
+
+    fn refresh(&self, _context: ExternalAuthRefreshContext) -> ExternalAuthFuture<'_, CodexAuth> {
+        Box::pin(async { Ok(self.0.clone()) })
+    }
+}
+
+#[tokio::test]
+async fn external_auth_provider_can_install_headers() {
+    let mut headers = reqwest::header::HeaderMap::new();
+    headers.insert(
+        reqwest::header::AUTHORIZATION,
+        reqwest::header::HeaderValue::from_static("Bearer external"),
+    );
+    headers.insert(
+        "x-external-auth",
+        reqwest::header::HeaderValue::from_static("enabled"),
+    );
+    let auth = CodexAuth::Headers(AuthHeaders::new(headers));
+    let codex_home = tempdir().expect("tempdir");
+    let manager = AuthManager::new(
+        codex_home.path().to_path_buf(),
+        /*enable_codex_api_key_env*/ false,
+        AuthCredentialsStoreMode::Ephemeral,
+        /*forced_chatgpt_workspace_id*/ None,
+        /*chatgpt_base_url*/ None,
+        AuthKeyringBackendKind::default(),
+        /*auth_route_config*/ None,
+    )
+    .await;
+
+    manager
+        .set_external_auth(Arc::new(StaticExternalAuth(auth.clone())))
+        .await
+        .expect("external auth should install");
+
+    assert_eq!(manager.auth_cached(), Some(auth));
+    assert!(
+        manager
+            .auth_cached()
+            .is_some_and(|auth| auth.uses_codex_backend())
+    );
+    assert!(
+        !manager
+            .auth_cached()
+            .is_some_and(|auth| auth.is_chatgpt_auth())
+    );
 }
 
 struct ProviderAuthScript {
@@ -1822,7 +1864,7 @@ async fn enforce_login_restrictions_logs_out_for_agent_identity_workspace_mismat
     save_auth(
         codex_home.path(),
         &AuthDotJson {
-            auth_mode: Some(ApiAuthMode::AgentIdentity),
+            auth_mode: Some(AuthMode::AgentIdentity),
             openai_api_key: None,
             tokens: None,
             last_refresh: None,

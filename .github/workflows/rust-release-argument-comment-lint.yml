@@ -111,12 +111,3 @@ jobs:
         with:
           name: argument-comment-lint-${{ matrix.target }}
           path: dist/argument-comment-lint/${{ matrix.target }}/*
-              group: codex-runners
-              labels: codex-windows-x64
-      - uses: dtolnay/rust-toolchain@a0b273b48ed29de4470960879e8381ff45632f26 # 1.93.0
-      - uses: actions/checkout@v6
-      - uses: dtolnay/rust-toolchain@1.93.0
-          cargo install --locked cargo-dylint --root "$install_root"
-          cargo install --locked dylint-link
-      - uses: actions/upload-artifact@v7
-

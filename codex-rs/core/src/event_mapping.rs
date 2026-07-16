@@ -14,9 +14,12 @@ use codex_protocol::models::is_image_close_tag_text;
 use codex_protocol::models::is_image_open_tag_text;
 use codex_protocol::models::is_local_image_close_tag_text;
 use codex_protocol::models::is_local_image_open_tag_text;
+use codex_protocol::protocol::APPS_INSTRUCTIONS_OPEN_TAG;
 use codex_protocol::protocol::COLLABORATION_MODE_OPEN_TAG;
+use codex_protocol::protocol::CONTEXT_WINDOW_GUIDANCE_OPEN_TAG;
 use codex_protocol::protocol::CONTEXT_WINDOW_OPEN_TAG;
 use codex_protocol::protocol::MULTI_AGENT_MODE_OPEN_TAG;
+use codex_protocol::protocol::PLUGINS_INSTRUCTIONS_OPEN_TAG;
 use codex_protocol::protocol::REALTIME_CONVERSATION_OPEN_TAG;
 use codex_protocol::protocol::SKILLS_INSTRUCTIONS_OPEN_TAG;
 use codex_protocol::user_input::UserInput;
@@ -30,14 +33,17 @@ use crate::web_search::web_search_action_detail;
 const CONTEXTUAL_DEVELOPER_PREFIXES: &[&str] = &[
     "<permissions instructions>",
     "<model_switch>",
+    APPS_INSTRUCTIONS_OPEN_TAG,
     COLLABORATION_MODE_OPEN_TAG,
     MULTI_AGENT_MODE_OPEN_TAG,
+    PLUGINS_INSTRUCTIONS_OPEN_TAG,
     REALTIME_CONVERSATION_OPEN_TAG,
     SKILLS_INSTRUCTIONS_OPEN_TAG,
     "<personality_spec>",
     // Keep recognizing token-budget wrappers persisted by older versions.
     "<token_budget>",
     CONTEXT_WINDOW_OPEN_TAG,
+    CONTEXT_WINDOW_GUIDANCE_OPEN_TAG,
     "<rollout_budget>",
 ];
 
@@ -115,7 +121,7 @@ fn parse_user_message(message: &[ContentItem]) -> Option<UserMessageItem> {
 }
 
 fn parse_agent_message(
-    id: Option<&String>,
+    id: Option<&str>,
     message: &[ContentItem],
     phase: Option<MessagePhase>,
 ) -> AgentMessageItem {
@@ -133,7 +139,9 @@ fn parse_agent_message(
             }
         }
     }
-    let id = id.cloned().unwrap_or_else(|| Uuid::new_v4().to_string());
+    let id = id
+        .map(str::to_string)
+        .unwrap_or_else(|| Uuid::new_v4().to_string());
     AgentMessageItem {
         id,
         content,
@@ -151,11 +159,11 @@ pub fn parse_turn_item(item: &ResponseItem) -> Option<TurnItem> {
             phase,
             ..
         } => match role.as_str() {
-            "user" => parse_visible_hook_prompt_message(id.as_ref(), content)
+            "user" => parse_visible_hook_prompt_message(id.as_deref(), content)
                 .map(TurnItem::HookPrompt)
                 .or_else(|| parse_user_message(content).map(TurnItem::UserMessage)),
             "assistant" => Some(TurnItem::AgentMessage(parse_agent_message(
-                id.as_ref(),
+                id.as_deref(),
                 content,
                 phase.clone(),
             ))),
@@ -184,7 +192,7 @@ pub fn parse_turn_item(item: &ResponseItem) -> Option<TurnItem> {
                 })
                 .collect();
             Some(TurnItem::Reasoning(ReasoningItem {
-                id: id.clone().unwrap_or_default(),
+                id: id.as_deref().unwrap_or_default().to_string(),
                 summary_text,
                 raw_content,
             }))
@@ -195,9 +203,10 @@ pub fn parse_turn_item(item: &ResponseItem) -> Option<TurnItem> {
                 None => (WebSearchAction::Other, String::new()),
             };
             Some(TurnItem::WebSearch(WebSearchItem {
-                id: id.clone().unwrap_or_default(),
+                id: id.as_deref().unwrap_or_default().to_string(),
                 query,
                 action,
+                results: None,
             }))
         }
         ResponseItem::ImageGenerationCall {
@@ -208,7 +217,7 @@ pub fn parse_turn_item(item: &ResponseItem) -> Option<TurnItem> {
             ..
         } => Some(TurnItem::ImageGeneration(
             codex_protocol::items::ImageGenerationItem {
-                id: id.clone()?,
+                id: id.as_deref()?.to_string(),
                 status: status.clone(),
                 revised_prompt: revised_prompt.clone(),
                 result: result.clone(),

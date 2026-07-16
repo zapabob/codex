@@ -30,4 +30,3 @@ zeroize = { workspace = true }
 
 [dev-dependencies]
 pretty_assertions = { workspace = true }
-

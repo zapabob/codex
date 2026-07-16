@@ -1,0 +1,22 @@
+feat: upstream sync v2.16.0 to v2.17.0 with API alignment
+
+Merge latest openai/codex upstream commits while preserving all
+zapabob custom features (deep-research, supervisor, remote-image-urls).
+
+Key changes:
+- Version bump: 2.16.0 to 2.17.0 across Cargo.toml and package.json
+- Fix AsyncManagedClient::new (add codex_apps_tools_cache_context param)
+- Fix CancelErr pattern match (struct not enum variant)
+- Rename find_model_info_for_slug to model_info_from_slug
+- Fix ToolRouter::from_config (add app_tools param)
+- Fix ModelsManager::new and ThreadManager::new (add model_catalog param)
+- Fix history_cell module conflict (remove directory, keep flat file)
+- Fix feedback/view.rs duplicate definitions and import paths
+- Fix chatwidget.rs duplicate UserMessage/functions (moved to submodule)
+- Fix spinner() signature (remove animations_enabled param)
+- Fix StatusIndicatorWidget (remove deprecated animations_enabled field)
+- Fix new_session_info (add auth_plan param)
+- Fix new_active_web_search_call (add animations_enabled param)
+- Fix UnifiedExecProcessDetails (add recent_chunks field)
+- Update CHANGELOG.md with v2.17.0 entry
+- Add implementation log to _docs/

@@ -5,8 +5,10 @@ use std::time::Instant;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use tokio_util::task::AbortOnDropHandle;
+use tracing::Instrument;
 use tracing::info;
 use tracing::instrument;
+use tracing::trace_span;
 use tracing::warn;
 
 use crate::client::ModelClientSession;
@@ -183,6 +185,14 @@ impl SessionStartupPrewarmHandle {
 impl Session {
     pub(crate) async fn schedule_startup_prewarm(self: &Arc<Self>, base_instructions: String) {
         if !self.services.model_client.responses_websocket_enabled() {
+            // Without websocket prewarm, resolve auth once so Agent Identity bootstrap can
+            // register or engage this session's bearer fallback before the first user request.
+            let model_client = self.services.model_client.clone();
+            tokio::spawn(async move {
+                if let Err(err) = model_client.prewarm_auth().await {
+                    warn!("startup auth prewarm failed: {err:#}");
+                }
+            });
             return;
         }
 
@@ -190,22 +200,30 @@ impl Session {
         let websocket_connect_timeout = self.provider().await.websocket_connect_timeout();
         let started_at = Instant::now();
         let startup_prewarm_session = Arc::clone(self);
-        let startup_prewarm = tokio::spawn(async move {
-            let result =
-                schedule_startup_prewarm_inner(startup_prewarm_session, base_instructions).await;
-            let status = if result.is_ok() { "ready" } else { "failed" };
-            session_telemetry.record_startup_phase(
-                "startup_prewarm_total",
-                started_at.elapsed(),
-                Some(status),
-            );
-            session_telemetry.record_duration(
-                STARTUP_PREWARM_DURATION_METRIC,
-                started_at.elapsed(),
-                &[("status", status)],
-            );
-            result
-        });
+        let startup_prewarm = tokio::spawn(
+            async move {
+                let result =
+                    schedule_startup_prewarm_inner(startup_prewarm_session, base_instructions)
+                        .await;
+                let status = if result.is_ok() { "ready" } else { "failed" };
+                session_telemetry.record_startup_phase(
+                    "startup_prewarm_total",
+                    started_at.elapsed(),
+                    Some(status),
+                );
+                session_telemetry.record_duration(
+                    STARTUP_PREWARM_DURATION_METRIC,
+                    started_at.elapsed(),
+                    &[("status", status)],
+                );
+                result
+            }
+            .instrument(trace_span!(
+                "startup_prewarm",
+                otel.name = "startup_prewarm",
+                thread.id = %self.thread_id(),
+            )),
+        );
         self.set_session_startup_prewarm(SessionStartupPrewarmHandle::new(
             startup_prewarm,
             started_at,
@@ -258,9 +276,13 @@ async fn schedule_startup_prewarm_inner(
     }
     let startup_cancellation_token = CancellationToken::new();
     let built_tools_started_at = Instant::now();
+    // Startup prewarm runs before run_turn and needs its own tool-building snapshot.
+    let step_context = session
+        .capture_step_context(Arc::clone(&startup_turn_context))
+        .await;
     let startup_router = built_tools(
         session.as_ref(),
-        startup_turn_context.as_ref(),
+        step_context.as_ref(),
         &startup_cancellation_token,
     )
     .await?;

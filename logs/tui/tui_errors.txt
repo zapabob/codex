@@ -1,0 +1,1224 @@
+﻿cargo :     Checking tokio-rustls v0.26.4
+発生場所 C:\Users\downl\AppData\Local\Temp\ps-script-5c14f8eb-532d-489e-a765-1da4dd6f3015.ps1:97 文字:51
++ ... \Desktop\codex-main\codex-rs" ; cargo check -p codex-tui 2>&1 | Out-F ...
++                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (    Checking tokio-rustls v0.26.4:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    Checking starlark_syntax v0.13.0
+    Checking codex-utils-cache v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\utils\cache)
+   Compiling codex-execpolicy v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\execpolicy)
+    Checking codex-git v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\utils\git)
+    Checking rama-net v0.3.0-alpha.4
+    Checking hickory-proto v0.25.2
+    Checking sqlx-core v0.8.6
+    Checking codex-utils-pty v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\utils\pty)
+    Checking codex-utils-image v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\utils\image)
+    Checking hyper-rustls v0.27.7
+    Checking tonic v0.14.3
+    Checking tokio-tungstenite v0.28.0 (https://github.com/openai-oss-forks/tokio-tungstenite?rev=132f5b39c862e3a970f73
+1d709608b3e6276d5f6#132f5b39)
+    Checking wiremock v0.6.5
+    Checking reqwest v0.12.28
+    Checking sentry-contexts v0.46.2
+    Checking color-spantrace v0.3.0
+    Checking codex-ansi-escape v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\ansi-escape)
+    Checking tonic-prost v0.14.3
+    Checking color-eyre v0.6.5
+    Checking oauth2 v5.0.0
+    Checking codex-client v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\codex-client)
+    Checking starlark v0.13.0
+    Checking opentelemetry-proto v0.31.0
+    Checking opentelemetry-http v0.31.0
+    Checking sqlx-sqlite v0.8.6
+    Checking codex-web-search v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\web-search)
+    Checking sentry v0.46.2
+    Checking rmcp v0.15.0
+    Checking hickory-resolver v0.25.2
+    Checking sqlx v0.8.6
+    Checking opentelemetry-otlp v0.31.0
+    Checking rama-http-headers v0.3.0-alpha.4
+    Checking rama-dns v0.3.0-alpha.4
+    Checking rama-udp v0.3.0-alpha.4
+    Checking rama-tls-rustls v0.3.0-alpha.4
+    Checking rama-http v0.3.0-alpha.4
+    Checking rama-tcp v0.3.0-alpha.4
+    Checking rama-socks5 v0.3.0-alpha.4
+    Checking codex-protocol v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\protocol)
+    Checking rama-http-core v0.3.0-alpha.4
+    Checking rama-http-backend v0.3.0-alpha.4
+    Checking codex-network-proxy v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\network-proxy)
+    Checking codex-api v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\codex-api)
+    Checking codex-rmcp-client v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\rmcp-client)
+    Checking codex-app-server-protocol v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\app-server-protocol)
+    Checking codex-hooks v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\hooks)
+    Checking codex-windows-sandbox v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\windows-sandbox-rs)
+    Checking codex-shell-command v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\shell-command)
+    Checking codex-feedback v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\feedback)
+    Checking codex-deep-research v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\deep-research)
+    Checking codex-otel v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\otel)
+    Checking codex-state v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\state)
+    Checking codex-config v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\config)
+    Checking codex-core v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\core)
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2261:61
+     |
+2261 |                       "- codex_read_file(path: str) -> str\n  \
+     |  _____________________________________________________________^
+2262 | |
+2263 | |                      Read a file from the workspace using Codex.\n  \
+     | |_____________________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2263:69
+     |
+2263 |                        Read a file from the workspace using Codex.\n  \
+     |  _____________________________________________________________________^
+2264 | |
+2265 | |                      Safe, read-only operation."
+     | |_____________________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2271:86
+     |
+2271 |                       "- codex_grep(pattern: str, path: Optional[str]) -> List[str]\n  \
+     |  ______________________________________________________________________________________^
+2272 | |
+2273 | |                      Search for patterns in files using Codex grep.\n  \
+     | |_____________________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2273:72
+     |
+2273 |                        Search for patterns in files using Codex grep.\n  \
+     |  ________________________________________________________________________^
+2274 | |
+2275 | |                      Safe, read-only operation."
+     | |_____________________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2281:115
+     |
+2281 |                       "- codex_codebase_search(query: str, target_directories: Optional[List[str]]) -> List[str]
+\n  \
+     |  _______________________________________________________________________________________________________________
+____^
+2282 | |
+2283 | |                      Semantic code search using Codex.\n  \
+     | |_____________________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2283:59
+     |
+2283 |                        Semantic code search using Codex.\n  \
+     |  ___________________________________________________________^
+2284 | |
+2285 | |                      Safe, read-only operation."
+     | |_____________________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2291:64
+     |
+2291 |                       "- codex_apply_patch(patch: str) -> str\n  \
+     |  ________________________________________________________________^
+2292 | |
+2293 | |                      Apply a code patch using Codex.\n  \
+     | |_____________________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2293:57
+     |
+2293 |                        Apply a code patch using Codex.\n  \
+     |  _________________________________________________________^
+2294 | |
+2295 | |                      Requires write permission."
+     | |_____________________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2301:60
+     |
+2301 |                       "- codex_shell(command: str) -> str\n  \
+     |  ____________________________________________________________^
+2302 | |
+2303 | |                      Execute a shell command via Codex (restricted).\n  \
+     | |_____________________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2303:73
+     |
+2303 |                        Execute a shell command via Codex (restricted).\n  \
+     |  _________________________________________________________________________^
+2304 | |
+2305 | |                      Requires shell permission."
+     | |_____________________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2311:100
+     |
+2311 |                       "- codex-supervisor(goal: str, strategy: Optional[str]) -> SupervisorReport\n  \
+     |  ____________________________________________________________________________________________________^
+2312 | |
+2313 | |                      Plan and coordinate multiple Codex subagents through the Supervisor layer.\n  \
+     | |_____________________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2313:100
+     |
+2313 |                        Plan and coordinate multiple Codex subagents through the Supervisor layer.\n  \
+     |  ____________________________________________________________________________________________________^
+2314 | |
+2315 | |                      Use when you need structured collaboration across specialists."
+     | |_____________________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2321:128
+     |
+2321 |                       "- codex-deep-research(query: str, strategy: Optional[str], max_depth: Optional[int]) -> R
+esearchReport\n  \
+     |  _______________________________________________________________________________________________________________
+_________________^
+2322 | |
+2323 | |                      Run Codex DeepResearcher for multi-source investigations with citations.\n  \
+     | |_____________________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2323:98
+     |
+2323 |                        Run Codex DeepResearcher for multi-source investigations with citations.\n  \
+     |  __________________________________________________________________________________________________^
+2324 | |
+2325 | |                      Ideal for comprehensive research and evidence gathering."
+     | |_____________________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2331:141
+     |
+2331 |   ...   "- codex-subagent(action: str, agent_type: Optional[str], task: Optional[str], task_id: Optional[str]) -
+> ToolResult\n  \
+     |  _______________________________________________________________________________________________________________
+________________^
+2332 | | ...
+2333 | | ...    Manage Codex subagents: start tasks, auto-dispatch, check inbox, status, thinking, or token usage.\n  \
+     | |_______^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2333:124
+     |
+2333 |                        Manage Codex subagents: start tasks, auto-dispatch, check inbox, status, thinking, or tok
+en usage.\n  \
+     |  _______________________________________________________________________________________________________________
+_____________^
+2334 | |
+2335 | |                      Delegate work to specialist agents and retrieve their outputs."
+     | |_____________________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2341:128
+     |
+2341 |                       "- codex-custom-command(action: str, command_name: Optional[str], context: Optional[str]) 
+-> ToolResult\n  \
+     |  _______________________________________________________________________________________________________________
+_________________^
+2342 | |
+2343 | |                      Execute curated multi-step workflows (e.g., analyze_code, deep_research) mapped to subage
+nts.\n  \
+     | |_____________________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2343:119
+     |
+2343 |                        Execute curated multi-step workflows (e.g., analyze_code, deep_research) mapped to subage
+nts.\n  \
+     |  _______________________________________________________________________________________________________________
+________^
+2344 | |
+2345 | |                      Handy for quick access to predefined automation."
+     | |_____________________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2351:85
+     |
+2351 |                       "- codex-hook(event: str, context: Optional[str]) -> HookAck\n  \
+     |  _____________________________________________________________________________________^
+2352 | |
+2353 | |                      Trigger lifecycle hooks such as on_subagent_start/on_task_complete for integrations.\n  \
+     | |_____________________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2353:110
+     |
+2353 |                        Trigger lifecycle hooks such as on_subagent_start/on_task_complete for integrations.\n  \
+     |  ______________________________________________________________________________________________________________^
+2354 | |
+2355 | |                      Use to capture workflow events or integrate external systems."
+     | |_____________________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2361:109
+     |
+2361 |                       "- codex-auto-orchestrate(goal: str, strategy: Optional[str]) -> OrchestrationReport\n  \
+     |  _____________________________________________________________________________________________________________^
+2362 | |
+2363 | |                      Automatically analyze goals and dispatch the optimal mix of subagents.\n  \
+     | |_____________________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2363:96
+     |
+2363 |                        Automatically analyze goals and dispatch the optimal mix of subagents.\n  \
+     |  ________________________________________________________________________________________________^
+2364 | |
+2365 | |                      Best for high-level objectives that benefit from autonomous planning."
+     | |_____________________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2383:79
+     |
+2383 |               "To use these tools, output a tool call in the following format:\n\
+     |  _______________________________________________________________________________^
+2384 | |
+2385 | |              TOOL_CALL: tool_name(arg1=\"value1\", arg2=\"value2\")\n\n\
+     | |_____________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2385:72
+     |
+2385 |                TOOL_CALL: tool_name(arg1=\"value1\", arg2=\"value2\")\n\n\
+     |  ________________________________________________________________________^
+2386 | |
+2387 | |              The results will be provided to you for further analysis.",
+     | |_____________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2462:72
+     |
+2462 |               "You are a specialized sub-agent with the following role:\n\
+     |  ________________________________________________________________________^
+2463 | |
+2464 | |              \n\
+     | |_____________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2464:16
+     |
+2464 |                \n\
+     |  ________________^
+2465 | |
+2466 | |              Agent: {}\n\
+     | |_____________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2466:25
+     |
+2466 |                Agent: {}\n\
+     |  _________________________^
+2467 | |
+2468 | |              Goal: {}\n\
+     | |_____________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2468:24
+     |
+2468 |                Goal: {}\n\
+     |  ________________________^
+2469 | |
+2470 | |              \n\
+     | |_____________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2470:16
+     |
+2470 |                \n\
+     |  ________________^
+2471 | |
+2472 | |              Success Criteria:\n{}\n\
+     | |_____________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2472:37
+     |
+2472 |                Success Criteria:\n{}\n\
+     |  _____________________________________^
+2473 | |
+2474 | |              \n\
+     | |_____________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2474:16
+     |
+2474 |                \n\
+     |  ________________^
+2475 | |
+2476 | |              Inputs provided:\n{}\n\
+     | |_____________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2476:36
+     |
+2476 |                Inputs provided:\n{}\n\
+     |  ____________________________________^
+2477 | |
+2478 | |              \n\
+     | |_____________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2478:16
+     |
+2478 |                \n\
+     |  ________________^
+2479 | |
+2480 | |              {}\n\
+     | |_____________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2480:18
+     |
+2480 |                {}\n\
+     |  __________________^
+2481 | |
+2482 | |              \n\
+     | |_____________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2482:16
+     |
+2482 |                \n\
+     |  ________________^
+2483 | |
+2484 | |              Please analyze the task and use the available Codex MCP tools to complete it.\
+     | |_____________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2484:91
+     |
+2484 |                Please analyze the task and use the available Codex MCP tools to complete it.\
+     |  ___________________________________________________________________________________________^
+2485 | |
+2486 | |              When you need to use a tool, output it in the specified format.\
+     | |_____________^ skipping everything up to and including this point
+
+warning: multiple lines skipped by escaped newline
+    --> core\src\agents\runtime.rs:2486:77
+     |
+2486 |                When you need to use a tool, output it in the specified format.\
+     |  _____________________________________________________________________________^
+2487 | |
+2488 | |              After all tool calls are complete, provide a final summary.",
+     | |_____________^ skipping everything up to and including this point
+
+warning: `codex-core` (lib) generated 37 warnings
+    Checking codex-ollama v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\ollama)
+    Checking codex-lmstudio v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\lmstudio)
+    Checking codex-backend-client v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\backend-client)
+    Checking codex-utils-cli v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\utils\cli)
+    Checking codex-arg0 v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\arg0)
+    Checking codex-utils-sandbox-summary v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\utils\sandbox-summary)
+    Checking codex-login v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\login)
+    Checking codex-utils-approval-presets v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\utils\approval-presets)
+    Checking codex-chatgpt v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\chatgpt)
+    Checking codex-utils-oss v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\utils\oss)
+    Checking codex-cloud-requirements v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\cloud-requirements)
+    Checking codex-tui v2.17.0 (C:\Users\downl\Desktop\codex-main\codex-rs\tui)
+error[E0255]: the name `feedback_classification` is defined multiple times
+   --> tui\src\bottom_pane\feedback\view.rs:358:1
+    |
+ 31 |     FeedbackAudience, feedback_classification, feedback_title_and_placeholder, gutter,
+    |                       ----------------------- previous import of the value `feedback_classification` here
+...
+358 | fn feedback_classification(category: FeedbackCategory) -> &'static str {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `feedback_classification` redefined here
+    |
+    = note: `feedback_classification` must be defined only once in the value namespace of this module
+help: you can use `as` to change the binding name of the import
+    |
+ 31 |     FeedbackAudience, feedback_classification as other_feedback_classification, feedback_title_and_placeholder, g
+utter,
+    |                                               ++++++++++++++++++++++++++++++++
+
+error[E0255]: the name `feedback_title_and_placeholder` is defined multiple times
+   --> tui\src\bottom_pane\feedback\view.rs:333:1
+    |
+ 31 |     FeedbackAudience, feedback_classification, feedback_title_and_placeholder, gutter,
+    |                                                ------------------------------ previous import of the value `feedb
+ack_title_and_placeholder` here
+...
+333 | fn feedback_title_and_placeholder(category: FeedbackCategory) -> (String, String) {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `feedback_title_and_placeholder
+` redefined here
+    |
+    = note: `feedback_title_and_placeholder` must be defined only once in the value namespace of this module
+help: you can use `as` to change the binding name of the import
+    |
+ 31 |     FeedbackAudience, feedback_classification, feedback_title_and_placeholder as other_feedback_title_and_placeho
+lder, gutter,
+    |                                                                               +++++++++++++++++++++++++++++++++++
+++++
+
+error[E0255]: the name `gutter` is defined multiple times
+   --> tui\src\bottom_pane\feedback\view.rs:329:1
+    |
+ 31 |     FeedbackAudience, feedback_classification, feedback_title_and_placeholder, gutter,
+    |                                                                                ------ previous import of the valu
+e `gutter` here
+...
+329 | fn gutter() -> Span<'static> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `gutter` redefined here
+    |
+    = note: `gutter` must be defined only once in the value namespace of this module
+help: you can use `as` to change the binding name of the import
+    |
+ 31 |     FeedbackAudience, feedback_classification, feedback_title_and_placeholder, gutter as other_gutter,
+    |                                                                                       +++++++++++++++
+
+error[E0255]: the name `issue_url_for_category` is defined multiple times
+   --> tui\src\bottom_pane\feedback\view.rs:368:1
+    |
+ 32 |       issue_url_for_category,
+    |       ---------------------- previous import of the value `issue_url_for_category` here
+...
+368 | / fn issue_url_for_category(
+369 | |     category: FeedbackCategory,
+370 | |     thread_id: &str,
+371 | |     feedback_audience: FeedbackAudience,
+...   |
+388 | | }
+    | |_^ `issue_url_for_category` redefined here
+    |
+    = note: `issue_url_for_category` must be defined only once in the value namespace of this module
+help: you can use `as` to change the binding name of the import
+    |
+ 32 |     issue_url_for_category as other_issue_url_for_category,
+    |                            +++++++++++++++++++++++++++++++
+
+error[E0255]: the name `UserMessage` is defined multiple times
+   --> tui\src\chatwidget.rs:476:1
+    |
+242 | pub(crate) use self::user_message::UserMessage;
+    |                ------------------------------- previous import of the type `UserMessage` here
+...
+476 | pub(crate) struct UserMessage {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `UserMessage` redefined here
+    |
+    = note: `UserMessage` must be defined only once in the type namespace of this module
+help: you can use `as` to change the binding name of the import
+    |
+242 | pub(crate) use self::user_message::UserMessage as OtherUserMessage;
+    |                                                +++++++++++++++++++
+
+error[E0255]: the name `create_initial_user_message` is defined multiple times
+   --> tui\src\chatwidget.rs:515:1
+    |
+243 |   pub(crate) use self::user_message::{create_initial_user_message, remap_placeholders_for_message};
+    |                                       --------------------------- previous import of the value `create_initial_us
+er_message` here
+...
+515 | / pub(crate) fn create_initial_user_message(
+516 | |     text: Option<String>,
+517 | |     local_image_paths: Vec<PathBuf>,
+518 | |     text_elements: Vec<TextElement>,
+...   |
+540 | | }
+    | |_^ `create_initial_user_message` redefined here
+    |
+    = note: `create_initial_user_message` must be defined only once in the value namespace of this module
+help: you can use `as` to change the binding name of the import
+    |
+243 | pub(crate) use self::user_message::{create_initial_user_message as other_create_initial_user_message, remap_place
+holders_for_message};
+    |                                                                 ++++++++++++++++++++++++++++++++++++
+
+error[E0255]: the name `remap_placeholders_for_message` is defined multiple times
+   --> tui\src\chatwidget.rs:546:1
+    |
+243 | pub(crate) use self::user_message::{create_initial_user_message, remap_placeholders_for_message};
+    |                                                                  ------------------------------ previous import o
+f the value `remap_placeholders_for_message` here
+...
+546 | fn remap_placeholders_for_message(message: UserMessage, next_label: &mut usize) -> UserMessage {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `remap_placeholder
+s_for_message` redefined here
+    |
+    = note: `remap_placeholders_for_message` must be defined only once in the value namespace of this module
+help: you can use `as` to change the binding name of the import
+    |
+243 | pub(crate) use self::user_message::{create_initial_user_message, remap_placeholders_for_message as other_remap_pl
+aceholders_for_message};
+    |                                                                                                 +++++++++++++++++
+++++++++++++++++++++++
+
+error[E0432]: unresolved import `super::popup_consts`
+   --> tui\src\bottom_pane\feedback\view.rs:479:16
+    |
+479 |     use super::popup_consts::standard_popup_hint_line;
+    |                ^^^^^^^^^^^^ could not find `popup_consts` in `super`
+
+error[E0425]: cannot find value `BASE_BUG_ISSUE_URL` in this scope
+   --> tui\src\bottom_pane\feedback\view.rs:383:27
+    |
+383 |                 format!("{BASE_BUG_ISSUE_URL}&steps=Uploaded%20thread:%20{thread_id}")
+    |                           ^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0425]: cannot find value `CODEX_FEEDBACK_INTERNAL_URL` in this scope
+   --> tui\src\bottom_pane\feedback\view.rs:395:5
+    |
+395 |     CODEX_FEEDBACK_INTERNAL_URL.to_string()
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+    |
+help: consider importing this constant
+    |
+  1 + use crate::bottom_pane::feedback::utils::CODEX_FEEDBACK_INTERNAL_URL;
+    |
+
+error[E0425]: cannot find type `SelectionViewParams` in module `super`
+   --> tui\src\bottom_pane\feedback\view.rs:401:13
+    |
+401 | ) -> super::SelectionViewParams {
+    |             ^^^^^^^^^^^^^^^^^^^ not found in `super`
+    |
+help: consider importing this struct through its public re-export
+    |
+  1 + use crate::bottom_pane::SelectionViewParams;
+    |
+help: if you import `SelectionViewParams`, refer to it directly
+    |
+401 - ) -> super::SelectionViewParams {
+401 + ) -> SelectionViewParams {
+    |
+
+error[E0422]: cannot find struct, variant or union type `SelectionViewParams` in module `super`
+   --> tui\src\bottom_pane\feedback\view.rs:402:12
+    |
+402 |     super::SelectionViewParams {
+    |            ^^^^^^^^^^^^^^^^^^^ not found in `super`
+    |
+help: consider importing this struct through its public re-export
+    |
+  1 + use crate::bottom_pane::SelectionViewParams;
+    |
+help: if you import `SelectionViewParams`, refer to it directly
+    |
+402 -     super::SelectionViewParams {
+402 +     SelectionViewParams {
+    |
+
+error[E0425]: cannot find type `SelectionViewParams` in module `super`
+   --> tui\src\bottom_pane\feedback\view.rs:441:52
+    |
+441 | pub(crate) fn feedback_disabled_params() -> super::SelectionViewParams {
+    |                                                    ^^^^^^^^^^^^^^^^^^^ not found in `super`
+    |
+help: consider importing this struct through its public re-export
+    |
+  1 + use crate::bottom_pane::SelectionViewParams;
+    |
+help: if you import `SelectionViewParams`, refer to it directly
+    |
+441 - pub(crate) fn feedback_disabled_params() -> super::SelectionViewParams {
+441 + pub(crate) fn feedback_disabled_params() -> SelectionViewParams {
+    |
+
+error[E0422]: cannot find struct, variant or union type `SelectionViewParams` in module `super`
+   --> tui\src\bottom_pane\feedback\view.rs:442:12
+    |
+442 |     super::SelectionViewParams {
+    |            ^^^^^^^^^^^^^^^^^^^ not found in `super`
+    |
+help: consider importing this struct through its public re-export
+    |
+  1 + use crate::bottom_pane::SelectionViewParams;
+    |
+help: if you import `SelectionViewParams`, refer to it directly
+    |
+442 -     super::SelectionViewParams {
+442 +     SelectionViewParams {
+    |
+
+error[E0422]: cannot find struct, variant or union type `SelectionItem` in module `super`
+   --> tui\src\bottom_pane\feedback\view.rs:446:28
+    |
+446 |         items: vec![super::SelectionItem {
+    |                            ^^^^^^^^^^^^^ not found in `super`
+    |
+help: consider importing this struct through its public re-export
+    |
+  1 + use crate::bottom_pane::SelectionItem;
+    |
+help: if you import `SelectionItem`, refer to it directly
+    |
+446 -         items: vec![super::SelectionItem {
+446 +         items: vec![SelectionItem {
+    |
+
+error[E0425]: cannot find type `SelectionItem` in module `super`
+   --> tui\src\bottom_pane\feedback\view.rs:460:13
+    |
+460 | ) -> super::SelectionItem {
+    |             ^^^^^^^^^^^^^ not found in `super`
+    |
+help: consider importing this struct through its public re-export
+    |
+  1 + use crate::bottom_pane::SelectionItem;
+    |
+help: if you import `SelectionItem`, refer to it directly
+    |
+460 - ) -> super::SelectionItem {
+460 + ) -> SelectionItem {
+    |
+
+error[E0425]: cannot find type `SelectionAction` in module `super`
+   --> tui\src\bottom_pane\feedback\view.rs:461:24
+    |
+461 |     let action: super::SelectionAction = Box::new(move |_sender: &AppEventSender| {
+    |                        ^^^^^^^^^^^^^^^ not found in `super`
+    |
+help: consider importing this type alias through its public re-export
+    |
+  1 + use crate::bottom_pane::SelectionAction;
+    |
+help: if you import `SelectionAction`, refer to it directly
+    |
+461 -     let action: super::SelectionAction = Box::new(move |_sender: &AppEventSender| {
+461 +     let action: SelectionAction = Box::new(move |_sender: &AppEventSender| {
+    |
+
+error[E0422]: cannot find struct, variant or union type `SelectionItem` in module `super`
+   --> tui\src\bottom_pane\feedback\view.rs:464:12
+    |
+464 |     super::SelectionItem {
+    |            ^^^^^^^^^^^^^ not found in `super`
+    |
+help: consider importing this struct through its public re-export
+    |
+  1 + use crate::bottom_pane::SelectionItem;
+    |
+help: if you import `SelectionItem`, refer to it directly
+    |
+464 -     super::SelectionItem {
+464 +     SelectionItem {
+    |
+
+error[E0425]: cannot find type `SelectionViewParams` in module `super`
+   --> tui\src\bottom_pane\feedback\view.rs:478:13
+    |
+478 | ) -> super::SelectionViewParams {
+    |             ^^^^^^^^^^^^^^^^^^^ not found in `super`
+    |
+help: consider importing this struct through its public re-export
+    |
+  1 + use crate::bottom_pane::SelectionViewParams;
+    |
+help: if you import `SelectionViewParams`, refer to it directly
+    |
+478 - ) -> super::SelectionViewParams {
+478 + ) -> SelectionViewParams {
+    |
+
+error[E0425]: cannot find type `SelectionAction` in module `super`
+   --> tui\src\bottom_pane\feedback\view.rs:480:28
+    |
+480 |     let yes_action: super::SelectionAction = Box::new({
+    |                            ^^^^^^^^^^^^^^^ not found in `super`
+    |
+help: consider importing this type alias through its public re-export
+    |
+  1 + use crate::bottom_pane::SelectionAction;
+    |
+help: if you import `SelectionAction`, refer to it directly
+    |
+480 -     let yes_action: super::SelectionAction = Box::new({
+480 +     let yes_action: SelectionAction = Box::new({
+    |
+
+error[E0425]: cannot find type `SelectionAction` in module `super`
+   --> tui\src\bottom_pane\feedback\view.rs:491:27
+    |
+491 |     let no_action: super::SelectionAction = Box::new({
+    |                           ^^^^^^^^^^^^^^^ not found in `super`
+    |
+help: consider importing this type alias through its public re-export
+    |
+  1 + use crate::bottom_pane::SelectionAction;
+    |
+help: if you import `SelectionAction`, refer to it directly
+    |
+491 -     let no_action: super::SelectionAction = Box::new({
+491 +     let no_action: SelectionAction = Box::new({
+    |
+
+error[E0422]: cannot find struct, variant or union type `SelectionViewParams` in module `super`
+   --> tui\src\bottom_pane\feedback\view.rs:515:12
+    |
+515 |     super::SelectionViewParams {
+    |            ^^^^^^^^^^^^^^^^^^^ not found in `super`
+    |
+help: consider importing this struct through its public re-export
+    |
+  1 + use crate::bottom_pane::SelectionViewParams;
+    |
+help: if you import `SelectionViewParams`, refer to it directly
+    |
+515 -     super::SelectionViewParams {
+515 +     SelectionViewParams {
+    |
+
+error[E0422]: cannot find struct, variant or union type `SelectionItem` in module `super`
+   --> tui\src\bottom_pane\feedback\view.rs:518:20
+    |
+518 |             super::SelectionItem {
+    |                    ^^^^^^^^^^^^^ not found in `super`
+    |
+help: consider importing this struct through its public re-export
+    |
+  1 + use crate::bottom_pane::SelectionItem;
+    |
+help: if you import `SelectionItem`, refer to it directly
+    |
+518 -             super::SelectionItem {
+518 +             SelectionItem {
+    |
+
+error[E0422]: cannot find struct, variant or union type `SelectionItem` in module `super`
+   --> tui\src\bottom_pane\feedback\view.rs:528:20
+    |
+528 |             super::SelectionItem {
+    |                    ^^^^^^^^^^^^^ not found in `super`
+    |
+help: consider importing this struct through its public re-export
+    |
+  1 + use crate::bottom_pane::SelectionItem;
+    |
+help: if you import `SelectionItem`, refer to it directly
+    |
+528 -             super::SelectionItem {
+528 +             SelectionItem {
+    |
+
+error[E0425]: cannot find function `local_image_label_text` in this scope
+   --> tui\src\chatwidget.rs:528:30
+    |
+528 |                 placeholder: local_image_label_text(idx + 1),
+    |                              ^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+    |
+help: consider importing this function
+    |
+ 28 + use codex_protocol::models::local_image_label_text;
+    |
+
+error[E0425]: cannot find function `local_image_label_text` in this scope
+   --> tui\src\chatwidget.rs:567:31
+    |
+567 |         let new_placeholder = local_image_label_text(*next_label);
+    |                               ^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+    |
+help: consider importing this function
+    |
+ 28 + use codex_protocol::models::local_image_label_text;
+    |
+
+warning: unused imports: `feedback_classification`, `feedback_title_and_placeholder`, `gutter`, and `issue_url_for_cate
+gory`
+  --> tui\src\bottom_pane\feedback\view.rs:31:23
+   |
+31 |     FeedbackAudience, feedback_classification, feedback_title_and_placeholder, gutter,
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^
+32 |     issue_url_for_category,
+   |     ^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `self::user_message::UserMessage`
+   --> tui\src\chatwidget.rs:242:16
+    |
+242 | pub(crate) use self::user_message::UserMessage;
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `create_initial_user_message` and `remap_placeholders_for_message`
+   --> tui\src\chatwidget.rs:243:37
+    |
+243 | pub(crate) use self::user_message::{create_initial_user_message, remap_placeholders_for_message};
+    |                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0308]: mismatched types
+    --> tui\src\app.rs:1101:43
+     |
+1101 |                       initial_user_message: crate::chatwidget::create_initial_user_message(
+     |  ___________________________________________^
+1102 | |                         initial_prompt.clone(),
+1103 | |                         initial_images.clone(),
+...    |
+1106 | |                     ),
+     | |_____________________^ expected `user_message::UserMessage`, found `chatwidget::UserMessage`
+     |
+     = note: `chatwidget::UserMessage` and `user_message::UserMessage` have similar names, but are actually distinct ty
+pes
+note: `chatwidget::UserMessage` is defined in module `crate::chatwidget` of the current crate
+    --> tui\src\chatwidget.rs:476:1
+     |
+ 476 | pub(crate) struct UserMessage {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: `user_message::UserMessage` is defined in module `crate::chatwidget::user_message` of the current crate
+    --> tui\src\chatwidget\user_message.rs:10:1
+     |
+  10 | pub(crate) struct UserMessage {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0308]: mismatched types
+    --> tui\src\app.rs:1131:43
+     |
+1131 |                       initial_user_message: crate::chatwidget::create_initial_user_message(
+     |  ___________________________________________^
+1132 | |                         initial_prompt.clone(),
+1133 | |                         initial_images.clone(),
+...    |
+1136 | |                     ),
+     | |_____________________^ expected `user_message::UserMessage`, found `chatwidget::UserMessage`
+     |
+     = note: `chatwidget::UserMessage` and `user_message::UserMessage` have similar names, but are actually distinct ty
+pes
+note: `chatwidget::UserMessage` is defined in module `crate::chatwidget` of the current crate
+    --> tui\src\chatwidget.rs:476:1
+     |
+ 476 | pub(crate) struct UserMessage {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: `user_message::UserMessage` is defined in module `crate::chatwidget::user_message` of the current crate
+    --> tui\src\chatwidget\user_message.rs:10:1
+     |
+  10 | pub(crate) struct UserMessage {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0308]: mismatched types
+    --> tui\src\app.rs:1162:43
+     |
+1162 |                       initial_user_message: crate::chatwidget::create_initial_user_message(
+     |  ___________________________________________^
+1163 | |                         initial_prompt.clone(),
+1164 | |                         initial_images.clone(),
+...    |
+1167 | |                     ),
+     | |_____________________^ expected `user_message::UserMessage`, found `chatwidget::UserMessage`
+     |
+     = note: `chatwidget::UserMessage` and `user_message::UserMessage` have similar names, but are actually distinct ty
+pes
+note: `chatwidget::UserMessage` is defined in module `crate::chatwidget` of the current crate
+    --> tui\src\chatwidget.rs:476:1
+     |
+ 476 | pub(crate) struct UserMessage {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: `user_message::UserMessage` is defined in module `crate::chatwidget::user_message` of the current crate
+    --> tui\src\chatwidget\user_message.rs:10:1
+     |
+  10 | pub(crate) struct UserMessage {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0592]: duplicate definitions with name `input_height`
+   --> tui\src\bottom_pane\feedback\view.rs:156:5
+    |
+156 |     fn input_height(&self, width: u16) -> u16 {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ duplicate definitions for `input_height`
+...
+322 |     fn input_height(&self, width: u16) -> u16 {
+    |     ----------------------------------------- other definition for `input_height`
+
+error[E0034]: multiple applicable items in scope
+   --> tui\src\bottom_pane\feedback\view.rs:210:21
+    |
+210 |         1u16 + self.input_height(width) + 3u16
+    |                     ^^^^^^^^^^^^ multiple `input_height` found
+    |
+note: candidate #1 is defined in an impl for the type `FeedbackNoteView`
+   --> tui\src\bottom_pane\feedback\view.rs:156:5
+    |
+156 |     fn input_height(&self, width: u16) -> u16 {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: candidate #2 is defined in an impl for the type `FeedbackNoteView`
+   --> tui\src\bottom_pane\feedback\view.rs:322:5
+    |
+322 |     fn input_height(&self, width: u16) -> u16 {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0034]: multiple applicable items in scope
+   --> tui\src\bottom_pane\feedback\view.rs:217:37
+    |
+217 |         let text_area_height = self.input_height(area.width).saturating_sub(1);
+    |                                     ^^^^^^^^^^^^ multiple `input_height` found
+    |
+note: candidate #1 is defined in an impl for the type `FeedbackNoteView`
+   --> tui\src\bottom_pane\feedback\view.rs:156:5
+    |
+156 |     fn input_height(&self, width: u16) -> u16 {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: candidate #2 is defined in an impl for the type `FeedbackNoteView`
+   --> tui\src\bottom_pane\feedback\view.rs:322:5
+    |
+322 |     fn input_height(&self, width: u16) -> u16 {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0034]: multiple applicable items in scope
+   --> tui\src\bottom_pane\feedback\view.rs:238:33
+    |
+238 |         let input_height = self.input_height(area.width);
+    |                                 ^^^^^^^^^^^^ multiple `input_height` found
+    |
+note: candidate #1 is defined in an impl for the type `FeedbackNoteView`
+   --> tui\src\bottom_pane\feedback\view.rs:156:5
+    |
+156 |     fn input_height(&self, width: u16) -> u16 {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: candidate #2 is defined in an impl for the type `FeedbackNoteView`
+   --> tui\src\bottom_pane\feedback\view.rs:322:5
+    |
+322 |     fn input_height(&self, width: u16) -> u16 {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0308]: mismatched types
+    --> tui\src\chatwidget.rs:830:66
+     |
+ 830 |         if let Some(label) = history_cell::runtime_metrics_label(&delta.responses_api_summary()) {
+     |                              ----------------------------------- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Runtim
+eMetricsSummary`, found `&RuntimeMetricsSummary`
+     |                              |
+     |                              arguments to this function are incorrect
+     |
+note: function defined here
+    --> tui\src\history_cell.rs:2252:15
+     |
+2252 | pub(crate) fn runtime_metrics_label(summary: RuntimeMetricsSummary) -> Option<String> {
+     |               ^^^^^^^^^^^^^^^^^^^^^ ------------------------------
+help: consider removing the borrow
+     |
+ 830 -         if let Some(label) = history_cell::runtime_metrics_label(&delta.responses_api_summary()) {
+ 830 +         if let Some(label) = history_cell::runtime_metrics_label(delta.responses_api_summary()) {
+     |
+
+error[E0061]: this function takes 5 arguments but 4 arguments were supplied
+    --> tui\src\chatwidget.rs:869:33
+     |
+ 869 |           let session_info_cell = history_cell::new_session_info(
+     |  _________________________________^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^-
+ 870 | |             &self.config,
+ 871 | |             &model_for_header,
+ 872 | |             event,
+ 873 | |             self.show_welcome_banner,
+ 874 | |         );
+     | |_________- argument #5 of type `std::option::Option<codex_protocol::account::PlanType>` is missing
+     |
+note: function defined here
+    --> tui\src\history_cell.rs:1017:15
+     |
+1017 | pub(crate) fn new_session_info(
+     |               ^^^^^^^^^^^^^^^^
+...
+1022 |     auth_plan: Option<PlanType>,
+     |     ---------------------------
+help: provide the argument
+     |
+ 869 |         let session_info_cell = history_cell::new_session_info(
+ ...
+ 873 |             self.show_welcome_banner,
+ 874 ~             /* std::option::Option<codex_protocol::account::PlanType> */,
+ 875 ~         );
+     |
+
+error[E0061]: this function takes 3 arguments but 2 arguments were supplied
+    --> tui\src\chatwidget.rs:1864:42
+     |
+1864 |           self.active_cell = Some(Box::new(history_cell::new_active_web_search_call(
+     |  __________________________________________^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^-
+1865 | |             ev.call_id,
+1866 | |             String::new(),
+1867 | |         )));
+     | |_________- argument #3 of type `bool` is missing
+     |
+note: function defined here
+    --> tui\src\history_cell.rs:1535:15
+     |
+1535 | pub(crate) fn new_active_web_search_call(
+     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+1538 |     animations_enabled: bool,
+     |     ------------------------
+help: provide the argument
+     |
+1864 |         self.active_cell = Some(Box::new(history_cell::new_active_web_search_call(
+1865 |             ev.call_id,
+1866 |             String::new(),
+1867 ~             /* bool */,
+1868 ~         )));
+     |
+
+error[E0308]: mismatched types
+    --> tui\src\chatwidget.rs:2425:13
+     |
+2425 |             initial_user_message,
+     |             ^^^^^^^^^^^^^^^^^^^^ expected `chatwidget::UserMessage`, found `user_message::UserMessage`
+     |
+     = note: `user_message::UserMessage` and `chatwidget::UserMessage` have similar names, but are actually distinct ty
+pes
+note: `user_message::UserMessage` is defined in module `crate::chatwidget::user_message` of the current crate
+    --> tui\src\chatwidget\user_message.rs:10:1
+     |
+  10 | pub(crate) struct UserMessage {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: `chatwidget::UserMessage` is defined in module `crate::chatwidget` of the current crate
+    --> tui\src\chatwidget.rs:476:1
+     |
+ 476 | pub(crate) struct UserMessage {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0308]: mismatched types
+    --> tui\src\chatwidget.rs:2589:13
+     |
+2589 |             initial_user_message,
+     |             ^^^^^^^^^^^^^^^^^^^^ expected `chatwidget::UserMessage`, found `user_message::UserMessage`
+     |
+     = note: `user_message::UserMessage` and `chatwidget::UserMessage` have similar names, but are actually distinct ty
+pes
+note: `user_message::UserMessage` is defined in module `crate::chatwidget::user_message` of the current crate
+    --> tui\src\chatwidget\user_message.rs:10:1
+     |
+  10 | pub(crate) struct UserMessage {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: `chatwidget::UserMessage` is defined in module `crate::chatwidget` of the current crate
+    --> tui\src\chatwidget.rs:476:1
+     |
+ 476 | pub(crate) struct UserMessage {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0308]: mismatched types
+    --> tui\src\chatwidget.rs:2742:13
+     |
+2742 |             initial_user_message,
+     |             ^^^^^^^^^^^^^^^^^^^^ expected `chatwidget::UserMessage`, found `user_message::UserMessage`
+     |
+     = note: `user_message::UserMessage` and `chatwidget::UserMessage` have similar names, but are actually distinct ty
+pes
+note: `user_message::UserMessage` is defined in module `crate::chatwidget::user_message` of the current crate
+    --> tui\src\chatwidget\user_message.rs:10:1
+     |
+  10 | pub(crate) struct UserMessage {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: `chatwidget::UserMessage` is defined in module `crate::chatwidget` of the current crate
+    --> tui\src\chatwidget.rs:476:1
+     |
+ 476 | pub(crate) struct UserMessage {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0063]: missing field `recent_chunks` in initializer of `UnifiedExecProcessDetails`
+    --> tui\src\chatwidget.rs:4398:28
+     |
+4398 |             .map(|process| history_cell::UnifiedExecProcessDetails {
+     |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ missing `recent_chunks`
+
+error[E0061]: this function takes 1 argument but 2 arguments were supplied
+    --> tui\src\history_cell.rs:1368:21
+     |
+1368 |             None => spinner(Some(self.start_time), self.animations_enabled),
+     |                     ^^^^^^^                        ----------------------- unexpected argument #2 of type `bool`
+     |
+note: function defined here
+    --> tui\src\exec_cell\render.rs:141:15
+     |
+ 141 | pub(crate) fn spinner(start_time: Option<Instant>) -> Span<'static> {
+     |               ^^^^^^^
+help: remove the extra argument
+     |
+1368 -             None => spinner(Some(self.start_time), self.animations_enabled),
+1368 +             None => spinner(Some(self.start_time)),
+     |
+
+error[E0061]: this function takes 1 argument but 2 arguments were supplied
+    --> tui\src\history_cell.rs:1522:13
+     |
+1522 |             spinner(Some(self.start_time), self.animations_enabled)
+     |             ^^^^^^^                        ----------------------- unexpected argument #2 of type `bool`
+     |
+note: function defined here
+    --> tui\src\exec_cell\render.rs:141:15
+     |
+ 141 | pub(crate) fn spinner(start_time: Option<Instant>) -> Span<'static> {
+     |               ^^^^^^^
+help: remove the extra argument
+     |
+1522 -             spinner(Some(self.start_time), self.animations_enabled)
+1522 +             spinner(Some(self.start_time))
+     |
+
+error[E0609]: no field `animations_enabled` on type `&StatusIndicatorWidget`
+   --> tui\src\status_indicator_widget.rs:216:17
+    |
+216 |         if self.animations_enabled {
+    |                 ^^^^^^^^^^^^^^^^^^ unknown field
+    |
+    = note: available fields are: `header`, `details`, `inline_message`, `show_interrupt_hint`, `elapsed_running` ... a
+nd 4 others
+
+error[E0004]: non-exhaustive patterns: `FeedbackCategory::SafetyCheck` not covered
+   --> tui\src\bottom_pane\feedback\utils.rs:27:11
+    |
+ 27 |     match category {
+    |           ^^^^^^^^ pattern `FeedbackCategory::SafetyCheck` not covered
+    |
+note: `FeedbackCategory` defined here
+   --> tui\src\app_event.rs:370:17
+    |
+370 | pub(crate) enum FeedbackCategory {
+    |                 ^^^^^^^^^^^^^^^^
+...
+374 |     SafetyCheck,
+    |     ----------- not covered
+    = note: the matched value is of type `FeedbackCategory`
+help: ensure that all possible cases are being handled by adding a match arm with a wildcard pattern or an explicit pat
+tern as shown
+    |
+ 43 ~         ),
+ 44 ~         FeedbackCategory::SafetyCheck => todo!(),
+    |
+
+error[E0004]: non-exhaustive patterns: `FeedbackCategory::SafetyCheck` not covered
+   --> tui\src\bottom_pane\feedback\utils.rs:48:11
+    |
+ 48 |     match category {
+    |           ^^^^^^^^ pattern `FeedbackCategory::SafetyCheck` not covered
+    |
+note: `FeedbackCategory` defined here
+   --> tui\src\app_event.rs:370:17
+    |
+370 | pub(crate) enum FeedbackCategory {
+    |                 ^^^^^^^^^^^^^^^^
+...
+374 |     SafetyCheck,
+    |     ----------- not covered
+    = note: the matched value is of type `FeedbackCategory`
+help: ensure that all possible cases are being handled by adding a match arm with a wildcard pattern or an explicit pat
+tern as shown
+    |
+ 52 ~         FeedbackCategory::Other => "other",
+ 53 ~         FeedbackCategory::SafetyCheck => todo!(),
+    |
+
+error[E0004]: non-exhaustive patterns: `FeedbackCategory::SafetyCheck` not covered
+   --> tui\src\bottom_pane\feedback\utils.rs:64:11
+    |
+ 64 |     match category {
+    |           ^^^^^^^^ pattern `FeedbackCategory::SafetyCheck` not covered
+    |
+note: `FeedbackCategory` defined here
+   --> tui\src\app_event.rs:370:17
+    |
+370 | pub(crate) enum FeedbackCategory {
+    |                 ^^^^^^^^^^^^^^^^
+...
+374 |     SafetyCheck,
+    |     ----------- not covered
+    = note: the matched value is of type `FeedbackCategory`
+help: ensure that all possible cases are being handled by adding a match arm with a wildcard pattern or an explicit pat
+tern as shown
+    |
+ 73 ~         FeedbackCategory::GoodResult => None,
+ 74 ~         FeedbackCategory::SafetyCheck => todo!(),
+    |
+
+Some errors have detailed explanations: E0004, E0034, E0061, E0063, E0255, E0308, E0422, E0425, E0432...
+For more information about an error, try `rustc --explain E0004`.
+warning: `codex-tui` (lib) generated 3 warnings
+error: could not compile `codex-tui` (lib) due to 46 previous errors; 3 warnings emitted

@@ -1,3 +1,4 @@
+use crate::command_migration::migrate_plugin_commands;
 use crate::manifest::PluginManifest;
 use crate::manifest::load_plugin_manifest;
 use crate::manifest::parse_plugin_manifest;
@@ -37,6 +38,7 @@ pub struct PluginInstallResult {
 
 #[derive(Debug, Clone)]
 pub struct PluginStore {
+    codex_home: AbsolutePathBuf,
     root: AbsolutePathBuf,
     data_root: AbsolutePathBuf,
 }
@@ -59,12 +61,22 @@ impl PluginStore {
         let data_root =
             AbsolutePathBuf::from_absolute_path_checked(codex_home.join(PLUGINS_DATA_DIR))
                 .map_err(|err| PluginStoreError::io("failed to resolve plugin data root", err))?;
+        let codex_home = AbsolutePathBuf::from_absolute_path_checked(codex_home)
+            .map_err(|err| PluginStoreError::io("failed to resolve Codex home", err))?;
 
-        Ok(Self { root, data_root })
+        Ok(Self {
+            codex_home,
+            root,
+            data_root,
+        })
     }
 
     pub fn root(&self) -> &AbsolutePathBuf {
         &self.root
+    }
+
+    pub(crate) fn codex_home(&self) -> &AbsolutePathBuf {
+        &self.codex_home
     }
 
     pub fn plugin_base_root(&self, plugin_id: &PluginId) -> AbsolutePathBuf {
@@ -354,6 +366,17 @@ impl PluginStoreError {
     fn io(context: &'static str, source: io::Error) -> Self {
         Self::Io { context, source }
     }
+
+    pub(crate) fn sub_error_type(&self) -> Option<String> {
+        match self {
+            Self::Io { context, .. } => Some(error_context_sub_error_type(context)),
+            Self::Invalid(_) => None,
+        }
+    }
+}
+
+pub(crate) fn error_context_sub_error_type(context: &str) -> String {
+    context.to_ascii_lowercase().replace(' ', "_")
 }
 
 pub fn plugin_version_for_source(source_path: &Path) -> Result<String, PluginStoreError> {
@@ -540,6 +563,9 @@ fn replace_plugin_root_atomically(
         })?;
         fs::write(&manifest_path, contents)
             .map_err(|err| PluginStoreError::io("failed to write fallback plugin manifest", err))?;
+    }
+    if let Err(err) = migrate_plugin_commands(&staged_version_root) {
+        tracing::warn!(%err, "failed to migrate plugin commands into skills");
     }
 
     let target_version_root = target_root.join(plugin_version);

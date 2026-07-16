@@ -44,4 +44,3 @@ filegroup(
     name = "src_binding_release_aarch64_pc_windows_msvc",
     srcs = ["gen/src_binding_release_aarch64-pc-windows-msvc.rs"],
 )
-

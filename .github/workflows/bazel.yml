@@ -4,10 +4,7 @@ name: Bazel
 # https://github.com/cerisier/toolchains_llvm_bootstrapped/blob/main/.github/workflows/ci.yaml
 
 on:
-  pull_request: {}
-  push:
-    branches:
-      - main
+  workflow_call:
   workflow_dispatch:
 
 concurrency:
@@ -60,10 +57,12 @@ jobs:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
 
-      - uses: taiki-e/install-action@44c6d64aa62cd779e873306675c7a58e86d6d532 # v2.62.49
-        if: matrix.os == 'ubuntu-24.04' && matrix.target == 'x86_64-unknown-linux-gnu'
+      - name: Prepare Bazel CI
+        id: prepare_bazel
+        uses: ./.github/actions/prepare-bazel-ci
         with:
-          tool: just
+          target: ${{ matrix.target }}
+          cache-scope: bazel-${{ github.job }}
 
       - name: Check rusty_v8 MODULE.bazel checksums
         if: matrix.os == 'ubuntu-24.04' && matrix.target == 'x86_64-unknown-linux-gnu'
@@ -72,13 +71,6 @@ jobs:
           python3 .github/scripts/rusty_v8_bazel.py check-module-bazel
           just test-github-scripts
 
-      - name: Prepare Bazel CI
-        id: prepare_bazel
-        uses: ./.github/actions/prepare-bazel-ci
-        with:
-          target: ${{ matrix.target }}
-          cache-scope: bazel-${{ github.job }}
-          install-test-prereqs: "true"
       - name: Check MODULE.bazel.lock is up to date
         if: matrix.os == 'ubuntu-24.04' && matrix.target == 'x86_64-unknown-linux-gnu'
         shell: bash
@@ -134,6 +126,10 @@ jobs:
           path: ${{ steps.prepare_bazel.outputs.repository-cache-path }}
           key: ${{ steps.prepare_bazel.outputs.repository-cache-key }}
 
+      - name: Check for a clean worktree
+        if: always() && !cancelled()
+        uses: ./.github/actions/check-clean-worktree
+
   test-windows-shard:
     # Split the Windows Bazel test leg across separate Windows hosts. Jobs with
     # BuildBuddy credentials use Linux RBE for build actions; test execution
@@ -175,7 +171,6 @@ jobs:
           # not save it from every shard below; duplicate uploads would sit on
           # the PR-blocking critical path after the useful test work is done.
           cache-scope: bazel-test
-          install-test-prereqs: "true"
 
       - name: bazel test shard
         env:
@@ -239,6 +234,10 @@ jobs:
           path: ${{ runner.temp }}/bazel-execution-logs
           if-no-files-found: ignore
 
+      - name: Check for a clean worktree
+        if: always() && !cancelled()
+        uses: ./.github/actions/check-clean-worktree
+
   test-windows:
     # Preserve the existing required-check surface while the real work happens
     # in the sharded Windows jobs above.
@@ -282,7 +281,6 @@ jobs:
         with:
           target: x86_64-pc-windows-gnullvm
           cache-scope: bazel-${{ github.job }}
-          install-test-prereqs: "true"
 
       - name: bazel test //...
         env:
@@ -332,6 +330,10 @@ jobs:
         with:
           path: ${{ steps.prepare_bazel.outputs.repository-cache-path }}
           key: ${{ steps.prepare_bazel.outputs.repository-cache-key }}
+
+      - name: Check for a clean worktree
+        if: always() && !cancelled()
+        uses: ./.github/actions/check-clean-worktree
 
   clippy:
     timeout-minutes: 30
@@ -432,6 +434,10 @@ jobs:
         with:
           path: ${{ steps.prepare_bazel.outputs.repository-cache-path }}
           key: ${{ steps.prepare_bazel.outputs.repository-cache-key }}
+
+      - name: Check for a clean worktree
+        if: always() && !cancelled()
+        uses: ./.github/actions/check-clean-worktree
 
   verify-release-build:
     timeout-minutes: 30
@@ -545,145 +551,7 @@ jobs:
         with:
           path: ${{ steps.prepare_bazel.outputs.repository-cache-path }}
           key: ${{ steps.prepare_bazel.outputs.repository-cache-key }}
-    # signal without putting PR latency back on the critical path. Cargo CI
-    # owns V8/code-mode test coverage for now.
-          python3 -m unittest discover -s .github/scripts -p test_rusty_v8_bazel.py
-            # V8-backed code-mode tests are covered by Cargo CI. Bazel CI
-            # cross-compiles in several legs, and those tests are not stable in
-            # that setup yet.
-            -//codex-rs/code-mode:code-mode-unit-tests
-    # Split the Windows Bazel test leg across separate Windows
-    # hosts. Each shard still uses Linux RBE for build actions, but the test
-    # execution itself happens on its own Windows runner.
-    runs-on: windows-latest
-          bazel_test_query='tests(//...) except tests(//third_party/v8:all) except //codex-rs/code-mode:code-mode-unit-tests except //codex-rs/v8-poc:v8-poc-unit-tests except attr(tags, "manual", tests(//...))'
-            MSYS2_ARG_CONV_EXCL='*' bazel query --output=label "${bazel_test_query}" \
-            # Keep this aligned with the main Bazel job. The native Windows
-            # job preserves broad post-merge coverage, but code-mode/V8 tests
-            # are covered by Cargo CI rather than Bazel for now.
-name: Bazel (experimental)
-          - os: macos-latest
-            target: aarch64-unknown-linux-gnu
-            target: aarch64-unknown-linux-musl
-          # TODO: Enable Windows once we fix the toolchain issues there.
-          #- os: windows-latest
-          #  target: x86_64-pc-windows-gnullvm
-    name: Local Bazel build on ${{ matrix.os }} for ${{ matrix.target }}
-      - uses: actions/checkout@v4
-      - name: Set up Node.js for js_repl tests
-        uses: actions/setup-node@v6
-          node-version-file: codex-rs/node-version.txt
-      # Some integration tests rely on DotSlash being installed.
-      # See https://github.com/openai/codex/pull/7617.
-      - name: Install DotSlash
-        uses: facebook/install-dotslash@v2
-      - name: Make DotSlash available in PATH (Unix)
-        if: runner.os != 'Windows'
-        run: cp "$(which dotslash)" /usr/local/bin
-      - name: Make DotSlash available in PATH (Windows)
-        if: runner.os == 'Windows'
-        run: Copy-Item (Get-Command dotslash).Source -Destination "$env:LOCALAPPDATA\Microsoft\WindowsApps\dotslash.exe"
-      # Install Bazel via Bazelisk
-      - name: Set up Bazel
-        uses: bazelbuild/setup-bazelisk@v3
-      # Restore bazel repository cache so we don't have to redownload all the external dependencies
-      # on every CI run.
-      - name: Restore bazel repository cache
-        id: cache_bazel_repository_restore
-        uses: actions/cache/restore@v5
-          path: |
-            ~/.cache/bazel-repo-cache
-          key: bazel-cache-${{ matrix.target }}-${{ hashFiles('MODULE.bazel', 'codex-rs/Cargo.lock', 'codex-rs/Cargo.toml') }}
-          restore-keys: |
-            bazel-cache-${{ matrix.target }}
-      - name: Configure Bazel startup args (Windows)
-          # Use a very short path to reduce argv/path length issues.
-          "BAZEL_STARTUP_ARGS=--output_user_root=C:\" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          set -o pipefail
-          bazel_console_log="$(mktemp)"
-          print_failed_bazel_test_logs() {
-            local console_log="$1"
-            local testlogs_dir
-            testlogs_dir="$(bazel $BAZEL_STARTUP_ARGS info bazel-testlogs 2>/dev/null || echo bazel-testlogs)"
-            local failed_targets=()
-            while IFS= read -r target; do
-              failed_targets+=("$target")
-            done < <(
-              grep -E '^FAIL: //' "$console_log" \
-                | sed -E 's#^FAIL: (//[^ ]+).*#\1#' \
-                | sort -u
-            )
-            if [[ ${#failed_targets[@]} -eq 0 ]]; then
-              echo "No failed Bazel test targets were found in console output."
-              return
-            for target in "${failed_targets[@]}"; do
-              local rel_path="${target#//}"
-              rel_path="${rel_path/:/\/}"
-              local test_log="${testlogs_dir}/${rel_path}/test.log"
-              echo "::group::Bazel test log tail for ${target}"
-              if [[ -f "$test_log" ]]; then
-                tail -n 200 "$test_log"
-              else
-                echo "Missing test log: $test_log"
-              fi
-              echo "::endgroup::"
-            done
-          }
-          bazel_args=(
-            --build_metadata=COMMIT_SHA=$(git rev-parse HEAD)
-            # Keep V8 out of the ordinary Bazel CI path. Only the dedicated
-            # canary and release workflows should build `third_party/v8`.
-          if [[ "${RUNNER_OS:-}" != "Windows" ]]; then
-            # Bazel test sandboxes on macOS may resolve an older Homebrew `node`
-            # before the `actions/setup-node` runtime on PATH.
-            node_bin="$(which node)"
-            bazel_args+=("--test_env=CODEX_JS_REPL_NODE_PATH=${node_bin}")
-          ci_config=ci-linux
-          if [[ "${RUNNER_OS:-}" == "macOS" ]]; then
-            ci_config=ci-macos
-          elif [[ "${RUNNER_OS:-}" == "Windows" ]]; then
-            ci_config=ci-windows
-          if [[ -n "${BUILDBUDDY_API_KEY:-}" ]]; then
-            echo "BuildBuddy API key is available; using remote Bazel configuration."
-            # Work around Bazel 9 remote repo contents cache / overlay materialization failures
-            # seen in CI (for example "is not a symlink" or permission errors while
-            # materializing external repos such as rules_perl). We still use BuildBuddy for
-            # remote execution/cache; this only disables the startup-level repo contents cache.
-            set +e
-            bazel $BAZEL_STARTUP_ARGS \
-              --noexperimental_remote_repo_contents_cache \
-              "${bazel_args[@]}" \
-              "--config=${ci_config}" \
-              "--remote_header=x-buildbuddy-api-key=$BUILDBUDDY_API_KEY" \
-              -- \
-              "${bazel_targets[@]}" \
-              2>&1 | tee "$bazel_console_log"
-            bazel_status=${PIPESTATUS[0]}
-            set -e
-          else
-            echo "BuildBuddy API key is not available; using local Bazel configuration."
-            # Keep fork/community PRs on Bazel but disable remote services that are
-            # configured in .bazelrc and require auth.
-            #
-            # Flag docs:
-            # - Command-line reference: https://bazel.build/reference/command-line-reference
-            # - Remote caching overview: https://bazel.build/remote/caching
-            # - Remote execution overview: https://bazel.build/remote/rbe
-            # - Build Event Protocol overview: https://bazel.build/remote/bep
-            # --noexperimental_remote_repo_contents_cache:
-            #   disable remote repo contents cache enabled in .bazelrc startup options.
-            #   https://bazel.build/reference/command-line-reference#startup_options-flag--experimental_remote_repo_contents_cache
-            # --remote_cache= and --remote_executor=:
-            #   clear remote cache/execution endpoints configured in .bazelrc.
-            #   https://bazel.build/reference/command-line-reference#common_options-flag--remote_cache
-            #   https://bazel.build/reference/command-line-reference#common_options-flag--remote_executor
-              --remote_cache= \
-              --remote_executor= \
-          if [[ ${bazel_status:-0} -ne 0 ]]; then
-            print_failed_bazel_test_logs "$bazel_console_log"
-            exit "$bazel_status"
-      # Save bazel repository cache explicitly; make non-fatal so cache uploading
-      # never fails the overall job. Only save when key wasn't hit.
-        if: always() && !cancelled() && steps.cache_bazel_repository_restore.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v5
 
+      - name: Check for a clean worktree
+        if: always() && !cancelled()
+        uses: ./.github/actions/check-clean-worktree

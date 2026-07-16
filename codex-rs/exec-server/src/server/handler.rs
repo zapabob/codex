@@ -3,8 +3,8 @@ use std::sync::Mutex as StdMutex;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering;
 
-use codex_app_server_protocol::JSONRPCErrorError;
-use codex_app_server_protocol::RequestId;
+use codex_exec_server_protocol::JSONRPCErrorError;
+use codex_exec_server_protocol::RequestId;
 use serde_json::to_value;
 use std::collections::HashSet;
 use tokio::sync::Mutex;
@@ -15,6 +15,8 @@ use crate::ExecServerRuntimePaths;
 use crate::client::http_client::PendingReqwestHttpBodyStream;
 use crate::client::http_client::ReqwestHttpRequestRunner;
 use crate::protocol::EnvironmentInfo;
+use crate::protocol::EnvironmentStatus;
+use crate::protocol::EnvironmentStatusKind;
 use crate::protocol::ExecParams;
 use crate::protocol::ExecResponse;
 use crate::protocol::FsCanonicalizeParams;
@@ -37,6 +39,8 @@ use crate::protocol::FsReadFileParams;
 use crate::protocol::FsReadFileResponse;
 use crate::protocol::FsRemoveParams;
 use crate::protocol::FsRemoveResponse;
+use crate::protocol::FsWalkParams;
+use crate::protocol::FsWalkResponse;
 use crate::protocol::FsWriteFileParams;
 use crate::protocol::FsWriteFileResponse;
 use crate::protocol::HttpRequestParams;
@@ -164,6 +168,13 @@ impl ExecServerHandler {
         Ok(EnvironmentInfo::local())
     }
 
+    pub(crate) fn environment_status(&self) -> Result<EnvironmentStatus, JSONRPCErrorError> {
+        self.require_initialized_for("environment status")?;
+        Ok(EnvironmentStatus {
+            status: EnvironmentStatusKind::Ready,
+        })
+    }
+
     pub(crate) async fn exec_read(
         &self,
         params: ReadParams,
@@ -209,7 +220,7 @@ impl ExecServerHandler {
         if stream_response {
             self.reserve_http_body_stream(&http_request_id).await?;
         }
-        let response = ReqwestHttpRequestRunner::new(params.timeout_ms)?
+        let response = ReqwestHttpRequestRunner::new(params.timeout_ms, params.redirect_policy)?
             .run(params)
             .await;
         if response.is_err() && stream_response {
@@ -309,6 +320,14 @@ impl ExecServerHandler {
     ) -> Result<FsReadDirectoryResponse, JSONRPCErrorError> {
         self.require_initialized_for("filesystem")?;
         self.file_system.read_directory(params).await
+    }
+
+    pub(crate) async fn fs_walk(
+        &self,
+        params: FsWalkParams,
+    ) -> Result<FsWalkResponse, JSONRPCErrorError> {
+        self.require_initialized_for("filesystem")?;
+        self.file_system.walk(params).await
     }
 
     pub(crate) async fn fs_remove(

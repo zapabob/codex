@@ -392,7 +392,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 .github/scripts/rusty_v8_bazel.py stage-upstream-release-pair \
-            --source-root upstream-rusty-v8 \
+            --target-dir upstream-rusty-v8/target \
             --target "${TARGET}" \
             --output-dir "dist/${TARGET}" \
             --sandbox
@@ -474,53 +474,3 @@ jobs:
           overwrite_files: true
           # Keep V8 artifact releases out of Codex's normal "latest release" channel.
           prerelease: true
-        uses: dtolnay/rust-toolchain@a0b273b48ed29de4470960879e8381ff45632f26 # 1.93.0
-          toolchain: "1.93.0"
-          bazel \
-            "--config=${{ matrix.bazel_config }}" \
-            "--remote_header=x-buildbuddy-api-key=${BUILDBUDDY_API_KEY}"
-  workflow_dispatch:
-    inputs:
-      release_tag:
-        description: Optional release tag. Defaults to rusty-v8-v<resolved_v8_version>.
-        required: false
-        type: string
-      publish:
-        description: Publish the staged musl artifacts to a GitHub release.
-        default: true
-        type: boolean
-  group: ${{ github.workflow }}::${{ inputs.release_tag || github.run_id }}
-      - uses: actions/checkout@v6
-        uses: actions/setup-python@v6
-          RELEASE_TAG_INPUT: ${{ inputs.release_tag }}
-          release_tag="${RELEASE_TAG_INPUT}"
-          if [[ -z "${release_tag}" ]]; then
-            release_tag="rusty-v8-v${V8_VERSION}"
-    name: Build ${{ matrix.target }}
-        uses: bazelbuild/setup-bazelisk@v3
-          pair_target="//third_party/v8:rusty_v8_release_pair_${target_suffix}"
-          extra_targets=()
-          if [[ "${TARGET}" == *-unknown-linux-musl ]]; then
-            extra_targets=(
-              "@llvm//runtimes/libcxx:libcxx.static"
-              "@llvm//runtimes/libcxx:libcxxabi.static"
-            )
-            "${extra_targets[@]}"
-            --config=ci-v8 \
-          python3 .github/scripts/rusty_v8_bazel.py stage-release-pair \
-            --platform "${PLATFORM}" \
-            --compilation-mode opt \
-      - name: Upload staged musl artifacts
-        uses: actions/upload-artifact@v7
-          name: rusty-v8-${{ needs.metadata.outputs.v8_version }}-${{ matrix.target }}
-    if: ${{ inputs.publish }}
-      - name: Ensure publishing from default branch
-        if: ${{ github.ref_name != github.event.repository.default_branch }}
-          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-          echo "Publishing is only allowed from ${DEFAULT_BRANCH}; current ref is ${GITHUB_REF_NAME}." >&2
-          exit 1
-      - name: Ensure release tag is new
-            echo "Release tag ${RELEASE_TAG} already exists; musl artifact tags are immutable." >&2
-      - uses: actions/download-artifact@v8
-        uses: softprops/action-gh-release@v2
-

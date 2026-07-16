@@ -27,6 +27,7 @@ use core_test_support::responses::mount_sse_sequence;
 use core_test_support::responses::namespace_child_tool;
 use core_test_support::responses::sse;
 use core_test_support::responses::start_mock_server;
+use core_test_support::skip_if_wine_exec;
 use core_test_support::test_codex::TestCodex;
 use pretty_assertions::assert_eq;
 use serde_json::Value;
@@ -90,14 +91,10 @@ fn read_post_tool_use_hook_inputs(home: &Path) -> Result<Vec<Value>> {
         .collect()
 }
 
-fn uploaded_file(server: &MockServer, file_size_bytes: u64) -> Value {
+fn schema_filtered_uploaded_file(server: &MockServer) -> Value {
     json!({
         "download_url": format!("{}/download/file_123", server.uri()),
         "file_id": "file_123",
-        "mime_type": "text/plain",
-        "file_name": "report.txt",
-        "uri": "sediment://file_123",
-        "file_size_bytes": file_size_bytes,
     })
 }
 
@@ -183,7 +180,10 @@ async fn run_extract_turn(test: &TestCodex, server: &MockServer) -> Result<Respo
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-async fn codex_apps_file_params_upload_environment_files_before_mcp_tool_call() -> Result<()> {
+async fn codex_apps_file_params_omit_fields_absent_from_tool_schema() -> Result<()> {
+    // TODO(anp): Remove after file-upload fixtures support target-native Windows paths.
+    skip_if_wine_exec!(Ok(()), "uses a host-native file-upload path");
+
     let server = start_mock_server().await;
     let apps_server = AppsTestServer::mount(&server).await?;
     mount_file_upload_mocks(&server, STREAMED_FILE_SIZE as u64).await;
@@ -199,7 +199,7 @@ async fn codex_apps_file_params_upload_environment_files_before_mcp_tool_call() 
             .await?;
             Ok(())
         });
-    let test = builder.build_with_remote_env(&server).await?;
+    let test = builder.build_with_auto_env(&server).await?;
     let mock = run_extract_turn(&test, &server).await?;
 
     let requests = mock.requests();
@@ -226,7 +226,7 @@ async fn codex_apps_file_params_upload_environment_files_before_mcp_tool_call() 
 
     assert_eq!(
         apps_tool_call.pointer("/params/arguments/file"),
-        Some(&uploaded_file(&server, STREAMED_FILE_SIZE as u64))
+        Some(&schema_filtered_uploaded_file(&server))
     );
     assert_eq!(
         apps_tool_call.pointer("/params/_meta/_codex_apps"),
@@ -265,7 +265,7 @@ async fn codex_apps_file_params_pass_uploaded_file_to_post_tool_use_hook() -> Re
     assert_eq!(hook_inputs.len(), 1);
     assert_eq!(
         hook_inputs[0]["tool_input"]["file"],
-        uploaded_file(&server, /*file_size_bytes*/ 11)
+        schema_filtered_uploaded_file(&server)
     );
 
     server.verify().await;

@@ -6,7 +6,6 @@ use crate::JSONRPCRequest;
 use crate::RequestId;
 use crate::export::GeneratedSchema;
 use crate::export::write_json_schema;
-use crate::protocol::git4d;
 use crate::protocol::v1;
 use crate::protocol::v2;
 use codex_experimental_api_macros::ExperimentalApi;
@@ -32,6 +31,11 @@ pub enum AuthMode {
     #[ts(rename = "chatgptAuthTokens")]
     #[strum(serialize = "chatgptAuthTokens")]
     ChatgptAuthTokens,
+    /// Backend auth supplied as request headers.
+    #[serde(rename = "headers")]
+    #[ts(rename = "headers")]
+    #[strum(serialize = "headers")]
+    Headers,
     /// Programmatic Codex auth backed by a registered Agent Identity.
     #[serde(rename = "agentIdentity")]
     #[ts(rename = "agentIdentity")]
@@ -54,7 +58,7 @@ impl AuthMode {
     pub fn has_chatgpt_account(self) -> bool {
         match self {
             Self::Chatgpt | Self::ChatgptAuthTokens | Self::PersonalAccessToken => true,
-            Self::ApiKey | Self::AgentIdentity | Self::BedrockApiKey => false,
+            Self::ApiKey | Self::Headers | Self::AgentIdentity | Self::BedrockApiKey => false,
         }
     }
 
@@ -63,6 +67,7 @@ impl AuthMode {
         match self {
             Self::Chatgpt
             | Self::ChatgptAuthTokens
+            | Self::Headers
             | Self::AgentIdentity
             | Self::PersonalAccessToken => true,
             Self::ApiKey | Self::BedrockApiKey => false,
@@ -642,12 +647,12 @@ client_request_definitions! {
         serialization: None,
         response: v2::ThreadTurnsListResponse,
     },
-    #[experimental("thread/turns/items/list")]
-    ThreadTurnsItemsList => "thread/turns/items/list" {
-        params: v2::ThreadTurnsItemsListParams,
+    #[experimental("thread/items/list")]
+    ThreadItemsList => "thread/items/list" {
+        params: v2::ThreadItemsListParams,
         // Explicitly concurrent: this primarily reads append-only rollout storage.
         serialization: None,
-        response: v2::ThreadTurnsItemsListResponse,
+        response: v2::ThreadItemsListResponse,
     },
     /// Append raw Responses API items to the thread history without starting a user turn.
     ThreadInjectItems => "thread/inject_items" {
@@ -734,36 +739,6 @@ client_request_definitions! {
         params: v2::AppsListParams,
         serialization: None,
         response: v2::AppsListResponse,
-    },
-    #[experimental("git4d/capabilities/read")]
-    Git4DCapabilitiesRead => "git4d/capabilities/read" {
-        params: git4d::Git4DCapabilitiesReadParams,
-        serialization: global_shared_read("git4d"),
-        response: git4d::Git4DCapabilitiesResponse,
-    },
-    #[experimental("git4d/session/start")]
-    Git4DSessionStart => "git4d/session/start" {
-        params: git4d::Git4DSessionStartParams,
-        serialization: global("git4d"),
-        response: git4d::Git4DSessionStartResponse,
-    },
-    #[experimental("git4d/session/list")]
-    Git4DSessionList => "git4d/session/list" {
-        params: git4d::Git4DSessionListParams,
-        serialization: global_shared_read("git4d"),
-        response: git4d::Git4DSessionListResponse,
-    },
-    #[experimental("git4d/session/watch")]
-    Git4DSessionWatch => "git4d/session/watch" {
-        params: git4d::Git4DSessionWatchParams,
-        serialization: global("git4d"),
-        response: git4d::Git4DSessionWatchResponse,
-    },
-    #[experimental("git4d/session/unwatch")]
-    Git4DSessionUnwatch => "git4d/session/unwatch" {
-        params: git4d::Git4DSessionUnwatchParams,
-        serialization: global("git4d"),
-        response: git4d::Git4DSessionUnwatchResponse,
     },
     // File system requests are intentionally concurrent. Desktop already treats local
     // file system operations as concurrent, and app-server remote fs mirrors that model.
@@ -973,6 +948,20 @@ client_request_definitions! {
         params: v2::EnvironmentAddParams,
         serialization: global("environment"),
         response: v2::EnvironmentAddResponse,
+    },
+    #[experimental("environment/info")]
+    /// Reads information from a configured execution environment.
+    EnvironmentInfo => "environment/info" {
+        params: v2::EnvironmentInfoParams,
+        serialization: global_shared_read("environment"),
+        response: v2::EnvironmentInfoResponse,
+    },
+    #[experimental("environment/status")]
+    /// Reads the current status of a configured execution environment.
+    EnvironmentStatus => "environment/status" {
+        params: v2::EnvironmentStatusParams,
+        serialization: global_shared_read("environment"),
+        response: v2::EnvironmentStatusResponse,
     },
 
     McpServerOauthLogin => "mcpServer/oauth/login" {
@@ -1641,6 +1630,10 @@ server_notification_definitions! {
     ThreadNameUpdated => "thread/name/updated" (v2::ThreadNameUpdatedNotification),
     ThreadGoalUpdated => "thread/goal/updated" (v2::ThreadGoalUpdatedNotification),
     ThreadGoalCleared => "thread/goal/cleared" (v2::ThreadGoalClearedNotification),
+    #[experimental("thread/environment/connected")]
+    EnvironmentConnected => "thread/environment/connected" (v2::EnvironmentConnectionNotification),
+    #[experimental("thread/environment/disconnected")]
+    EnvironmentDisconnected => "thread/environment/disconnected" (v2::EnvironmentConnectionNotification),
     #[experimental("thread/settings/updated")]
     ThreadSettingsUpdated => "thread/settings/updated" (v2::ThreadSettingsUpdatedNotification),
     ThreadTokenUsageUpdated => "thread/tokenUsage/updated" (v2::ThreadTokenUsageUpdatedNotification),
@@ -1656,6 +1649,8 @@ server_notification_definitions! {
     ItemCompleted => "item/completed" (v2::ItemCompletedNotification),
     /// This event is internal-only. Used by Codex Cloud.
     RawResponseItemCompleted => "rawResponseItem/completed" (v2::RawResponseItemCompletedNotification),
+    /// This event is internal-only. Used by clients that need exact upstream usage.
+    RawResponseCompleted => "rawResponse/completed" (v2::RawResponseCompletedNotification),
     AgentMessageDelta => "item/agentMessage/delta" (v2::AgentMessageDeltaNotification),
     /// EXPERIMENTAL - proposed plan streaming deltas for plan items.
     PlanDelta => "item/plan/delta" (v2::PlanDeltaNotification),
@@ -1699,8 +1694,6 @@ server_notification_definitions! {
     ConfigWarning => "configWarning" (v2::ConfigWarningNotification),
     FuzzyFileSearchSessionUpdated => "fuzzyFileSearch/sessionUpdated" (FuzzyFileSearchSessionUpdatedNotification),
     FuzzyFileSearchSessionCompleted => "fuzzyFileSearch/sessionCompleted" (FuzzyFileSearchSessionCompletedNotification),
-    #[experimental("git4d/session/event")]
-    Git4DSessionEvent => "git4d/session/event" (git4d::Git4DSessionEventNotification),
     #[experimental("thread/realtime/started")]
     ThreadRealtimeStarted => "thread/realtime/started" (v2::ThreadRealtimeStartedNotification),
     #[experimental("thread/realtime/itemAdded")]
@@ -1727,6 +1720,25 @@ server_notification_definitions! {
     #[strum(serialize = "account/login/completed")]
     AccountLoginCompleted(v2::AccountLoginCompletedNotification),
 
+}
+
+/// Server notification envelope sent over app-server transports.
+///
+/// `emitted_at_ms` records when app-server emitted the notification, before it
+/// is fanned out to individual connections.
+#[derive(Serialize, Deserialize, Debug, Clone, TS)]
+#[serde(rename_all = "camelCase")]
+pub struct ServerNotificationEnvelope {
+    #[serde(flatten)]
+    pub notification: ServerNotification,
+    /// Unix timestamp (in milliseconds) when app-server emitted this notification.
+    ///
+    /// Optional so clients can decode notifications from older app-server
+    /// versions. Current app-server versions always populate it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    #[ts(type = "number")]
+    pub emitted_at_ms: Option<i64>,
 }
 
 client_notification_definitions! {
@@ -1946,6 +1958,7 @@ mod tests {
             request_id: request_id(),
             params: v2::McpServerOauthLoginParams {
                 name: "server-a".to_string(),
+                thread_id: None,
                 scopes: None,
                 timeout_secs: None,
             },
@@ -2123,17 +2136,17 @@ mod tests {
         };
         assert_eq!(thread_turns_list.serialization_scope(), None);
 
-        let thread_turns_items_list = ClientRequest::ThreadTurnsItemsList {
+        let thread_items_list = ClientRequest::ThreadItemsList {
             request_id: request_id(),
-            params: v2::ThreadTurnsItemsListParams {
+            params: v2::ThreadItemsListParams {
                 thread_id: "thread-1".to_string(),
-                turn_id: "turn-1".to_string(),
+                turn_id: None,
                 cursor: None,
                 limit: None,
                 sort_direction: None,
             },
         };
-        assert_eq!(thread_turns_items_list.serialization_scope(), None);
+        assert_eq!(thread_items_list.serialization_scope(), None);
 
         let mcp_resource_read = ClientRequest::McpResourceRead {
             request_id: request_id(),
@@ -2606,11 +2619,13 @@ mod tests {
             response: v2::ThreadStartResponse {
                 thread: v2::Thread {
                     id: "67e55044-10b1-426f-9247-bb680e5fe0c8".to_string(),
+                    extra: None,
                     session_id: "67e55044-10b1-426f-9247-bb680e5fe0c7".to_string(),
                     forked_from_id: None,
                     parent_thread_id: None,
                     preview: "first prompt".to_string(),
                     ephemeral: true,
+                    history_mode: Default::default(),
                     model_provider: "openai".to_string(),
                     created_at: 1,
                     updated_at: 2,
@@ -2637,7 +2652,7 @@ mod tests {
                         "/tmp/AGENTS.md",
                     )),
                 ],
-                approval_policy: v2::AskForApproval::OnFailure,
+                approval_policy: v2::AskForApproval::OnRequest,
                 approvals_reviewer: v2::ApprovalsReviewer::User,
                 sandbox: v2::SandboxPolicy::DangerFullAccess,
                 active_permission_profile: None,
@@ -2655,11 +2670,13 @@ mod tests {
                 "response": {
                     "thread": {
                         "id": "67e55044-10b1-426f-9247-bb680e5fe0c8",
+                        "extra": null,
                         "sessionId": "67e55044-10b1-426f-9247-bb680e5fe0c7",
                         "forkedFromId": null,
                         "parentThreadId": null,
                         "preview": "first prompt",
                         "ephemeral": true,
+                        "historyMode": "legacy",
                         "modelProvider": "openai",
                         "createdAt": 1,
                         "updatedAt": 2,
@@ -2684,7 +2701,7 @@ mod tests {
                     "cwd": absolute_path_string("tmp"),
                     "runtimeWorkspaceRoots": [],
                     "instructionSources": [absolute_path_string("tmp/AGENTS.md")],
-                    "approvalPolicy": "on-failure",
+                    "approvalPolicy": "on-request",
                     "approvalsReviewer": "user",
                     "sandbox": {
                         "type": "dangerFullAccess"
@@ -2738,11 +2755,41 @@ mod tests {
     }
 
     #[test]
+    fn serialize_account_login_amazon_bedrock() -> Result<()> {
+        let request = ClientRequest::LoginAccount {
+            request_id: RequestId::Integer(2),
+            params: v2::LoginAccountParams::AmazonBedrock {
+                api_key: "secret".to_string(),
+                region: "us-west-2".to_string(),
+            },
+        };
+        assert_eq!(
+            json!({
+                "method": "account/login/start",
+                "id": 2,
+                "params": {
+                    "type": "amazonBedrock",
+                    "apiKey": "secret",
+                    "region": "us-west-2"
+                }
+            }),
+            serde_json::to_value(&request)?,
+        );
+        assert_eq!(
+            json!({"type": "amazonBedrock"}),
+            serde_json::to_value(v2::LoginAccountResponse::AmazonBedrock {})?,
+        );
+        Ok(())
+    }
+
+    #[test]
     fn serialize_account_login_chatgpt() -> Result<()> {
         let request = ClientRequest::LoginAccount {
             request_id: RequestId::Integer(3),
             params: v2::LoginAccountParams::Chatgpt {
+                app_brand: None,
                 codex_streamlined_login: false,
+                use_hosted_login_success_page: false,
             },
         };
         assert_eq!(
@@ -2750,7 +2797,8 @@ mod tests {
                 "method": "account/login/start",
                 "id": 3,
                 "params": {
-                    "type": "chatgpt"
+                    "type": "chatgpt",
+                    "appBrand": null
                 }
             }),
             serde_json::to_value(&request)?,
@@ -2763,7 +2811,9 @@ mod tests {
         let request = ClientRequest::LoginAccount {
             request_id: RequestId::Integer(3),
             params: v2::LoginAccountParams::Chatgpt {
+                app_brand: None,
                 codex_streamlined_login: true,
+                use_hosted_login_success_page: false,
             },
         };
         assert_eq!(
@@ -2772,7 +2822,34 @@ mod tests {
                 "id": 3,
                 "params": {
                     "type": "chatgpt",
+                    "appBrand": null,
                     "codexStreamlinedLogin": true
+                }
+            }),
+            serde_json::to_value(&request)?,
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn serialize_account_login_chatgpt_with_hosted_success_page() -> Result<()> {
+        let request = ClientRequest::LoginAccount {
+            request_id: RequestId::Integer(3),
+            params: v2::LoginAccountParams::Chatgpt {
+                app_brand: Some(v2::LoginAppBrand::Chatgpt),
+                codex_streamlined_login: true,
+                use_hosted_login_success_page: true,
+            },
+        };
+        assert_eq!(
+            json!({
+                "method": "account/login/start",
+                "id": 3,
+                "params": {
+                    "type": "chatgpt",
+                    "appBrand": "chatgpt",
+                    "codexStreamlinedLogin": true,
+                    "useHostedLoginSuccessPage": true
                 }
             }),
             serde_json::to_value(&request)?,
@@ -3216,6 +3293,7 @@ mod tests {
             request_id: RequestId::Integer(9),
             params: v2::ThreadRealtimeStartParams {
                 client_managed_handoffs: Some(true),
+                flush_transcript_tail_on_session_end: Some(true),
                 codex_responses_as_items: None,
                 codex_response_item_prefix: None,
                 codex_response_handoff_prefix: Some("silent context".to_string()),
@@ -3226,7 +3304,7 @@ mod tests {
                 prompt: Some(Some("You are on a call".to_string())),
                 realtime_session_id: Some("sess_456".to_string()),
                 transport: None,
-                version: Some(RealtimeConversationVersion::V1),
+                version: Some(RealtimeConversationVersion::V3),
                 voice: Some(RealtimeVoice::Marin),
             },
         };
@@ -3237,6 +3315,7 @@ mod tests {
                 "params": {
                     "threadId": "thr_123",
                     "clientManagedHandoffs": true,
+                    "flushTranscriptTailOnSessionEnd": true,
                     "codexResponsesAsItems": null,
                     "codexResponseItemPrefix": null,
                     "codexResponseHandoffPrefix": "silent context",
@@ -3246,7 +3325,7 @@ mod tests {
                     "prompt": "You are on a call",
                     "realtimeSessionId": "sess_456",
                     "transport": null,
-                    "version": "v1",
+                    "version": "v3",
                     "voice": "marin"
                 }
             }),
@@ -3261,6 +3340,7 @@ mod tests {
             request_id: RequestId::Integer(9),
             params: v2::ThreadRealtimeStartParams {
                 client_managed_handoffs: None,
+                flush_transcript_tail_on_session_end: None,
                 codex_responses_as_items: None,
                 codex_response_item_prefix: None,
                 codex_response_handoff_prefix: None,
@@ -3282,6 +3362,7 @@ mod tests {
                 "params": {
                     "threadId": "thr_123",
                     "clientManagedHandoffs": null,
+                    "flushTranscriptTailOnSessionEnd": null,
                     "codexResponsesAsItems": null,
                     "codexResponseItemPrefix": null,
                     "codexResponseHandoffPrefix": null,
@@ -3301,6 +3382,7 @@ mod tests {
             request_id: RequestId::Integer(9),
             params: v2::ThreadRealtimeStartParams {
                 client_managed_handoffs: None,
+                flush_transcript_tail_on_session_end: None,
                 codex_responses_as_items: None,
                 codex_response_item_prefix: None,
                 codex_response_handoff_prefix: None,
@@ -3322,6 +3404,7 @@ mod tests {
                 "params": {
                     "threadId": "thr_123",
                     "clientManagedHandoffs": null,
+                    "flushTranscriptTailOnSessionEnd": null,
                     "codexResponsesAsItems": null,
                     "codexResponseItemPrefix": null,
                     "codexResponseHandoffPrefix": null,
@@ -3539,6 +3622,7 @@ mod tests {
             request_id: RequestId::Integer(1),
             params: v2::ThreadRealtimeStartParams {
                 client_managed_handoffs: None,
+                flush_transcript_tail_on_session_end: None,
                 codex_responses_as_items: None,
                 codex_response_item_prefix: None,
                 codex_response_handoff_prefix: None,
@@ -3555,39 +3639,6 @@ mod tests {
         };
         let reason = crate::experimental_api::ExperimentalApi::experimental_reason(&request);
         assert_eq!(reason, Some("thread/realtime/start"));
-    }
-
-    #[test]
-    fn git4d_session_start_is_marked_experimental() {
-        let request = ClientRequest::Git4DSessionStart {
-            request_id: RequestId::Integer(1),
-            params: git4d::Git4DSessionStartParams {
-                repository_path: None,
-                mode: git4d::Git4DMode::Desktop,
-            },
-        };
-
-        let reason = crate::experimental_api::ExperimentalApi::experimental_reason(&request);
-        assert_eq!(reason, Some("git4d/session/start"));
-        assert_eq!(
-            request.serialization_scope(),
-            Some(ClientRequestSerializationScope::Global("git4d"))
-        );
-    }
-
-    #[test]
-    fn git4d_session_event_notification_is_marked_experimental() {
-        let notification =
-            ServerNotification::Git4DSessionEvent(git4d::Git4DSessionEventNotification {
-                session_id: "git4d_123".to_string(),
-                sequence: 1,
-                event: git4d::Git4DSessionEvent::SessionStatusChanged {
-                    status: git4d::Git4DSessionStatus::Active,
-                },
-            });
-
-        let reason = crate::experimental_api::ExperimentalApi::experimental_reason(&notification);
-        assert_eq!(reason, Some("git4d/session/event"));
     }
 
     #[test]

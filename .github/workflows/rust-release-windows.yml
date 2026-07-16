@@ -3,11 +3,8 @@ name: rust-release-windows
 on:
   workflow_call:
 
-# Cargo's libgit2 transport has been flaky when fetching git dependencies with
-# nested submodules. Prefer the system git CLI across every Cargo invocation.
 env:
-  CARGO_NET_GIT_FETCH_WITH_CLI: "true"
-  WINDOWS_BINARIES: "codex codex-responses-api-proxy codex-windows-sandbox-setup codex-command-runner codex-app-server"
+  WINDOWS_BINARIES: "codex codex-code-mode-host codex-responses-api-proxy codex-windows-sandbox-setup codex-command-runner codex-app-server"
 
 jobs:
   build-windows-binaries:
@@ -28,14 +25,14 @@ jobs:
           - runner: windows-x64
             target: x86_64-pc-windows-msvc
             bundle: primary
-            binaries: "codex codex-responses-api-proxy"
+            binaries: "codex codex-code-mode-host codex-responses-api-proxy"
             runs_on:
               group: ${{ github.event.repository.name }}-runners
               labels: ${{ github.event.repository.name }}-windows-x64
           - runner: windows-arm64
             target: aarch64-pc-windows-msvc
             bundle: primary
-            binaries: "codex codex-responses-api-proxy"
+            binaries: "codex codex-code-mode-host codex-responses-api-proxy"
             runs_on:
               group: ${{ github.event.repository.name }}-runners
               labels: ${{ github.event.repository.name }}-windows-arm64
@@ -56,14 +53,14 @@ jobs:
           - runner: windows-x64
             target: x86_64-pc-windows-msvc
             bundle: app-server
-            binaries: "codex-app-server"
+            binaries: "codex-app-server codex-code-mode-host"
             runs_on:
               group: ${{ github.event.repository.name }}-runners
               labels: ${{ github.event.repository.name }}-windows-x64
           - runner: windows-arm64
             target: aarch64-pc-windows-msvc
             bundle: app-server
-            binaries: "codex-app-server"
+            binaries: "codex-app-server codex-code-mode-host"
             runs_on:
               group: ${{ github.event.repository.name }}-runners
               labels: ${{ github.event.repository.name }}-windows-arm64
@@ -72,6 +69,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
+      - uses: ./.github/actions/setup-ci
       - name: Print runner specs (Windows)
         shell: powershell
         run: |
@@ -112,13 +110,13 @@ jobs:
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: cargo-timings-rust-release-windows-${{ matrix.target }}-${{ matrix.bundle }}
-          path: codex-rs/target/**/cargo-timings/cargo-timing.html
+          path: ${{ env.CARGO_TARGET_DIR }}/**/cargo-timings/cargo-timing.html
           if-no-files-found: warn
 
       - name: Stage Windows binaries
         shell: bash
         run: |
-          release_dir="target/${{ matrix.target }}/release"
+          release_dir="$CARGO_TARGET_DIR/${{ matrix.target }}/release"
           output_dir="$release_dir/staged-${{ matrix.bundle }}"
           mkdir -p "$output_dir"
           for binary in ${{ matrix.binaries }}; do
@@ -141,7 +139,7 @@ jobs:
         with:
           name: windows-binaries-${{ matrix.target }}-${{ matrix.bundle }}
           path: |
-            codex-rs/target/${{ matrix.target }}/release/staged-${{ matrix.bundle }}/*
+            ${{ env.CARGO_TARGET_DIR }}/${{ matrix.target }}/release/staged-${{ matrix.bundle }}/*
 
   build-windows-symbols:
     needs:
@@ -164,19 +162,20 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
+      - uses: ./.github/actions/setup-ci
       - name: Download prebuilt Windows binaries
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           pattern: windows-binaries-${{ matrix.target }}-*
           merge-multiple: true
-          path: codex-rs/target/${{ matrix.target }}/release
+          path: ${{ env.CARGO_TARGET_DIR }}/${{ matrix.target }}/release
       - name: Build symbols archive
         shell: bash
         run: |
           bash "${GITHUB_WORKSPACE}/.github/scripts/archive-release-symbols-and-strip-binaries.sh" \
             --target "${{ matrix.target }}" \
             --artifact-name "${{ matrix.target }}" \
-            --release-dir "target/${{ matrix.target }}/release" \
+            --release-dir "${CARGO_TARGET_DIR}/${{ matrix.target }}/release" \
             --archive-dir "symbols-dist/${{ matrix.target }}" \
             --binaries "${WINDOWS_BINARIES}"
       - name: Upload symbols archive
@@ -221,30 +220,32 @@ jobs:
         with:
           persist-credentials: false
 
+      - uses: ./.github/actions/setup-ci
+
       - name: Download prebuilt Windows primary binaries
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: windows-binaries-${{ matrix.target }}-primary
-          path: codex-rs/target/${{ matrix.target }}/release
+          path: ${{ env.CARGO_TARGET_DIR }}/${{ matrix.target }}/release
 
       - name: Download prebuilt Windows helper binaries
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: windows-binaries-${{ matrix.target }}-helpers
-          path: codex-rs/target/${{ matrix.target }}/release
+          path: ${{ env.CARGO_TARGET_DIR }}/${{ matrix.target }}/release
 
       - name: Download prebuilt Windows app-server binary
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: windows-binaries-${{ matrix.target }}-app-server
-          path: codex-rs/target/${{ matrix.target }}/release
+          path: ${{ env.CARGO_TARGET_DIR }}/${{ matrix.target }}/release
 
       - name: Verify binaries
         shell: bash
         run: |
           set -euo pipefail
           for binary in ${WINDOWS_BINARIES}; do
-            ls -lh "target/${{ matrix.target }}/release/${binary}.exe"
+            ls -lh "$CARGO_TARGET_DIR/${{ matrix.target }}/release/${binary}.exe"
           done
 
       - name: Sign Windows binaries with Azure Trusted Signing
@@ -266,12 +267,9 @@ jobs:
           mkdir -p "$dest"
 
           for binary in ${WINDOWS_BINARIES}; do
-            cp "target/${{ matrix.target }}/release/${binary}.exe" \
+            cp "$CARGO_TARGET_DIR/${{ matrix.target }}/release/${binary}.exe" \
               "$dest/${binary}-${{ matrix.target }}.exe"
           done
-
-      - name: Install DotSlash
-        uses: facebook/install-dotslash@1e4e7b3e07eaca387acb98f1d4720e0bee8dbb6a # v2
 
       - name: Build Codex package archives
         shell: bash
@@ -293,7 +291,7 @@ jobs:
               bash "$archive_script" \
                 --target "$target" \
                 --bundle "{}" \
-                --entrypoint-dir "target/$target/release" \
+                --entrypoint-dir "$CARGO_TARGET_DIR/$target/release" \
                 --archive-dir "dist/$target"
 
       - name: Build Python runtime wheel
@@ -408,72 +406,3 @@ jobs:
           name: ${{ matrix.target }}
           path: |
             codex-rs/dist/${{ matrix.target }}/*
-    inputs:
-      release-lto:
-        required: true
-        type: string
-    secrets:
-      AZURE_TRUSTED_SIGNING_CLIENT_ID:
-      AZURE_TRUSTED_SIGNING_TENANT_ID:
-      AZURE_TRUSTED_SIGNING_SUBSCRIPTION_ID:
-      AZURE_TRUSTED_SIGNING_ENDPOINT:
-      AZURE_TRUSTED_SIGNING_ACCOUNT_NAME:
-      AZURE_TRUSTED_SIGNING_CERTIFICATE_PROFILE_NAME:
-    # Windows release builds can exceed an hour on fat-LTO mainline releases,
-    # so keep the timeout aligned with the top-level release build headroom.
-    env:
-      CARGO_PROFILE_RELEASE_LTO: ${{ inputs.release-lto }}
-              group: codex-runners
-              labels: codex-windows-x64
-              labels: codex-windows-arm64
-      - uses: dtolnay/rust-toolchain@a0b273b48ed29de4470960879e8381ff45632f26 # 1.93.0
-          cargo build --target ${{ matrix.target }} --release --timings "${build_args[@]}"
-          output_dir="target/${{ matrix.target }}/release/staged-${{ matrix.bundle }}"
-            cp "target/${{ matrix.target }}/release/${binary}.exe" "$output_dir/${binary}.exe"
-      WINDOWS_BINARIES: "codex codex-responses-api-proxy codex-windows-sandbox-setup codex-command-runner codex-app-server"
-          client-id: ${{ secrets.AZURE_TRUSTED_SIGNING_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TRUSTED_SIGNING_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_TRUSTED_SIGNING_SUBSCRIPTION_ID }}
-          endpoint: ${{ secrets.AZURE_TRUSTED_SIGNING_ENDPOINT }}
-          account-name: ${{ secrets.AZURE_TRUSTED_SIGNING_ACCOUNT_NAME }}
-          certificate-profile-name: ${{ secrets.AZURE_TRUSTED_SIGNING_CERTIFICATE_PROFILE_NAME }}
-          for bundle in primary app-server; do
-            bash "${GITHUB_WORKSPACE}/.github/scripts/build-codex-package-archive.sh" \
-              --target "${{ matrix.target }}" \
-              --bundle "$bundle" \
-              --entrypoint-dir "target/${{ matrix.target }}/release" \
-              --archive-dir "dist/${{ matrix.target }}"
-          for f in "$dest"/*; do
-            # Skip files that are already archives (shouldn't happen, but be
-              continue
-            # Don't try to compress signature bundles.
-            # Must run from inside the dest dir so 7z won't embed the
-            if [[ "$base" == "codex-${{ matrix.target }}.exe" ]]; then
-              runner_src="$dest/codex-command-runner-${{ matrix.target }}.exe"
-              setup_src="$dest/codex-windows-sandbox-setup-${{ matrix.target }}.exe"
-    timeout-minutes: 60
-            build_args: --bin codex --bin codex-responses-api-proxy
-            build_args: --bin codex-windows-sandbox-setup --bin codex-command-runner
-      - uses: actions/checkout@v6
-      - uses: dtolnay/rust-toolchain@1.93.0
-          cargo build --target ${{ matrix.target }} --release --timings ${{ matrix.build_args }}
-        uses: actions/upload-artifact@v7
-          if [[ "${{ matrix.bundle }}" == "primary" ]]; then
-            cp target/${{ matrix.target }}/release/codex.exe "$output_dir/codex.exe"
-            cp target/${{ matrix.target }}/release/codex-responses-api-proxy.exe "$output_dir/codex-responses-api-proxy.exe"
-          else
-            cp target/${{ matrix.target }}/release/codex-windows-sandbox-setup.exe "$output_dir/codex-windows-sandbox-setup.exe"
-            cp target/${{ matrix.target }}/release/codex-command-runner.exe "$output_dir/codex-command-runner.exe"
-        uses: actions/download-artifact@v8
-          ls -lh target/${{ matrix.target }}/release/codex.exe
-          ls -lh target/${{ matrix.target }}/release/codex-responses-api-proxy.exe
-          ls -lh target/${{ matrix.target }}/release/codex-windows-sandbox-setup.exe
-          ls -lh target/${{ matrix.target }}/release/codex-command-runner.exe
-          cp target/${{ matrix.target }}/release/codex.exe "$dest/codex-${{ matrix.target }}.exe"
-          cp target/${{ matrix.target }}/release/codex-responses-api-proxy.exe "$dest/codex-responses-api-proxy-${{ matrix.target }}.exe"
-          cp target/${{ matrix.target }}/release/codex-windows-sandbox-setup.exe "$dest/codex-windows-sandbox-setup-${{ matrix.target }}.exe"
-          cp target/${{ matrix.target }}/release/codex-command-runner.exe "$dest/codex-command-runner-${{ matrix.target }}.exe"
-        uses: facebook/install-dotslash@v2
-            if [[ "$base" == *.tar.gz || "$base" == *.zip || "$base" == *.dmg ]]; then
-      - uses: actions/upload-artifact@v7
-

@@ -1,3 +1,4 @@
+use codex_protocol::config_types::Personality;
 use codex_protocol::config_types::ReasoningSummary;
 use codex_protocol::openai_models::ConfigShellToolType;
 use codex_protocol::openai_models::ModelInfo;
@@ -9,7 +10,12 @@ use codex_protocol::openai_models::TruncationPolicyConfig;
 use codex_protocol::openai_models::WebSearchToolType;
 use codex_protocol::openai_models::default_input_modalities;
 
+<<<<<<<< HEAD:codex-rs/core/src/models_manager/model_info.rs
+use crate::config::Config;
+use codex_features::Feature;
+========
 use crate::config::ModelsManagerConfig;
+>>>>>>>> upstream/main:codex-rs/models-manager/src/model_info.rs
 use codex_utils_output_truncation::approx_bytes_for_tokens;
 use tracing::warn;
 
@@ -19,13 +25,9 @@ const LOCAL_FRIENDLY_TEMPLATE: &str =
     "You optimize for team morale and being a supportive teammate as much as code quality.";
 const LOCAL_PRAGMATIC_TEMPLATE: &str = "You are a deeply pragmatic, effective software engineer.";
 const PERSONALITY_PLACEHOLDER: &str = "{{ personality }}";
+const PERSONALITY_SECTION_HEADER: &str = "# Personality";
 
 pub fn with_config_overrides(mut model: ModelInfo, config: &ModelsManagerConfig) -> ModelInfo {
-    if let Some(supports_reasoning_summaries) = config.model_supports_reasoning_summaries
-        && supports_reasoning_summaries
-    {
-        model.supports_reasoning_summaries = true;
-    }
     if let Some(context_window) = config.model_context_window {
         model.context_window = Some(
             model
@@ -54,12 +56,74 @@ pub fn with_config_overrides(mut model: ModelInfo, config: &ModelsManagerConfig)
 
     if let Some(base_instructions) = &config.base_instructions {
         model.base_instructions = base_instructions.clone();
-        model.model_messages = None;
-    } else if !config.personality_enabled {
-        model.model_messages = None;
+        clear_instruction_messages(&mut model);
+    } else {
+        if config.personality_enabled && config.personality == Some(Personality::None) {
+            model.base_instructions = strip_personality_section(model.base_instructions);
+            if let Some(instructions_template) = model
+                .model_messages
+                .as_mut()
+                .and_then(|messages| messages.instructions_template.as_mut())
+            {
+                *instructions_template =
+                    strip_personality_section(std::mem::take(instructions_template));
+            }
+        }
+        if !config.personality_enabled {
+            clear_instruction_messages(&mut model);
+        }
     }
 
     model
+}
+
+fn strip_personality_section(mut instructions: String) -> String {
+    let mut section_start = None;
+    let mut section_end = None;
+    let mut offset = 0;
+
+    for line_with_ending in instructions.split_inclusive('\n') {
+        let line = match line_with_ending.strip_suffix('\n') {
+            Some(line) => line.strip_suffix('\r').unwrap_or(line),
+            None => line_with_ending,
+        };
+        if section_start.is_some() {
+            if is_h1_heading(line) {
+                section_end = Some(offset);
+                break;
+            }
+        } else if line == PERSONALITY_SECTION_HEADER {
+            section_start = Some(offset);
+        }
+        offset += line_with_ending.len();
+    }
+
+    if let Some(section_start) = section_start {
+        let section_end = section_end.unwrap_or(instructions.len());
+        instructions.replace_range(section_start..section_end, "");
+    }
+
+    instructions
+}
+
+fn is_h1_heading(line: &str) -> bool {
+    let Some(rest) = line.strip_prefix('#') else {
+        return false;
+    };
+    rest.is_empty() || rest.starts_with(' ') || rest.starts_with('\t')
+}
+
+fn clear_instruction_messages(model: &mut ModelInfo) {
+    if let Some(model_messages) = &mut model.model_messages {
+        model_messages.instructions_template = None;
+        model_messages.instructions_variables = None;
+        if model_messages.approvals.is_none()
+            && model_messages.auto_review.is_none()
+            && model_messages.permissions.is_none()
+        {
+            model.model_messages = None;
+        }
+    }
 }
 
 /// Build a minimal fallback model descriptor for missing/unknown slugs.
@@ -82,7 +146,8 @@ pub fn model_info_from_slug(slug: &str) -> ModelInfo {
         upgrade: None,
         base_instructions: BASE_INSTRUCTIONS.to_string(),
         model_messages: local_personality_messages_for_slug(slug),
-        supports_reasoning_summaries: false,
+        include_skills_usage_instructions: false,
+        supports_reasoning_summary_parameter: true,
         default_reasoning_summary: ReasoningSummary::Auto,
         support_verbosity: false,
         default_verbosity: None,
@@ -100,10 +165,13 @@ pub fn model_info_from_slug(slug: &str) -> ModelInfo {
         input_modalities: default_input_modalities(),
         used_fallback_model_metadata: true, // this is the fallback model metadata
         supports_search_tool: false,
+<<<<<<<< HEAD:codex-rs/core/src/models_manager/model_info.rs
+========
         use_responses_lite: false,
         auto_review_model_override: None,
         tool_mode: None,
         multi_agent_version: None,
+>>>>>>>> upstream/main:codex-rs/models-manager/src/model_info.rs
     }
 }
 
@@ -118,6 +186,9 @@ fn local_personality_messages_for_slug(slug: &str) -> Option<ModelMessages> {
                 personality_friendly: Some(LOCAL_FRIENDLY_TEMPLATE.to_string()),
                 personality_pragmatic: Some(LOCAL_PRAGMATIC_TEMPLATE.to_string()),
             }),
+            approvals: None,
+            auto_review: None,
+            permissions: None,
         }),
         _ => None,
     }

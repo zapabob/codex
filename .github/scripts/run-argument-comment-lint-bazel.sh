@@ -78,4 +78,3 @@ fi
   "${bazel_lint_args[@]}" \
   -- \
   "${final_build_targets[@]}"
-

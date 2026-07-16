@@ -7,6 +7,7 @@ use codex_core::context::extension_image_generation_output_hint;
 use codex_extension_api::ToolOutput;
 use codex_extension_api::ToolPayload;
 use codex_extension_api::ToolSpec;
+use codex_protocol::ResponseItemId;
 use codex_protocol::models::ContentItem;
 use codex_protocol::models::DEFAULT_IMAGE_DETAIL;
 use codex_protocol::models::FunctionCallOutputBody;
@@ -97,6 +98,7 @@ async fn recent_image_fallback_selects_newest_images_in_chronological_order() {
             status: Some("completed".to_string()),
             call_id: "code-mode-call".to_string(),
             name: "exec".to_string(),
+            namespace: None,
             input: String::new(),
             internal_chat_message_metadata_passthrough: None,
         },
@@ -108,7 +110,7 @@ async fn recent_image_fallback_selects_newest_images_in_chronological_order() {
             internal_chat_message_metadata_passthrough: None,
         },
         ResponseItem::ImageGenerationCall {
-            id: Some("generated-call".to_string()),
+            id: Some(ResponseItemId::with_suffix("ig", "generated-call")),
             status: "completed".to_string(),
             revised_prompt: None,
             result: "generated".to_string(),

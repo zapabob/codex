@@ -21,4 +21,3 @@ that are later published under platform-specific dist-tags.
 Direct `build_npm_package.py` invocations are still useful for package-specific
 debugging, but native packages expect `--vendor-src` to point at a prehydrated
 `vendor/` tree. Release packaging should use `scripts/stage_npm_packages.py`.
-

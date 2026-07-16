@@ -420,21 +420,3 @@ jobs:
         run: |
           gh issue edit "$ISSUE_NUMBER" --remove-label codex-deduplicate || true
           echo "Attempted to remove label: codex-deduplicate"
-    if: github.repository == 'zapabob/Codex' && (github.event.action == 'opened' || (github.event.action == 'labeled' && github.event.label.name == 'codex-deduplicate'))
-      - uses: actions/checkout@v6
-        uses: openai/codex-action@main
-          CODEX_OUTPUT: ${{ steps.codex-all.outputs.final-message }}
-    # Pass 1 may drop sudo on the runner, so run the fallback in a fresh job.
-    if: ${{ needs.gather-duplicates-all.result == 'success' && needs.gather-duplicates-all.outputs.has_matches != 'true' }}
-          CODEX_OUTPUT: ${{ steps.codex-open.outputs.final-message }}
-      - gather-duplicates-all
-      - gather-duplicates-open
-    if: ${{ always() && needs.gather-duplicates-all.result == 'success' && (needs.gather-duplicates-open.result == 'success' || needs.gather-duplicates-open.result == 'skipped') }}
-          PASS1_ISSUES: ${{ needs.gather-duplicates-all.outputs.issues_json }}
-          PASS1_REASON: ${{ needs.gather-duplicates-all.outputs.reason }}
-          PASS2_ISSUES: ${{ needs.gather-duplicates-open.outputs.issues_json }}
-          PASS2_REASON: ${{ needs.gather-duplicates-open.outputs.reason }}
-          PASS1_HAS_MATCHES: ${{ needs.gather-duplicates-all.outputs.has_matches }}
-          PASS2_HAS_MATCHES: ${{ needs.gather-duplicates-open.outputs.has_matches }}
-        uses: actions/github-script@v8
-
