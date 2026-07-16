@@ -1,6 +1,7 @@
 [advisories]
-# Reviewed 2026-07-02. Keep this list in sync with ../deny.toml.
+# Reviewed 2026-07-16. Keep this list in sync with ../deny.toml.
 ignore = [
+    "RUSTSEC-2026-0002", # lru 0.12.5 via patched ratatui 0.29 layout cache; affected IterMut is unused; remove when the fork moves to ratatui 0.30+
     "RUSTSEC-2024-0388", # derivative 2.2.0 via starlark/starlark_syntax; upstream crate is unmaintained
     "RUSTSEC-2025-0057", # fxhash 0.2.1 via starlark_map/bm25; upstream crate is unmaintained
     "RUSTSEC-2024-0436", # paste 1.0.15 via starlark/ratatui; upstream crate is unmaintained

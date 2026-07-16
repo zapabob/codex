@@ -123,24 +123,6 @@ readme = replaceMatch(
 );
 readme = replaceMatch(
   readme,
-  /> Stable branch: `release\/[^`]+`/,
-  `> Stable branch: \`release/${canonicalVersion}-stable\``,
-  'README stable branch',
-);
-readme = replaceMatch(
-  readme,
-  /> Stable tag: `v[^`]+-stable\.0`/,
-  `> Stable tag: \`v${canonicalVersion}-stable.0\``,
-  'README stable tag',
-);
-readme = replaceMatch(
-  readme,
-  /> Main tag: `v[^`]+`/,
-  `> Main tag: \`v${canonicalVersion}\``,
-  'README main tag',
-);
-readme = replaceMatch(
-  readme,
   /> Official base: `[^`]+` plus upstream main `[^`]+`/,
   `> Official base: \`${metadata.upstream_base}\` plus upstream main \`${metadata.upstream_main_commit}\``,
   'README official base',
@@ -174,18 +156,6 @@ readme = replaceMatch(
   /- latest observed upstream main commit time: [^\n]+/,
   `- latest observed upstream main commit time: ${metadata.upstream_main_observed_at}`,
   'README observed upstream main commit time',
-);
-readme = replaceMatch(
-  readme,
-  /gh release download v[^ ]+ --pattern "codex-v[^"]+-windows-x86_64\.tar\.gz"/,
-  `gh release download v${canonicalVersion} --pattern "codex-v${canonicalVersion}-windows-x86_64.tar.gz"`,
-  'README release download command',
-);
-readme = replaceMatch(
-  readme,
-  /tar -xzf codex-v[^ ]+-windows-x86_64\.tar\.gz/,
-  `tar -xzf codex-v${canonicalVersion}-windows-x86_64.tar.gz`,
-  'README release extract command',
 );
 if (/- file: `releases\/codex-v[^`]+-windows-x86_64\.tar\.gz`/.test(readme)) {
   readme = replaceMatch(

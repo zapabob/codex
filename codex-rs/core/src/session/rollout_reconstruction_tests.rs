@@ -1,10 +1,7 @@
 use super::*;
 
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-========
 use super::tests::build_world_state_from_turn_context;
 use super::tests::make_session_and_context;
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
 use codex_protocol::AgentPath;
 use codex_protocol::ThreadId;
 use codex_protocol::models::ContentItem;
@@ -13,13 +10,10 @@ use codex_protocol::protocol::CompactedItem;
 use codex_protocol::protocol::InitialHistory;
 use codex_protocol::protocol::InterAgentCommunication;
 use codex_protocol::protocol::ResumedHistory;
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-========
 use codex_protocol::protocol::SessionContextWindow;
 use codex_protocol::protocol::SessionMeta;
 use codex_protocol::protocol::SessionMetaLine;
 use codex_protocol::protocol::WorldStateItem;
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
 use pretty_assertions::assert_eq;
 use serde_json::json;
 use std::path::PathBuf;
@@ -63,13 +57,6 @@ fn inter_agent_assistant_message(text: &str) -> ResponseItem {
         content: vec![ContentItem::OutputText {
             text: serde_json::to_string(&communication).unwrap(),
         }],
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-        end_turn: None,
-        phase: None,
-    }
-}
-
-========
         phase: None,
         internal_chat_message_metadata_passthrough: None,
     }
@@ -174,7 +161,6 @@ async fn record_initial_history_restores_world_state_baseline() {
     assert_eq!(session.clone_history().await.raw_items(), &[]);
 }
 
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
 #[tokio::test]
 async fn record_initial_history_resumed_bare_turn_context_does_not_hydrate_previous_turn_settings()
 {
@@ -182,14 +168,9 @@ async fn record_initial_history_resumed_bare_turn_context_does_not_hydrate_previ
     let previous_model = "previous-rollout-model";
     let previous_context_item = TurnContextItem {
         turn_id: Some(turn_context.sub_id.clone()),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-        trace_id: turn_context.trace_id.clone(),
-        cwd: turn_context.cwd.to_path_buf(),
-========
         #[allow(deprecated)]
         cwd: turn_context.cwd.clone(),
         workspace_roots: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
         current_date: turn_context.current_date.clone(),
         timezone: turn_context.timezone.clone(),
         approval_policy: turn_context.approval_policy.value(),
@@ -205,17 +186,8 @@ async fn record_initial_history_resumed_bare_turn_context_does_not_hydrate_previ
         multi_agent_version: None,
         multi_agent_mode: None,
         realtime_active: Some(turn_context.realtime_active),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-        effort: turn_context.reasoning_effort,
-        summary: turn_context.reasoning_summary,
-        user_instructions: None,
-        developer_instructions: None,
-        final_output_json_schema: None,
-        truncation_policy: Some(turn_context.truncation_policy),
-========
         effort: turn_context.reasoning_effort.clone(),
         summary: codex_protocol::config_types::ReasoningSummary::Auto,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
     };
     let rollout_items = vec![RolloutItem::TurnContext(previous_context_item)];
 
@@ -243,14 +215,9 @@ async fn record_initial_history_resumed_hydrates_previous_turn_settings_from_lif
     let previous_model = "previous-rollout-model";
     let mut previous_context_item = TurnContextItem {
         turn_id: Some(turn_context.sub_id.clone()),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-        trace_id: turn_context.trace_id.clone(),
-        cwd: turn_context.cwd.to_path_buf(),
-========
         #[allow(deprecated)]
         cwd: turn_context.cwd.clone(),
         workspace_roots: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
         current_date: turn_context.current_date.clone(),
         timezone: turn_context.timezone.clone(),
         approval_policy: turn_context.approval_policy.value(),
@@ -266,17 +233,8 @@ async fn record_initial_history_resumed_hydrates_previous_turn_settings_from_lif
         multi_agent_version: None,
         multi_agent_mode: None,
         realtime_active: Some(turn_context.realtime_active),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-        effort: turn_context.reasoning_effort,
-        summary: turn_context.reasoning_summary,
-        user_instructions: None,
-        developer_instructions: None,
-        final_output_json_schema: None,
-        truncation_policy: Some(turn_context.truncation_policy),
-========
         effort: turn_context.reasoning_effort.clone(),
         summary: codex_protocol::config_types::ReasoningSummary::Auto,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
     };
     let turn_id = previous_context_item
         .turn_id
@@ -288,10 +246,7 @@ async fn record_initial_history_resumed_hydrates_previous_turn_settings_from_lif
         RolloutItem::EventMsg(EventMsg::TurnStarted(
             codex_protocol::protocol::TurnStartedEvent {
                 turn_id: turn_id.clone(),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-========
                 trace_id: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
                 started_at: None,
                 model_context_window: Some(128_000),
                 collaboration_mode_kind: ModeKind::Default,
@@ -312,16 +267,11 @@ async fn record_initial_history_resumed_hydrates_previous_turn_settings_from_lif
             codex_protocol::protocol::TurnCompleteEvent {
                 turn_id,
                 last_agent_message: None,
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-                completed_at: None,
-                duration_ms: None,
-========
                 error: None,
                 started_at: None,
                 completed_at: None,
                 duration_ms: None,
                 time_to_first_token_ms: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
             },
         )),
     ];
@@ -368,10 +318,7 @@ async fn reconstruct_history_rollback_keeps_history_and_metadata_in_sync_for_com
         RolloutItem::EventMsg(EventMsg::TurnStarted(
             codex_protocol::protocol::TurnStartedEvent {
                 turn_id: first_turn_id.clone(),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-========
                 trace_id: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
                 started_at: None,
                 model_context_window: Some(128_000),
                 collaboration_mode_kind: ModeKind::Default,
@@ -398,24 +345,16 @@ async fn reconstruct_history_rollback_keeps_history_and_metadata_in_sync_for_com
                 turn_id: first_turn_id,
                 started_at: None,
                 last_agent_message: None,
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-                completed_at: None,
-                duration_ms: None,
-========
                 error: None,
                 completed_at: None,
                 duration_ms: None,
                 time_to_first_token_ms: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
             },
         )),
         RolloutItem::EventMsg(EventMsg::TurnStarted(
             codex_protocol::protocol::TurnStartedEvent {
                 turn_id: rolled_back_turn_id.clone(),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-========
                 trace_id: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
                 started_at: None,
                 model_context_window: Some(128_000),
                 collaboration_mode_kind: ModeKind::Default,
@@ -442,15 +381,10 @@ async fn reconstruct_history_rollback_keeps_history_and_metadata_in_sync_for_com
                 turn_id: rolled_back_turn_id,
                 started_at: None,
                 last_agent_message: None,
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-                completed_at: None,
-                duration_ms: None,
-========
                 error: None,
                 completed_at: None,
                 duration_ms: None,
                 time_to_first_token_ms: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
             },
         )),
         RolloutItem::EventMsg(EventMsg::ThreadRolledBack(
@@ -504,10 +438,7 @@ async fn reconstruct_history_rollback_keeps_history_and_metadata_in_sync_for_inc
         RolloutItem::EventMsg(EventMsg::TurnStarted(
             codex_protocol::protocol::TurnStartedEvent {
                 turn_id: first_turn_id.clone(),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-========
                 trace_id: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
                 started_at: None,
                 model_context_window: Some(128_000),
                 collaboration_mode_kind: ModeKind::Default,
@@ -531,24 +462,16 @@ async fn reconstruct_history_rollback_keeps_history_and_metadata_in_sync_for_inc
                 turn_id: first_turn_id,
                 started_at: None,
                 last_agent_message: None,
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-                completed_at: None,
-                duration_ms: None,
-========
                 error: None,
                 completed_at: None,
                 duration_ms: None,
                 time_to_first_token_ms: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
             },
         )),
         RolloutItem::EventMsg(EventMsg::TurnStarted(
             codex_protocol::protocol::TurnStartedEvent {
                 turn_id: incomplete_turn_id,
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-========
                 trace_id: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
                 started_at: None,
                 model_context_window: Some(128_000),
                 collaboration_mode_kind: ModeKind::Default,
@@ -614,10 +537,7 @@ async fn reconstruct_history_rollback_skips_non_user_turns_for_history_and_metad
         RolloutItem::EventMsg(EventMsg::TurnStarted(
             codex_protocol::protocol::TurnStartedEvent {
                 turn_id: first_turn_id.clone(),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-========
                 trace_id: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
                 started_at: None,
                 model_context_window: Some(128_000),
                 collaboration_mode_kind: ModeKind::Default,
@@ -641,24 +561,16 @@ async fn reconstruct_history_rollback_skips_non_user_turns_for_history_and_metad
                 turn_id: first_turn_id,
                 started_at: None,
                 last_agent_message: None,
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-                completed_at: None,
-                duration_ms: None,
-========
                 error: None,
                 completed_at: None,
                 duration_ms: None,
                 time_to_first_token_ms: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
             },
         )),
         RolloutItem::EventMsg(EventMsg::TurnStarted(
             codex_protocol::protocol::TurnStartedEvent {
                 turn_id: second_turn_id.clone(),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-========
                 trace_id: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
                 started_at: None,
                 model_context_window: Some(128_000),
                 collaboration_mode_kind: ModeKind::Default,
@@ -681,24 +593,16 @@ async fn reconstruct_history_rollback_skips_non_user_turns_for_history_and_metad
                 turn_id: second_turn_id,
                 started_at: None,
                 last_agent_message: None,
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-                completed_at: None,
-                duration_ms: None,
-========
                 error: None,
                 completed_at: None,
                 duration_ms: None,
                 time_to_first_token_ms: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
             },
         )),
         RolloutItem::EventMsg(EventMsg::TurnStarted(
             codex_protocol::protocol::TurnStartedEvent {
                 turn_id: standalone_turn_id.clone(),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-========
                 trace_id: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
                 started_at: None,
                 model_context_window: Some(128_000),
                 collaboration_mode_kind: ModeKind::Default,
@@ -710,15 +614,10 @@ async fn reconstruct_history_rollback_skips_non_user_turns_for_history_and_metad
                 turn_id: standalone_turn_id,
                 started_at: None,
                 last_agent_message: None,
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-                completed_at: None,
-                duration_ms: None,
-========
                 error: None,
                 completed_at: None,
                 duration_ms: None,
                 time_to_first_token_ms: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
             },
         )),
         RolloutItem::EventMsg(EventMsg::ThreadRolledBack(
@@ -856,100 +755,6 @@ async fn reconstruct_history_rollback_counts_inter_agent_assistant_turns() {
 }
 
 #[tokio::test]
-async fn reconstruct_history_rollback_counts_inter_agent_assistant_turns() {
-    let (session, turn_context) = make_session_and_context().await;
-    let first_context_item = turn_context.to_turn_context_item();
-    let first_turn_id = first_context_item
-        .turn_id
-        .clone()
-        .expect("turn context should have turn_id");
-    let assistant_turn_id = "assistant-instruction-turn".to_string();
-    let assistant_turn_context = TurnContextItem {
-        turn_id: Some(assistant_turn_id.clone()),
-        ..first_context_item.clone()
-    };
-    let assistant_instruction = inter_agent_assistant_message("continue");
-    let assistant_reply = assistant_message("worker reply");
-
-    let rollout_items = vec![
-        RolloutItem::EventMsg(EventMsg::TurnStarted(
-            codex_protocol::protocol::TurnStartedEvent {
-                turn_id: first_turn_id.clone(),
-                started_at: None,
-                model_context_window: Some(128_000),
-                collaboration_mode_kind: ModeKind::Default,
-            },
-        )),
-        RolloutItem::EventMsg(EventMsg::UserMessage(
-            codex_protocol::protocol::UserMessageEvent {
-                message: "turn 1 user".to_string(),
-                images: None,
-                local_images: Vec::new(),
-                text_elements: Vec::new(),
-            },
-        )),
-        RolloutItem::TurnContext(first_context_item.clone()),
-        RolloutItem::ResponseItem(user_message("turn 1 user")),
-        RolloutItem::ResponseItem(assistant_message("turn 1 assistant")),
-        RolloutItem::EventMsg(EventMsg::TurnComplete(
-            codex_protocol::protocol::TurnCompleteEvent {
-                turn_id: first_turn_id,
-                last_agent_message: None,
-                completed_at: None,
-                duration_ms: None,
-            },
-        )),
-        RolloutItem::EventMsg(EventMsg::TurnStarted(
-            codex_protocol::protocol::TurnStartedEvent {
-                turn_id: assistant_turn_id.clone(),
-                started_at: None,
-                model_context_window: Some(128_000),
-                collaboration_mode_kind: ModeKind::Default,
-            },
-        )),
-        RolloutItem::TurnContext(assistant_turn_context),
-        RolloutItem::ResponseItem(assistant_instruction),
-        RolloutItem::ResponseItem(assistant_reply),
-        RolloutItem::EventMsg(EventMsg::TurnComplete(
-            codex_protocol::protocol::TurnCompleteEvent {
-                turn_id: assistant_turn_id,
-                last_agent_message: None,
-                completed_at: None,
-                duration_ms: None,
-            },
-        )),
-        RolloutItem::EventMsg(EventMsg::ThreadRolledBack(
-            codex_protocol::protocol::ThreadRolledBackEvent { num_turns: 1 },
-        )),
-    ];
-
-    let reconstructed = session
-        .reconstruct_history_from_rollout(&turn_context, &rollout_items)
-        .await;
-
-    assert_eq!(
-        reconstructed.history,
-        vec![
-            user_message("turn 1 user"),
-            assistant_message("turn 1 assistant")
-        ]
-    );
-    assert_eq!(
-        reconstructed.previous_turn_settings,
-        Some(PreviousTurnSettings {
-            model: turn_context.model_info.slug.clone(),
-            realtime_active: Some(turn_context.realtime_active),
-        })
-    );
-    assert_eq!(
-        serde_json::to_value(reconstructed.reference_context_item)
-            .expect("serialize reconstructed reference context item"),
-        serde_json::to_value(Some(first_context_item))
-            .expect("serialize expected reference context item")
-    );
-}
-
-#[tokio::test]
 async fn reconstruct_history_rollback_clears_history_and_metadata_when_exceeding_user_turns() {
     let (session, turn_context) = make_session_and_context().await;
     let only_context_item = turn_context.to_turn_context_item();
@@ -961,10 +766,7 @@ async fn reconstruct_history_rollback_clears_history_and_metadata_when_exceeding
         RolloutItem::EventMsg(EventMsg::TurnStarted(
             codex_protocol::protocol::TurnStartedEvent {
                 turn_id: only_turn_id.clone(),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-========
                 trace_id: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
                 started_at: None,
                 model_context_window: Some(128_000),
                 collaboration_mode_kind: ModeKind::Default,
@@ -988,15 +790,10 @@ async fn reconstruct_history_rollback_clears_history_and_metadata_when_exceeding
                 turn_id: only_turn_id,
                 started_at: None,
                 last_agent_message: None,
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-                completed_at: None,
-                duration_ms: None,
-========
                 error: None,
                 completed_at: None,
                 duration_ms: None,
                 time_to_first_token_ms: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
             },
         )),
         RolloutItem::EventMsg(EventMsg::ThreadRolledBack(
@@ -1026,10 +823,7 @@ async fn record_initial_history_resumed_rollback_skips_only_user_turns() {
         RolloutItem::EventMsg(EventMsg::TurnStarted(
             codex_protocol::protocol::TurnStartedEvent {
                 turn_id: user_turn_id.clone(),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-========
                 trace_id: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
                 started_at: None,
                 model_context_window: Some(128_000),
                 collaboration_mode_kind: ModeKind::Default,
@@ -1051,25 +845,17 @@ async fn record_initial_history_resumed_rollback_skips_only_user_turns() {
                 turn_id: user_turn_id,
                 started_at: None,
                 last_agent_message: None,
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-                completed_at: None,
-                duration_ms: None,
-========
                 error: None,
                 completed_at: None,
                 duration_ms: None,
                 time_to_first_token_ms: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
             },
         )),
         // Standalone task turn (no UserMessage) should not consume rollback skips.
         RolloutItem::EventMsg(EventMsg::TurnStarted(
             codex_protocol::protocol::TurnStartedEvent {
                 turn_id: standalone_turn_id.clone(),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-========
                 trace_id: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
                 started_at: None,
                 model_context_window: Some(128_000),
                 collaboration_mode_kind: ModeKind::Default,
@@ -1080,15 +866,10 @@ async fn record_initial_history_resumed_rollback_skips_only_user_turns() {
                 turn_id: standalone_turn_id,
                 started_at: None,
                 last_agent_message: None,
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-                completed_at: None,
-                duration_ms: None,
-========
                 error: None,
                 completed_at: None,
                 duration_ms: None,
                 time_to_first_token_ms: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
             },
         )),
         RolloutItem::EventMsg(EventMsg::ThreadRolledBack(
@@ -1122,10 +903,7 @@ async fn record_initial_history_resumed_rollback_drops_incomplete_user_turn_comp
         RolloutItem::EventMsg(EventMsg::TurnStarted(
             codex_protocol::protocol::TurnStartedEvent {
                 turn_id: previous_turn_id.clone(),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-========
                 trace_id: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
                 started_at: None,
                 model_context_window: Some(128_000),
                 collaboration_mode_kind: ModeKind::Default,
@@ -1147,24 +925,16 @@ async fn record_initial_history_resumed_rollback_drops_incomplete_user_turn_comp
                 turn_id: previous_turn_id,
                 started_at: None,
                 last_agent_message: None,
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-                completed_at: None,
-                duration_ms: None,
-========
                 error: None,
                 completed_at: None,
                 duration_ms: None,
                 time_to_first_token_ms: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
             },
         )),
         RolloutItem::EventMsg(EventMsg::TurnStarted(
             codex_protocol::protocol::TurnStartedEvent {
                 turn_id: incomplete_turn_id,
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-========
                 trace_id: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
                 started_at: None,
                 model_context_window: Some(128_000),
                 collaboration_mode_kind: ModeKind::Default,
@@ -1464,10 +1234,7 @@ async fn reconstruct_history_legacy_compaction_without_replacement_history_clear
         RolloutItem::EventMsg(EventMsg::TurnStarted(
             codex_protocol::protocol::TurnStartedEvent {
                 turn_id: current_turn_id.clone(),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-========
                 trace_id: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
                 started_at: None,
                 model_context_window: Some(128_000),
                 collaboration_mode_kind: ModeKind::Default,
@@ -1489,15 +1256,10 @@ async fn reconstruct_history_legacy_compaction_without_replacement_history_clear
                 turn_id: current_turn_id,
                 started_at: None,
                 last_agent_message: None,
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-                completed_at: None,
-                duration_ms: None,
-========
                 error: None,
                 completed_at: None,
                 duration_ms: None,
                 time_to_first_token_ms: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
             },
         )),
     ];
@@ -1516,14 +1278,9 @@ async fn record_initial_history_resumed_turn_context_after_compaction_reestablis
     let previous_model = "previous-rollout-model";
     let previous_context_item = TurnContextItem {
         turn_id: Some(turn_context.sub_id.clone()),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-        trace_id: turn_context.trace_id.clone(),
-        cwd: turn_context.cwd.to_path_buf(),
-========
         #[allow(deprecated)]
         cwd: turn_context.cwd.clone(),
         workspace_roots: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
         current_date: turn_context.current_date.clone(),
         timezone: turn_context.timezone.clone(),
         approval_policy: turn_context.approval_policy.value(),
@@ -1539,17 +1296,8 @@ async fn record_initial_history_resumed_turn_context_after_compaction_reestablis
         multi_agent_version: None,
         multi_agent_mode: None,
         realtime_active: Some(turn_context.realtime_active),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-        effort: turn_context.reasoning_effort,
-        summary: turn_context.reasoning_summary,
-        user_instructions: None,
-        developer_instructions: None,
-        final_output_json_schema: None,
-        truncation_policy: Some(turn_context.truncation_policy),
-========
         effort: turn_context.reasoning_effort.clone(),
         summary: codex_protocol::config_types::ReasoningSummary::Auto,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
     };
     let previous_turn_id = previous_context_item
         .turn_id
@@ -1559,10 +1307,7 @@ async fn record_initial_history_resumed_turn_context_after_compaction_reestablis
         RolloutItem::EventMsg(EventMsg::TurnStarted(
             codex_protocol::protocol::TurnStartedEvent {
                 turn_id: previous_turn_id.clone(),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-========
                 trace_id: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
                 started_at: None,
                 model_context_window: Some(128_000),
                 collaboration_mode_kind: ModeKind::Default,
@@ -1593,15 +1338,10 @@ async fn record_initial_history_resumed_turn_context_after_compaction_reestablis
                 turn_id: previous_turn_id,
                 started_at: None,
                 last_agent_message: None,
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-                completed_at: None,
-                duration_ms: None,
-========
                 error: None,
                 completed_at: None,
                 duration_ms: None,
                 time_to_first_token_ms: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
             },
         )),
     ];
@@ -1627,14 +1367,9 @@ async fn record_initial_history_resumed_turn_context_after_compaction_reestablis
             .expect("serialize seeded reference context item"),
         serde_json::to_value(Some(TurnContextItem {
             turn_id: Some(turn_context.sub_id.clone()),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-            trace_id: turn_context.trace_id.clone(),
-            cwd: turn_context.cwd.to_path_buf(),
-========
             #[allow(deprecated)]
             cwd: turn_context.cwd.clone(),
             workspace_roots: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
             current_date: turn_context.current_date.clone(),
             timezone: turn_context.timezone.clone(),
             approval_policy: turn_context.approval_policy.value(),
@@ -1650,17 +1385,8 @@ async fn record_initial_history_resumed_turn_context_after_compaction_reestablis
             multi_agent_version: None,
             multi_agent_mode: None,
             realtime_active: Some(turn_context.realtime_active),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-            effort: turn_context.reasoning_effort,
-            summary: turn_context.reasoning_summary,
-            user_instructions: None,
-            developer_instructions: None,
-            final_output_json_schema: None,
-            truncation_policy: Some(turn_context.truncation_policy),
-========
             effort: turn_context.reasoning_effort.clone(),
             summary: codex_protocol::config_types::ReasoningSummary::Auto,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
         }))
         .expect("serialize expected reference context item")
     );
@@ -1673,14 +1399,9 @@ async fn record_initial_history_resumed_aborted_turn_without_id_clears_active_tu
     let previous_model = "previous-rollout-model";
     let previous_context_item = TurnContextItem {
         turn_id: Some(turn_context.sub_id.clone()),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-        trace_id: turn_context.trace_id.clone(),
-        cwd: turn_context.cwd.to_path_buf(),
-========
         #[allow(deprecated)]
         cwd: turn_context.cwd.clone(),
         workspace_roots: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
         current_date: turn_context.current_date.clone(),
         timezone: turn_context.timezone.clone(),
         approval_policy: turn_context.approval_policy.value(),
@@ -1696,17 +1417,8 @@ async fn record_initial_history_resumed_aborted_turn_without_id_clears_active_tu
         multi_agent_version: None,
         multi_agent_mode: None,
         realtime_active: Some(turn_context.realtime_active),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-        effort: turn_context.reasoning_effort,
-        summary: turn_context.reasoning_summary,
-        user_instructions: None,
-        developer_instructions: None,
-        final_output_json_schema: None,
-        truncation_policy: Some(turn_context.truncation_policy),
-========
         effort: turn_context.reasoning_effort.clone(),
         summary: codex_protocol::config_types::ReasoningSummary::Auto,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
     };
     let previous_turn_id = previous_context_item
         .turn_id
@@ -1718,10 +1430,7 @@ async fn record_initial_history_resumed_aborted_turn_without_id_clears_active_tu
         RolloutItem::EventMsg(EventMsg::TurnStarted(
             codex_protocol::protocol::TurnStartedEvent {
                 turn_id: previous_turn_id.clone(),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-========
                 trace_id: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
                 started_at: None,
                 model_context_window: Some(128_000),
                 collaboration_mode_kind: ModeKind::Default,
@@ -1743,24 +1452,16 @@ async fn record_initial_history_resumed_aborted_turn_without_id_clears_active_tu
                 turn_id: previous_turn_id,
                 started_at: None,
                 last_agent_message: None,
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-                completed_at: None,
-                duration_ms: None,
-========
                 error: None,
                 completed_at: None,
                 duration_ms: None,
                 time_to_first_token_ms: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
             },
         )),
         RolloutItem::EventMsg(EventMsg::TurnStarted(
             codex_protocol::protocol::TurnStartedEvent {
                 turn_id: aborted_turn_id,
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-========
                 trace_id: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
                 started_at: None,
                 model_context_window: Some(128_000),
                 collaboration_mode_kind: ModeKind::Default,
@@ -1828,14 +1529,9 @@ async fn record_initial_history_resumed_unmatched_abort_preserves_active_turn_fo
     let unmatched_abort_turn_id = "other-turn".to_string();
     let current_context_item = TurnContextItem {
         turn_id: Some(current_turn_id.clone()),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-        trace_id: turn_context.trace_id.clone(),
-        cwd: turn_context.cwd.to_path_buf(),
-========
         #[allow(deprecated)]
         cwd: turn_context.cwd.clone(),
         workspace_roots: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
         current_date: turn_context.current_date.clone(),
         timezone: turn_context.timezone.clone(),
         approval_policy: turn_context.approval_policy.value(),
@@ -1851,27 +1547,15 @@ async fn record_initial_history_resumed_unmatched_abort_preserves_active_turn_fo
         multi_agent_version: None,
         multi_agent_mode: None,
         realtime_active: Some(turn_context.realtime_active),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-        effort: turn_context.reasoning_effort,
-        summary: turn_context.reasoning_summary,
-        user_instructions: None,
-        developer_instructions: None,
-        final_output_json_schema: None,
-        truncation_policy: Some(turn_context.truncation_policy),
-========
         effort: turn_context.reasoning_effort.clone(),
         summary: codex_protocol::config_types::ReasoningSummary::Auto,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
     };
 
     let rollout_items = vec![
         RolloutItem::EventMsg(EventMsg::TurnStarted(
             codex_protocol::protocol::TurnStartedEvent {
                 turn_id: previous_turn_id.clone(),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-========
                 trace_id: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
                 started_at: None,
                 model_context_window: Some(128_000),
                 collaboration_mode_kind: ModeKind::Default,
@@ -1893,24 +1577,16 @@ async fn record_initial_history_resumed_unmatched_abort_preserves_active_turn_fo
                 turn_id: previous_turn_id,
                 started_at: None,
                 last_agent_message: None,
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-                completed_at: None,
-                duration_ms: None,
-========
                 error: None,
                 completed_at: None,
                 duration_ms: None,
                 time_to_first_token_ms: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
             },
         )),
         RolloutItem::EventMsg(EventMsg::TurnStarted(
             codex_protocol::protocol::TurnStartedEvent {
                 turn_id: current_turn_id.clone(),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-========
                 trace_id: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
                 started_at: None,
                 model_context_window: Some(128_000),
                 collaboration_mode_kind: ModeKind::Default,
@@ -1941,15 +1617,10 @@ async fn record_initial_history_resumed_unmatched_abort_preserves_active_turn_fo
                 turn_id: current_turn_id,
                 started_at: None,
                 last_agent_message: None,
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-                completed_at: None,
-                duration_ms: None,
-========
                 error: None,
                 completed_at: None,
                 duration_ms: None,
                 time_to_first_token_ms: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
             },
         )),
     ];
@@ -1985,14 +1656,9 @@ async fn record_initial_history_resumed_trailing_incomplete_turn_compaction_clea
     let previous_model = "previous-rollout-model";
     let previous_context_item = TurnContextItem {
         turn_id: Some(turn_context.sub_id.clone()),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-        trace_id: turn_context.trace_id.clone(),
-        cwd: turn_context.cwd.to_path_buf(),
-========
         #[allow(deprecated)]
         cwd: turn_context.cwd.clone(),
         workspace_roots: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
         current_date: turn_context.current_date.clone(),
         timezone: turn_context.timezone.clone(),
         approval_policy: turn_context.approval_policy.value(),
@@ -2008,17 +1674,8 @@ async fn record_initial_history_resumed_trailing_incomplete_turn_compaction_clea
         multi_agent_version: None,
         multi_agent_mode: None,
         realtime_active: Some(turn_context.realtime_active),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-        effort: turn_context.reasoning_effort,
-        summary: turn_context.reasoning_summary,
-        user_instructions: None,
-        developer_instructions: None,
-        final_output_json_schema: None,
-        truncation_policy: Some(turn_context.truncation_policy),
-========
         effort: turn_context.reasoning_effort.clone(),
         summary: codex_protocol::config_types::ReasoningSummary::Auto,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
     };
     let previous_turn_id = previous_context_item
         .turn_id
@@ -2030,10 +1687,7 @@ async fn record_initial_history_resumed_trailing_incomplete_turn_compaction_clea
         RolloutItem::EventMsg(EventMsg::TurnStarted(
             codex_protocol::protocol::TurnStartedEvent {
                 turn_id: previous_turn_id.clone(),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-========
                 trace_id: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
                 started_at: None,
                 model_context_window: Some(128_000),
                 collaboration_mode_kind: ModeKind::Default,
@@ -2055,24 +1709,16 @@ async fn record_initial_history_resumed_trailing_incomplete_turn_compaction_clea
                 turn_id: previous_turn_id,
                 started_at: None,
                 last_agent_message: None,
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-                completed_at: None,
-                duration_ms: None,
-========
                 error: None,
                 completed_at: None,
                 duration_ms: None,
                 time_to_first_token_ms: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
             },
         )),
         RolloutItem::EventMsg(EventMsg::TurnStarted(
             codex_protocol::protocol::TurnStartedEvent {
                 turn_id: incomplete_turn_id,
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-========
                 trace_id: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
                 started_at: None,
                 model_context_window: Some(128_000),
                 collaboration_mode_kind: ModeKind::Default,
@@ -2130,10 +1776,7 @@ async fn record_initial_history_resumed_trailing_incomplete_turn_preserves_turn_
         RolloutItem::EventMsg(EventMsg::TurnStarted(
             codex_protocol::protocol::TurnStartedEvent {
                 turn_id: current_turn_id,
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-========
                 trace_id: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
                 started_at: None,
                 model_context_window: Some(128_000),
                 collaboration_mode_kind: ModeKind::Default,
@@ -2183,14 +1826,9 @@ async fn record_initial_history_resumed_replaced_incomplete_compacted_turn_clear
     let previous_model = "previous-rollout-model";
     let previous_context_item = TurnContextItem {
         turn_id: Some(turn_context.sub_id.clone()),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-        trace_id: turn_context.trace_id.clone(),
-        cwd: turn_context.cwd.to_path_buf(),
-========
         #[allow(deprecated)]
         cwd: turn_context.cwd.clone(),
         workspace_roots: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
         current_date: turn_context.current_date.clone(),
         timezone: turn_context.timezone.clone(),
         approval_policy: turn_context.approval_policy.value(),
@@ -2206,17 +1844,8 @@ async fn record_initial_history_resumed_replaced_incomplete_compacted_turn_clear
         multi_agent_version: None,
         multi_agent_mode: None,
         realtime_active: Some(turn_context.realtime_active),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-        effort: turn_context.reasoning_effort,
-        summary: turn_context.reasoning_summary,
-        user_instructions: None,
-        developer_instructions: None,
-        final_output_json_schema: None,
-        truncation_policy: Some(turn_context.truncation_policy),
-========
         effort: turn_context.reasoning_effort.clone(),
         summary: codex_protocol::config_types::ReasoningSummary::Auto,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
     };
     let previous_turn_id = previous_context_item
         .turn_id
@@ -2229,10 +1858,7 @@ async fn record_initial_history_resumed_replaced_incomplete_compacted_turn_clear
         RolloutItem::EventMsg(EventMsg::TurnStarted(
             codex_protocol::protocol::TurnStartedEvent {
                 turn_id: previous_turn_id.clone(),
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-========
                 trace_id: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
                 started_at: None,
                 model_context_window: Some(128_000),
                 collaboration_mode_kind: ModeKind::Default,
@@ -2254,24 +1880,16 @@ async fn record_initial_history_resumed_replaced_incomplete_compacted_turn_clear
                 turn_id: previous_turn_id,
                 started_at: None,
                 last_agent_message: None,
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-                completed_at: None,
-                duration_ms: None,
-========
                 error: None,
                 completed_at: None,
                 duration_ms: None,
                 time_to_first_token_ms: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
             },
         )),
         RolloutItem::EventMsg(EventMsg::TurnStarted(
             codex_protocol::protocol::TurnStartedEvent {
                 turn_id: compacted_incomplete_turn_id,
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-========
                 trace_id: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
                 started_at: None,
                 model_context_window: Some(128_000),
                 collaboration_mode_kind: ModeKind::Default,
@@ -2300,10 +1918,7 @@ async fn record_initial_history_resumed_replaced_incomplete_compacted_turn_clear
         RolloutItem::EventMsg(EventMsg::TurnStarted(
             codex_protocol::protocol::TurnStartedEvent {
                 turn_id: replacing_turn_id,
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction_tests.rs
-========
                 trace_id: None,
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction_tests.rs
                 started_at: None,
                 model_context_window: Some(128_000),
                 collaboration_mode_kind: ModeKind::Default,

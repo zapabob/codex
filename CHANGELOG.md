@@ -1,9 +1,9 @@
 # Changelog
 
-Current canonical version: **v3.3.0**.
+Current canonical version: **v3.4.0**.
 Canonical source: `VERSION`. Fork/upstream disambiguation lives in `version-metadata.json`.
 
-## Current Release — v3.3.0 (2026-06-25)
+## Current Release — v3.4.0 (2026-07-16)
 
 > This root changelog is the **current release line only**.
 > Legacy v2.x history has been moved to `releases/legacy/v2.x/CHANGELOG.md` to make the latest release immediately obvious.

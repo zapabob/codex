@@ -1,12 +1,8 @@
 use super::*;
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction.rs
-use crate::context_manager::is_user_turn_boundary;
-========
 use crate::context::world_state::WorldStateSnapshot;
 use crate::context_manager::is_user_turn_boundary;
 use codex_protocol::protocol::SessionContextWindow;
 use uuid::Uuid;
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction.rs
 
 // Return value of `Session::reconstruct_history_from_rollout`, bundling the rebuilt history with
 // the resume/fork hydration metadata derived from the same replay.
@@ -277,9 +273,6 @@ impl Session {
                         active_segment.get_or_insert_with(ActiveReplaySegment::default);
                     active_segment.counts_as_user_turn |= is_user_turn_boundary(response_item);
                 }
-<<<<<<<< HEAD:codex-rs/core/src/codex/rollout_reconstruction.rs
-                RolloutItem::EventMsg(_) | RolloutItem::SessionMeta(_) => {}
-========
                 RolloutItem::InterAgentCommunication(_) => {
                     let active_segment =
                         active_segment.get_or_insert_with(ActiveReplaySegment::default);
@@ -288,7 +281,6 @@ impl Session {
                 RolloutItem::EventMsg(_)
                 | RolloutItem::SessionMeta(_)
                 | RolloutItem::InterAgentCommunicationMetadata { .. } => {}
->>>>>>>> upstream/main:codex-rs/core/src/session/rollout_reconstruction.rs
             }
 
             if base_replacement_history.is_some()

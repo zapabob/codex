@@ -10,12 +10,7 @@ use codex_protocol::openai_models::TruncationPolicyConfig;
 use codex_protocol::openai_models::WebSearchToolType;
 use codex_protocol::openai_models::default_input_modalities;
 
-<<<<<<<< HEAD:codex-rs/core/src/models_manager/model_info.rs
-use crate::config::Config;
-use codex_features::Feature;
-========
 use crate::config::ModelsManagerConfig;
->>>>>>>> upstream/main:codex-rs/models-manager/src/model_info.rs
 use codex_utils_output_truncation::approx_bytes_for_tokens;
 use tracing::warn;
 
@@ -165,13 +160,10 @@ pub fn model_info_from_slug(slug: &str) -> ModelInfo {
         input_modalities: default_input_modalities(),
         used_fallback_model_metadata: true, // this is the fallback model metadata
         supports_search_tool: false,
-<<<<<<<< HEAD:codex-rs/core/src/models_manager/model_info.rs
-========
         use_responses_lite: false,
         auto_review_model_override: None,
         tool_mode: None,
         multi_agent_version: None,
->>>>>>>> upstream/main:codex-rs/models-manager/src/model_info.rs
     }
 }
 

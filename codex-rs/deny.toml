@@ -70,8 +70,9 @@ feature-depth = 1
 # A list of advisory IDs to ignore. Note that ignored advisories will still
 # output a note when they are encountered.
 ignore = [
-    # Reviewed 2026-07-02. Keep this list in sync with .cargo/audit.toml.
+    # Reviewed 2026-07-16. Keep this list in sync with .cargo/audit.toml.
     # Each exception must identify the dependency path and removal condition.
+    { id = "RUSTSEC-2026-0002", reason = "lru v0.12.5 is pulled in only by the patched ratatui v0.29 layout cache; the affected LruCache::iter_mut API is not used; remove when the fork moves to ratatui v0.30 or newer" },
     { id = "RUSTSEC-2024-0388", reason = "derivative is unmaintained; pulled in via starlark/starlark_syntax v0.14.2 used by execpolicy/cli/core; no fixed starlark release yet" },
     { id = "RUSTSEC-2025-0057", reason = "fxhash is unmaintained; pulled in via starlark_map under starlark v0.14.2 used by execpolicy/cli/core and bm25 used by core; remove when upstream dependencies drop fxhash" },
     { id = "RUSTSEC-2024-0436", reason = "paste is unmaintained; pulled in via ratatui/rmcp/starlark used by tui/execpolicy; no fixed release yet" },

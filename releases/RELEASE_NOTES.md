@@ -1,16 +1,16 @@
-# Codex v3.3.0 Release Notes
+# Codex v3.4.0 Release Notes
 
-> **Current release document** for the v3.3.0 line.
+> **Current release document** for the v3.4.0 line.
 > Legacy v2.x release notes are archived at `releases/legacy/v2.x/RELEASE_NOTES.md`.
 
 ## Canonical Versioning
 
 - **Canonical source**: root `VERSION`
-- **Fork version**: `3.3.0`
-- **Upstream base**: `rust-v0.142.2`
-- **Release date**: 2026-06-25
+- **Fork version**: `3.4.0`
+- **Upstream base**: `rust-v0.144.5`
+- **Release date**: 2026-07-16
 
-## What changed in v3.3.0
+## What changed in v3.4.0
 
 ### Version governance
 
@@ -20,7 +20,7 @@
 
 ### Repository docs and manifests
 
-- Synced the root `package.json`, Rust workspace version, and `packages/protocol-client/package.json` to v3.3.0.
+- Synced the root `package.json`, Rust workspace version, and `packages/protocol-client/package.json` to v3.4.0.
 - Rebuilt the root changelog and release notes as **current release** documents for the v3.x line.
 - Archived the older v2.x release notes so the latest release is unambiguous.
 

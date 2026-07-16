@@ -1,5 +1,3 @@
-<<<<<<<< HEAD:codex-rs/core/tests/suite/auth_refresh.rs
-========
 use anyhow::Context;
 use anyhow::Result;
 use base64::Engine;
@@ -1327,4 +1325,3 @@ fn build_tokens(access_token: &str, refresh_token: &str) -> TokenData {
         account_id: Some("account-id".to_string()),
     }
 }
->>>>>>>> upstream/main:codex-rs/login/tests/suite/auth_refresh.rs

@@ -1,5 +1,5 @@
-use codex_protocol::protocol::ReviewFinding;
-use codex_protocol::protocol::ReviewOutputEvent;
+use crate::protocol::ReviewFinding;
+use crate::protocol::ReviewOutputEvent;
 
 // These helpers return plain strings that higher layers may style as needed.
 
