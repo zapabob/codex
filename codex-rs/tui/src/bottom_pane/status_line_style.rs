@@ -30,7 +30,9 @@ enum StatusLineAccent {
 impl StatusLineAccent {
     fn for_item(item: StatusLineItem) -> Self {
         match item {
-            StatusLineItem::ModelName | StatusLineItem::ModelWithReasoning => Self::Model,
+            StatusLineItem::ModelName
+            | StatusLineItem::ModelWithReasoning
+            | StatusLineItem::Reasoning => Self::Model,
             StatusLineItem::CurrentDir | StatusLineItem::ProjectRoot => Self::Path,
             StatusLineItem::GitBranch
             | StatusLineItem::PullRequestNumber
@@ -47,7 +49,7 @@ impl StatusLineAccent {
             StatusLineItem::FastMode | StatusLineItem::RawOutput => Self::Mode,
             StatusLineItem::Permissions => Self::Mode,
             StatusLineItem::ApprovalMode => Self::Mode,
-            StatusLineItem::ThreadTitle => Self::Thread,
+            StatusLineItem::ThreadTitle | StatusLineItem::WorkspaceHeadline => Self::Thread,
             StatusLineItem::TaskProgress => Self::Progress,
         }
     }

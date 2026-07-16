@@ -30,8 +30,10 @@ pub(crate) enum StatusSurfacePreviewItem {
     SessionId,
     FastMode,
     RawOutput,
+    WorkspaceHeadline,
     Model,
     ModelWithReasoning,
+    Reasoning,
     TaskProgress,
 }
 
@@ -61,8 +63,10 @@ impl StatusSurfacePreviewItem {
             StatusSurfacePreviewItem::SessionId => "550e8400-e29b-41d4",
             StatusSurfacePreviewItem::FastMode => "Fast on",
             StatusSurfacePreviewItem::RawOutput => "raw output",
+            StatusSurfacePreviewItem::WorkspaceHeadline => "Workspace headline",
             StatusSurfacePreviewItem::Model => "gpt-5.2-codex",
             StatusSurfacePreviewItem::ModelWithReasoning => "gpt-5.2-codex medium",
+            StatusSurfacePreviewItem::Reasoning => "medium",
             StatusSurfacePreviewItem::TaskProgress => "Tasks 0/0",
         }
     }
@@ -92,8 +96,10 @@ impl StatusSurfacePreviewItem {
             Self::SessionId,
             Self::FastMode,
             Self::RawOutput,
+            Self::WorkspaceHeadline,
             Self::Model,
             Self::ModelWithReasoning,
+            Self::Reasoning,
             Self::TaskProgress,
         ]
         .into_iter()

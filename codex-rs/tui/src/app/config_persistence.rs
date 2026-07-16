@@ -8,19 +8,39 @@ use super::*;
 #[cfg(target_os = "windows")]
 use codex_utils_approval_presets::ApprovalPreset;
 
+#[cfg(target_os = "windows")]
+pub(super) struct WindowsSetupPermissions {
+    pub(super) permission_profile: PermissionProfile,
+    pub(super) workspace_roots: Vec<AbsolutePathBuf>,
+}
+
+async fn build_config_on_runtime_worker(
+    builder: ConfigBuilder,
+    error_context: String,
+) -> Result<Config> {
+    match tokio::spawn(async move { builder.build().await }).await {
+        Ok(build_result) => build_result.wrap_err(error_context),
+        Err(err) if err.is_panic() => std::panic::resume_unwind(err.into_panic()),
+        Err(err) => Err(err).wrap_err_with(|| format!("{error_context} task failed")),
+    }
+}
+
 impl App {
     pub(super) async fn rebuild_config_for_cwd(&self, cwd: PathBuf) -> Result<Config> {
         let mut overrides = self.harness_overrides.clone();
         overrides.cwd = Some(cwd.clone());
         let cwd_display = cwd.display().to_string();
-        ConfigBuilder::default()
+        let builder = ConfigBuilder::default()
             .codex_home(self.config.codex_home.to_path_buf())
             .cli_overrides(self.cli_kv_overrides.clone())
             .harness_overrides(overrides)
             .loader_overrides(self.loader_overrides.clone())
-            .build()
-            .await
-            .wrap_err_with(|| format!("Failed to rebuild config for cwd {cwd_display}"))
+            .cloud_config_bundle(self.cloud_config_bundle.clone());
+        build_config_on_runtime_worker(
+            builder,
+            format!("Failed to rebuild config for cwd {cwd_display}"),
+        )
+        .await
     }
 
     pub(super) async fn rebuild_config_for_permission_profile(
@@ -32,32 +52,39 @@ impl App {
         overrides.sandbox_mode = None;
         overrides.permission_profile = None;
         overrides.default_permissions = Some(profile_id.to_string());
-        ConfigBuilder::default()
+        let builder = ConfigBuilder::default()
             .codex_home(self.config.codex_home.to_path_buf())
             .cli_overrides(self.cli_kv_overrides.clone())
             .harness_overrides(overrides)
             .loader_overrides(self.loader_overrides.clone())
-            .build()
-            .await
-            .wrap_err_with(|| {
-                format!("Failed to rebuild config for permission profile {profile_id}")
-            })
+            .cloud_config_bundle(self.cloud_config_bundle.clone());
+        build_config_on_runtime_worker(
+            builder,
+            format!("Failed to rebuild config for permission profile {profile_id}"),
+        )
+        .await
     }
 
     #[cfg(target_os = "windows")]
-    pub(super) async fn permission_profile_for_windows_setup(
+    pub(super) async fn windows_setup_permissions(
         &self,
         preset: &ApprovalPreset,
         profile_selection: Option<&PermissionProfileSelection>,
-    ) -> Result<PermissionProfile> {
+    ) -> Result<WindowsSetupPermissions> {
         match profile_selection {
-            Some(selection) => Ok(self
-                .rebuild_config_for_permission_profile(selection.profile_id.as_str())
-                .await?
-                .permissions
-                .permission_profile()
-                .clone()),
-            None => Ok(preset.permission_profile.clone()),
+            Some(selection) => {
+                let selected_config = self
+                    .rebuild_config_for_permission_profile(selection.profile_id.as_str())
+                    .await?;
+                Ok(WindowsSetupPermissions {
+                    permission_profile: selected_config.permissions.permission_profile().clone(),
+                    workspace_roots: selected_config.effective_workspace_roots(),
+                })
+            }
+            None => Ok(WindowsSetupPermissions {
+                permission_profile: preset.permission_profile.clone(),
+                workspace_roots: self.config.effective_workspace_roots(),
+            }),
         }
     }
 
@@ -344,7 +371,6 @@ impl App {
 
         let auto_review_preset = auto_review_mode();
         let mut next_config = self.config.clone();
-        let active_profile = self.active_profile.clone();
         let windows_sandbox_changed = updates.iter().any(|(feature, _)| {
             matches!(
                 feature,
@@ -356,42 +382,12 @@ impl App {
         let mut permission_profile_override = None;
         let mut active_permission_profile_override = None;
         let mut feature_updates_to_apply = Vec::with_capacity(updates.len());
-        // Auto-Review owns `approvals_reviewer`, but disabling the feature
-        // from inside a profile should not silently clear a value configured at
-        // the root scope.
-        let (root_approvals_reviewer_blocks_profile_disable, profile_approvals_reviewer_configured) = {
-            let effective_config = next_config.config_layer_stack.effective_config();
-            let root_blocks_disable = effective_config
-                .as_table()
-                .and_then(|table| table.get("approvals_reviewer"))
-                .is_some_and(|value| value != &TomlValue::String("user".to_string()));
-            let profile_configured = active_profile.as_deref().is_some_and(|profile| {
-                effective_config
-                    .as_table()
-                    .and_then(|table| table.get("profiles"))
-                    .and_then(TomlValue::as_table)
-                    .and_then(|profiles| profiles.get(profile))
-                    .and_then(TomlValue::as_table)
-                    .is_some_and(|profile_config| profile_config.contains_key("approvals_reviewer"))
-            });
-            (root_blocks_disable, profile_configured)
-        };
         let mut permissions_history_label: Option<&'static str> = None;
         let mut config_edits = Vec::new();
 
         for (feature, enabled) in updates {
             let feature_key = feature.key();
             let mut feature_edits = Vec::new();
-            if feature == Feature::GuardianApproval
-                && !enabled
-                && self.active_profile.is_some()
-                && root_approvals_reviewer_blocks_profile_disable
-            {
-                self.chat_widget.add_error_message(
-                        "Cannot disable Auto-review in this profile because `approvals_reviewer` is configured outside the active profile.".to_string(),
-                    );
-                continue;
-            }
             let mut feature_config = next_config.clone();
             if let Err(err) = feature_config.features.set_enabled(feature, enabled) {
                 tracing::error!(
@@ -413,27 +409,19 @@ impl App {
                     // changes it explicitly.
                     feature_config.approvals_reviewer = auto_review_preset.approvals_reviewer;
                     feature_edits.push(crate::config_update::replace_config_value(
-                        crate::config_update::profile_scoped_key_path(
-                            active_profile.as_deref(),
-                            "approvals_reviewer",
-                        ),
+                        "approvals_reviewer",
                         serde_json::json!(auto_review_preset.approvals_reviewer.to_string()),
                     ));
                     if previous_approvals_reviewer != auto_review_preset.approvals_reviewer {
-                        permissions_history_label = Some("Auto-review");
+                        permissions_history_label = Some("Approve for me");
                     }
                 } else if !effective_enabled {
-                    if profile_approvals_reviewer_configured || self.active_profile.is_none() {
-                        feature_edits.push(crate::config_update::clear_config_value(
-                            crate::config_update::profile_scoped_key_path(
-                                active_profile.as_deref(),
-                                "approvals_reviewer",
-                            ),
-                        ));
-                    }
+                    feature_edits.push(crate::config_update::clear_config_value(
+                        "approvals_reviewer",
+                    ));
                     feature_config.approvals_reviewer = ApprovalsReviewer::User;
                     if previous_approvals_reviewer != ApprovalsReviewer::User {
-                        permissions_history_label = Some("Default");
+                        permissions_history_label = Some("Ask for approval");
                     }
                 }
                 approvals_reviewer_override = Some(feature_config.approvals_reviewer);
@@ -446,7 +434,7 @@ impl App {
                 if !self.try_set_approval_policy_on_config(
                     &mut feature_config,
                     auto_review_preset.approval_policy,
-                    "Failed to enable Auto-review",
+                    "Failed to enable Approve for me",
                     "failed to set auto-review approval policy on staged config",
                 ) {
                     continue;
@@ -455,7 +443,7 @@ impl App {
                     .try_set_builtin_active_permission_profile_on_config(
                         &mut feature_config,
                         auto_review_preset.active_permission_profile.clone(),
-                        "Failed to enable Auto-review",
+                        "Failed to enable Approve for me",
                         "failed to set auto-review permission profile on staged config",
                     )
                 else {
@@ -463,17 +451,11 @@ impl App {
                 };
                 feature_edits.extend([
                     crate::config_update::replace_config_value(
-                        crate::config_update::profile_scoped_key_path(
-                            active_profile.as_deref(),
-                            "approval_policy",
-                        ),
+                        "approval_policy",
                         serde_json::json!("on-request"),
                     ),
                     crate::config_update::replace_config_value(
-                        crate::config_update::profile_scoped_key_path(
-                            active_profile.as_deref(),
-                            "sandbox_mode",
-                        ),
+                        "sandbox_mode",
                         serde_json::json!("workspace-write"),
                     ),
                 ]);
@@ -486,7 +468,6 @@ impl App {
             feature_updates_to_apply.push((feature, effective_enabled));
             config_edits.extend(feature_edits);
             config_edits.push(crate::config_update::build_feature_enabled_edit(
-                active_profile.as_deref(),
                 feature_key,
                 effective_enabled,
             ));
@@ -503,9 +484,10 @@ impl App {
         {
             Ok(response) => response,
             Err(err) => {
-                tracing::error!(error = %err, "failed to persist feature flags");
+                let error = crate::config_update::format_config_error(&err);
+                tracing::error!(error = %error, "failed to persist feature flags");
                 self.chat_widget
-                    .add_error_message(format!("Failed to update experimental features: {err}"));
+                    .add_error_message(format!("Failed to update experimental features: {error}"));
                 return;
             }
         };
@@ -580,7 +562,7 @@ impl App {
                 "failed to set auto-review permission profile on chat config"
             );
             self.chat_widget
-                .add_error_message(format!("Failed to enable Auto-review: {err}"));
+                .add_error_message(format!("Failed to enable Approve for me: {err}"));
         }
         if permission_profile_override.is_some() {
             self.runtime_permission_profile_override =
@@ -733,21 +715,17 @@ impl App {
             .add_info_message("Reset local memories.".to_string(), /*hint*/ None);
     }
 
-    pub(super) fn reasoning_label(reasoning_effort: Option<ReasoningEffortConfig>) -> &'static str {
+    pub(super) fn reasoning_label(reasoning_effort: Option<&ReasoningEffortConfig>) -> String {
         match reasoning_effort {
-            Some(ReasoningEffortConfig::Minimal) => "minimal",
-            Some(ReasoningEffortConfig::Low) => "low",
-            Some(ReasoningEffortConfig::Medium) => "medium",
-            Some(ReasoningEffortConfig::High) => "high",
-            Some(ReasoningEffortConfig::XHigh) => "xhigh",
-            None | Some(ReasoningEffortConfig::None) => "default",
+            None | Some(ReasoningEffortConfig::None) => "default".to_string(),
+            Some(reasoning_effort) => reasoning_effort.as_str().to_string(),
         }
     }
 
     pub(super) fn reasoning_label_for(
         model: &str,
-        reasoning_effort: Option<ReasoningEffortConfig>,
-    ) -> Option<&'static str> {
+        reasoning_effort: Option<&ReasoningEffortConfig>,
+    ) -> Option<String> {
         (!model.starts_with("codex-auto-")).then(|| Self::reasoning_label(reasoning_effort))
     }
 
@@ -758,7 +736,7 @@ impl App {
     pub(super) fn on_update_reasoning_effort(&mut self, effort: Option<ReasoningEffortConfig>) {
         // TODO(aibrahim): Remove this and don't use config as a state object.
         // Instead, explicitly pass the stored collaboration mode's effort into new sessions.
-        self.config.model_reasoning_effort = effort;
+        self.config.model_reasoning_effort = effort.clone();
         self.chat_widget.set_reasoning_effort(effort);
     }
 
@@ -815,11 +793,8 @@ impl App {
         effective_config: &ConfigReadResponse,
         feature_updates: &[(Feature, bool)],
     ) {
-        let active_profile = self.active_profile.clone();
-        let active_profile = active_profile.as_deref();
         for (feature, _) in feature_updates {
-            let enabled =
-                feature_enabled_from_effective_config(effective_config, active_profile, *feature);
+            let enabled = feature_enabled_from_effective_config(effective_config, *feature);
             if let Err(err) = self.config.features.set_enabled(*feature, enabled) {
                 tracing::warn!(
                     error = %err,
@@ -840,14 +815,10 @@ impl App {
             return;
         }
 
-        if let Some(reviewer) =
-            approvals_reviewer_from_effective_config(effective_config, active_profile)
-        {
+        if let Some(reviewer) = approvals_reviewer_from_effective_config(effective_config) {
             self.set_approvals_reviewer_in_app_and_widget(reviewer);
         }
-        if let Some(policy) =
-            approval_policy_from_effective_config(effective_config, active_profile)
-        {
+        if let Some(policy) = approval_policy_from_effective_config(effective_config) {
             if let Err(err) = self
                 .config
                 .permissions
@@ -859,7 +830,7 @@ impl App {
                     "failed to sync effective approval policy after an overridden write"
                 );
                 self.chat_widget.add_error_message(format!(
-                    "Failed to refresh overridden Auto-review settings: {err}"
+                    "Failed to refresh overridden Approve for me settings: {err}"
                 ));
             } else {
                 self.chat_widget.set_approval_policy(policy);
@@ -876,7 +847,7 @@ impl App {
             .iter()
             .any(|(feature, _)| *feature == Feature::GuardianApproval)
             || !self.config.features.enabled(Feature::GuardianApproval)
-            || sandbox_mode_from_effective_config(effective_config, self.active_profile.as_deref())
+            || sandbox_mode_from_effective_config(effective_config)
                 != Some(AppServerSandboxMode::WorkspaceWrite)
         {
             return;
@@ -887,7 +858,7 @@ impl App {
         let Some(permission_profile) = self.try_set_builtin_active_permission_profile_on_config(
             &mut config,
             auto_review_preset.active_permission_profile.clone(),
-            "Failed to refresh overridden Auto-review settings",
+            "Failed to refresh overridden Approve for me settings",
             "failed to sync overridden Auto-review permission profile",
         ) else {
             return;
@@ -905,7 +876,7 @@ impl App {
                 "failed to sync overridden Auto-review permission profile on chat config"
             );
             self.chat_widget.add_error_message(format!(
-                "Failed to refresh overridden Auto-review settings: {err}"
+                "Failed to refresh overridden Approve for me settings: {err}"
             ));
             return;
         }
@@ -982,10 +953,7 @@ impl App {
         else {
             return;
         };
-        let Some(mode) = windows_sandbox_mode_from_effective_config(
-            &effective_config,
-            self.active_profile.as_deref(),
-        ) else {
+        let Some(mode) = windows_sandbox_mode_from_effective_config(&effective_config) else {
             return;
         };
         self.config.permissions.windows_sandbox_mode = Some(mode);
@@ -996,7 +964,7 @@ impl App {
     fn propagate_windows_sandbox_turn_context(&self) {
         #[cfg(target_os = "windows")]
         {
-            let windows_sandbox_level = WindowsSandboxLevel::from_config(&self.config);
+            let windows_sandbox_level = crate::windows_sandbox::level_from_config(&self.config);
             self.app_event_tx
                 .send(AppEvent::CodexOp(AppCommand::override_turn_context(
                     /*cwd*/ None,
@@ -1026,59 +994,38 @@ fn overridden_write_message(write_response: &ConfigWriteResponse) -> &str {
 
 fn feature_enabled_from_effective_config(
     effective_config: &ConfigReadResponse,
-    active_profile: Option<&str>,
     feature: Feature,
 ) -> bool {
-    let profile_features = active_profile
-        .and_then(|profile| effective_config.config.profiles.get(profile))
-        .and_then(|profile| profile.additional.get("features"))
-        .and_then(features_toml_from_json);
     let root_features = effective_config
         .config
         .additional
         .get("features")
         .and_then(features_toml_from_json);
-    profile_features
+    root_features
         .as_ref()
         .and_then(|features| features.entries().get(feature.key()).copied())
-        .or_else(|| {
-            root_features
-                .as_ref()
-                .and_then(|features| features.entries().get(feature.key()).copied())
-        })
         .unwrap_or_else(|| feature.default_enabled())
 }
 
 fn approvals_reviewer_from_effective_config(
     effective_config: &ConfigReadResponse,
-    active_profile: Option<&str>,
 ) -> Option<ApprovalsReviewer> {
-    active_profile
-        .and_then(|profile| effective_config.config.profiles.get(profile))
-        .and_then(|profile| profile.approvals_reviewer)
-        .or(effective_config.config.approvals_reviewer)
+    effective_config
+        .config
+        .approvals_reviewer
         .map(codex_app_server_protocol::ApprovalsReviewer::to_core)
 }
 
 fn approval_policy_from_effective_config(
     effective_config: &ConfigReadResponse,
-    active_profile: Option<&str>,
 ) -> Option<AskForApproval> {
-    active_profile
-        .and_then(|profile| effective_config.config.profiles.get(profile))
-        .and_then(|profile| profile.approval_policy)
-        .or(effective_config.config.approval_policy)
+    effective_config.config.approval_policy
 }
 
 fn sandbox_mode_from_effective_config(
     effective_config: &ConfigReadResponse,
-    active_profile: Option<&str>,
 ) -> Option<AppServerSandboxMode> {
-    active_profile
-        .and_then(|profile| effective_config.config.profiles.get(profile))
-        .and_then(|profile| profile.additional.get("sandbox_mode"))
-        .and_then(|mode| serde_json::from_value(mode.clone()).ok())
-        .or(effective_config.config.sandbox_mode)
+    effective_config.config.sandbox_mode
 }
 
 fn memories_from_effective_config(effective_config: &ConfigReadResponse) -> Option<MemoriesToml> {
@@ -1096,20 +1043,13 @@ fn features_toml_from_json(value: &serde_json::Value) -> Option<FeaturesToml> {
 #[cfg(target_os = "windows")]
 fn windows_sandbox_mode_from_effective_config(
     effective_config: &ConfigReadResponse,
-    active_profile: Option<&str>,
 ) -> Option<codex_config::types::WindowsSandboxModeToml> {
-    let profile_windows = active_profile
-        .and_then(|profile| effective_config.config.profiles.get(profile))
-        .and_then(|profile| profile.additional.get("windows"))
-        .and_then(windows_toml_from_json);
     let root_windows = effective_config
         .config
         .additional
         .get("windows")
         .and_then(windows_toml_from_json);
-    profile_windows
-        .and_then(|windows| windows.sandbox)
-        .or_else(|| root_windows.and_then(|windows| windows.sandbox))
+    root_windows.and_then(|windows| windows.sandbox)
 }
 
 #[cfg(target_os = "windows")]
@@ -1182,6 +1122,66 @@ mod tests {
             app_enabled_in_effective_config(&app.config, &app_id),
             Some(false)
         );
+        Ok(())
+    }
+
+    // Regression coverage for `/new` and `/clear`: cloud requirements
+    // must survive the config refresh that runs before thread transitions.
+    #[tokio::test]
+    async fn refresh_in_memory_config_from_disk_keeps_cloud_requirements_for_thread_transitions()
+    -> Result<()> {
+        let mut app = make_test_app().await;
+        let codex_home = tempdir()?;
+        let required_policy = codex_protocol::protocol::AskForApproval::Never;
+        let cloud_config_bundle =
+            codex_config::test_support::CloudConfigBundleFixture::loader_with_enterprise_requirement(
+                r#"allowed_approval_policies = ["never"]"#,
+            );
+
+        let config = ConfigBuilder::default()
+            .codex_home(codex_home.path().to_path_buf())
+            .loader_overrides(LoaderOverrides::without_managed_config_for_tests())
+            .cloud_config_bundle(cloud_config_bundle.clone())
+            .build()
+            .await?;
+        app.config = config;
+        app.cloud_config_bundle = cloud_config_bundle;
+        let app_id = "unit_test_cloud_requirements_reload_marker";
+        std::fs::write(
+            codex_home.path().join("config.toml"),
+            format!(
+                r#"
+[apps.{app_id}]
+enabled = false
+"#
+            ),
+        )?;
+
+        let assert_cloud_requirements = |app: &App| {
+            let config = app.fresh_session_config();
+            assert_eq!(
+                config
+                    .config_layer_stack
+                    .requirements_toml()
+                    .allowed_approval_policies
+                    .clone(),
+                Some(vec![required_policy])
+            );
+            assert_eq!(config.permissions.approval_policy.value(), required_policy);
+        };
+
+        assert_cloud_requirements(&app);
+        assert_eq!(app_enabled_in_effective_config(&app.config, app_id), None);
+
+        // This is the fallible reload that the best-effort `/new`, `/clear`,
+        // `/fork`, side-conversation, and session-picker paths wrap.
+        app.refresh_in_memory_config_from_disk().await?;
+
+        assert_eq!(
+            app_enabled_in_effective_config(&app.config, app_id),
+            Some(false)
+        );
+        assert_cloud_requirements(&app);
         Ok(())
     }
 

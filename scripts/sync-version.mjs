@@ -117,28 +117,84 @@ if (updateFile('releases/RELEASE_NOTES.md', releaseNotes)) {
 let readme = readText('README.md');
 readme = replaceMatch(
   readme,
-  /\[!\[Version\]\(https:\/\/img\.shields\.io\/badge\/version-v[^\]]+\]\(https:\/\/github\.com\/zapabob\/codex\/releases\/tag\/v[^)]+\)/,
-  `[![Version](https://img.shields.io/badge/version-v${canonicalVersion}-blue)](https://github.com/zapabob/codex/releases/tag/v${canonicalVersion})`,
-  'README version badge',
+  /> Current release line: `v[^`]+` \([^)]+\)/,
+  `> Current release line: \`v${canonicalVersion}\` (${releaseDate})`,
+  'README current release line',
 );
 readme = replaceMatch(
   readme,
-  /\| \*\*📡 New in v[^*]+\*\*\s+\|[^\n]+/,
-  `| **📡 New in v${canonicalVersion}**  | Protocol v2 update, improved sub-agent parallelization, linking speed++ |`,
-  'README feature matrix version row',
+  /> Stable branch: `release\/[^`]+`/,
+  `> Stable branch: \`release/${canonicalVersion}-stable\``,
+  'README stable branch',
 );
 readme = replaceMatch(
   readme,
-  /### What's New in v[^\n]+/,
-  `### What's New in v${canonicalVersion}`,
-  'README current release heading',
+  /> Stable tag: `v[^`]+-stable\.0`/,
+  `> Stable tag: \`v${canonicalVersion}-stable.0\``,
+  'README stable tag',
 );
 readme = replaceMatch(
   readme,
-  /- \*\*New in v[^*]+\*\*: Protocol alignment with latest Model Context Protocol specs\./,
-  `- **New in v${canonicalVersion}**: Protocol alignment with latest Model Context Protocol specs.`,
-  'README MCP note',
+  /> Main tag: `v[^`]+`/,
+  `> Main tag: \`v${canonicalVersion}\``,
+  'README main tag',
 );
+readme = replaceMatch(
+  readme,
+  /> Official base: `[^`]+` plus upstream main `[^`]+`/,
+  `> Official base: \`${metadata.upstream_base}\` plus upstream main \`${metadata.upstream_main_commit}\``,
+  'README official base',
+);
+readme = replaceMatch(
+  readme,
+  /- Bumps the fork semantic version to `[^`]+` because this line adds official upstream capabilities while keeping backward-compatible zapabob extension behavior\./,
+  `- Bumps the fork semantic version to \`${canonicalVersion}\` because this line adds official upstream capabilities while keeping backward-compatible zapabob extension behavior.`,
+  'README semantic version note',
+);
+readme = replaceMatch(
+  readme,
+  /- latest official release: `[^`]+`/,
+  `- latest official release: \`${metadata.upstream_base}\``,
+  'README latest official release',
+);
+readme = replaceMatch(
+  readme,
+  /- release publication time: [^\n]+/,
+  `- release publication time: ${metadata.upstream_release_published_at}`,
+  'README release publication time',
+);
+readme = replaceMatch(
+  readme,
+  /- latest observed upstream main commit: `[^`]+`/,
+  `- latest observed upstream main commit: \`${metadata.upstream_main_commit}\``,
+  'README observed upstream main commit',
+);
+readme = replaceMatch(
+  readme,
+  /- latest observed upstream main commit time: [^\n]+/,
+  `- latest observed upstream main commit time: ${metadata.upstream_main_observed_at}`,
+  'README observed upstream main commit time',
+);
+readme = replaceMatch(
+  readme,
+  /gh release download v[^ ]+ --pattern "codex-v[^"]+-windows-x86_64\.tar\.gz"/,
+  `gh release download v${canonicalVersion} --pattern "codex-v${canonicalVersion}-windows-x86_64.tar.gz"`,
+  'README release download command',
+);
+readme = replaceMatch(
+  readme,
+  /tar -xzf codex-v[^ ]+-windows-x86_64\.tar\.gz/,
+  `tar -xzf codex-v${canonicalVersion}-windows-x86_64.tar.gz`,
+  'README release extract command',
+);
+if (/- file: `releases\/codex-v[^`]+-windows-x86_64\.tar\.gz`/.test(readme)) {
+  readme = replaceMatch(
+    readme,
+    /- file: `releases\/codex-v[^`]+-windows-x86_64\.tar\.gz`/,
+    `- file: \`releases/codex-v${canonicalVersion}-windows-x86_64.tar.gz\``,
+    'README current Windows asset file',
+  );
+}
 const managedBlock = `<!-- version-sync:start -->\n> **Current release:** v${canonicalVersion} (${releaseDate}) · canonical source \`VERSION\` · fork/upstream mapping in \`version-metadata.json\`.\n> Legacy v2.x release notes are archived under \`${releaseArchive}\`.\n<!-- version-sync:end -->`;
 if (/<!-- version-sync:start -->[\s\S]*?<!-- version-sync:end -->/.test(readme)) {
   readme = readme.replace(/<!-- version-sync:start -->[\s\S]*?<!-- version-sync:end -->/, managedBlock);

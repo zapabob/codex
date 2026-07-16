@@ -3,6 +3,7 @@ use super::JsonSchema;
 use super::JsonSchemaPrimitiveType;
 use super::JsonSchemaType;
 use super::parse_tool_input_schema;
+use super::parse_tool_input_schema_without_compaction;
 use pretty_assertions::assert_eq;
 use std::collections::BTreeMap;
 
@@ -21,6 +22,20 @@ fn parse_tool_input_schema_coerces_boolean_schemas() {
     let schema = parse_tool_input_schema(&serde_json::json!(true)).expect("parse schema");
 
     assert_eq!(schema, JsonSchema::string(/*description*/ None));
+}
+
+#[test]
+fn json_schema_serializes_encrypted_marker() {
+    let schema = JsonSchema::string(Some("Secret value".to_string())).with_encrypted();
+
+    assert_eq!(
+        serde_json::to_value(schema).expect("serialize schema"),
+        serde_json::json!({
+            "type": "string",
+            "description": "Secret value",
+            "encrypted": true,
+        })
+    );
 }
 
 #[test]
@@ -714,6 +729,109 @@ fn parse_tool_input_schema_preserves_nested_any_of_property() {
 }
 
 #[test]
+fn parse_tool_input_schema_preserves_nested_one_of_property() {
+    // Example schema shape:
+    // {
+    //   "type": "object",
+    //   "properties": {
+    //     "query": {
+    //       "oneOf": [
+    //         { "const": "exact" },
+    //         { "type": "number" }
+    //       ]
+    //     }
+    //   }
+    // }
+    //
+    // Expected normalization behavior:
+    // - The nested `oneOf` is preserved.
+    // - Child variants are recursively sanitized, including `const` to `enum`.
+    let schema = parse_tool_input_schema(&serde_json::json!({
+        "type": "object",
+        "properties": {
+            "query": {
+                "oneOf": [
+                    { "const": "exact" },
+                    { "type": "number" }
+                ]
+            }
+        }
+    }))
+    .expect("parse schema");
+
+    assert_eq!(
+        schema,
+        JsonSchema::object(
+            BTreeMap::from([(
+                "query".to_string(),
+                JsonSchema::one_of(
+                    vec![
+                        JsonSchema::string_enum(
+                            vec![serde_json::json!("exact")],
+                            /*description*/ None,
+                        ),
+                        JsonSchema::number(/*description*/ None),
+                    ],
+                    /*description*/ None,
+                ),
+            )]),
+            /*required*/ None,
+            /*additional_properties*/ None
+        )
+    );
+}
+
+#[test]
+fn parse_tool_input_schema_preserves_nested_all_of_property() {
+    // Example schema shape:
+    // {
+    //   "type": "object",
+    //   "properties": {
+    //     "query": {
+    //       "allOf": [
+    //         { "type": "string" },
+    //         { "description": "unrecognized by itself" }
+    //       ]
+    //     }
+    //   }
+    // }
+    //
+    // Expected normalization behavior:
+    // - The nested `allOf` is preserved structurally rather than flattened.
+    // - Child variants are recursively sanitized.
+    let schema = parse_tool_input_schema(&serde_json::json!({
+        "type": "object",
+        "properties": {
+            "query": {
+                "allOf": [
+                    { "type": "string" },
+                    { "description": "unrecognized by itself" }
+                ]
+            }
+        }
+    }))
+    .expect("parse schema");
+
+    assert_eq!(
+        schema,
+        JsonSchema::object(
+            BTreeMap::from([(
+                "query".to_string(),
+                JsonSchema::all_of(
+                    vec![
+                        JsonSchema::string(/*description*/ None),
+                        JsonSchema::default(),
+                    ],
+                    /*description*/ None,
+                ),
+            )]),
+            /*required*/ None,
+            /*additional_properties*/ None
+        )
+    );
+}
+
+#[test]
 fn parse_tool_input_schema_preserves_type_unions_without_rewriting_to_any_of() {
     // Example schema shape:
     // {
@@ -791,8 +909,8 @@ fn many_string_properties(count: usize) -> serde_json::Map<String, serde_json::V
 }
 
 #[test]
-fn parse_large_tool_input_schema_stops_after_descriptions_when_under_budget() {
-    let schema = parse_tool_input_schema(&serde_json::json!({
+fn parse_large_tool_input_schema_compacts_descriptions_only_on_default_path() {
+    let input_schema = serde_json::json!({
         "type": "object",
         "description": "x".repeat(4_500),
         "properties": {
@@ -806,8 +924,8 @@ fn parse_large_tool_input_schema_stops_after_descriptions_when_under_budget() {
                 "description": "Metadata value"
             }
         }
-    }))
-    .expect("parse schema");
+    });
+    let schema = parse_tool_input_schema(&input_schema).expect("parse schema");
 
     assert_eq!(
         serde_json::to_value(schema).expect("serialize schema"),
@@ -821,6 +939,26 @@ fn parse_large_tool_input_schema_stops_after_descriptions_when_under_budget() {
             "$defs": {
                 "metadata": {
                     "type": "string"
+                }
+            }
+        })
+    );
+
+    let schema = parse_tool_input_schema_without_compaction(&input_schema).expect("parse schema");
+    assert_eq!(
+        serde_json::to_value(schema).expect("serialize schema"),
+        serde_json::json!({
+            "type": "object",
+            "description": "x".repeat(4_500),
+            "properties": {
+                "metadata": {
+                    "$ref": "#/$defs/metadata"
+                }
+            },
+            "$defs": {
+                "metadata": {
+                    "type": "string",
+                    "description": "Metadata value"
                 }
             }
         })
@@ -1036,6 +1174,77 @@ fn parse_large_tool_input_schema_strips_descriptions_without_removing_descriptio
 }
 
 #[test]
+fn parse_large_tool_input_schema_prunes_compositions_as_last_resort() {
+    for composition_key in super::COMPOSITION_SCHEMA_KEYS {
+        let variants = vec![
+            serde_json::json!({
+                "type": "string",
+                "enum": ["first ".repeat(400)]
+            }),
+            serde_json::json!({
+                "type": "string",
+                "enum": ["second ".repeat(400)]
+            }),
+            serde_json::json!({
+                "type": "string",
+                "enum": ["third ".repeat(400)]
+            }),
+        ];
+
+        let mut choice = serde_json::Map::new();
+        choice.insert(
+            composition_key.to_string(),
+            serde_json::Value::Array(variants),
+        );
+        let schema = parse_tool_input_schema(&serde_json::json!({
+            "type": "object",
+            "properties": {
+                "choice": choice
+            }
+        }))
+        .expect("parse schema");
+
+        assert_eq!(
+            serde_json::to_value(schema).expect("serialize schema"),
+            serde_json::json!({
+                "type": "object",
+                "properties": {
+                    "choice": {}
+                }
+            })
+        );
+    }
+}
+
+#[test]
+fn parse_large_tool_input_schema_prunes_single_composition_variant_if_still_over_budget() {
+    let schema = parse_tool_input_schema(&serde_json::json!({
+        "type": "object",
+        "properties": {
+            "choice": {
+                "anyOf": [
+                    {
+                        "type": "string",
+                        "enum": ["x".repeat(4_500)]
+                    }
+                ]
+            }
+        }
+    }))
+    .expect("parse schema");
+
+    assert_eq!(
+        serde_json::to_value(schema).expect("serialize schema"),
+        serde_json::json!({
+            "type": "object",
+            "properties": {
+                "choice": {}
+            }
+        })
+    );
+}
+
+#[test]
 fn parse_large_tool_input_schema_preserves_object_enum_literal_descriptions() {
     let schema = parse_tool_input_schema(&serde_json::json!({
         "type": "object",
@@ -1091,7 +1300,12 @@ fn collapse_deep_schema_objects_traverses_schema_children() {
                     "complex": {
                         "type": "object",
                         "properties": {
-                            "leaf": { "type": "string" }
+                            "nested": {
+                                "type": "object",
+                                "properties": {
+                                    "leaf": { "type": "string" }
+                                }
+                            }
                         }
                     },
                     "scalar": {
@@ -1104,7 +1318,12 @@ fn collapse_deep_schema_objects_traverses_schema_children() {
                 "items": {
                     "type": "object",
                     "properties": {
-                        "leaf": { "type": "string" }
+                        "nested": {
+                            "type": "object",
+                            "properties": {
+                                "leaf": { "type": "string" }
+                            }
+                        }
                     }
                 }
             },
@@ -1113,7 +1332,12 @@ fn collapse_deep_schema_objects_traverses_schema_children() {
                 "additionalProperties": {
                     "type": "object",
                     "properties": {
-                        "leaf": { "type": "string" }
+                        "nested": {
+                            "type": "object",
+                            "properties": {
+                                "leaf": { "type": "string" }
+                            }
+                        }
                     }
                 }
             },
@@ -1122,7 +1346,12 @@ fn collapse_deep_schema_objects_traverses_schema_children() {
                     {
                         "type": "object",
                         "properties": {
-                            "leaf": { "type": "string" }
+                            "nested": {
+                                "type": "object",
+                                "properties": {
+                                    "leaf": { "type": "string" }
+                                }
+                            }
                         }
                     },
                     { "type": "string" }
@@ -1141,7 +1370,12 @@ fn collapse_deep_schema_objects_traverses_schema_children() {
                 "object_parent": {
                     "type": "object",
                     "properties": {
-                        "complex": {},
+                        "complex": {
+                            "type": "object",
+                            "properties": {
+                                "nested": {}
+                            }
+                        },
                         "scalar": {
                             "type": "string"
                         }
@@ -1149,15 +1383,30 @@ fn collapse_deep_schema_objects_traverses_schema_children() {
                 },
                 "array_parent": {
                     "type": "array",
-                    "items": {}
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "nested": {}
+                        }
+                    }
                 },
                 "map_parent": {
                     "type": "object",
-                    "additionalProperties": {}
+                    "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                            "nested": {}
+                        }
+                    }
                 },
                 "union_parent": {
                     "anyOf": [
-                        {},
+                        {
+                            "type": "object",
+                            "properties": {
+                                "nested": {}
+                            }
+                        },
                         { "type": "string" }
                     ]
                 }
@@ -1362,10 +1611,24 @@ fn parse_tool_input_schema_collects_refs_from_schema_child_keywords() {
                     {"$ref": "#/$defs/Choice"},
                     {"type": "string"}
                 ]
+            },
+            "exclusive_choice": {
+                "oneOf": [
+                    {"$ref": "#/$defs/ExclusiveChoice"},
+                    {"type": "integer"}
+                ]
+            },
+            "combined": {
+                "allOf": [
+                    {"$ref": "#/$defs/Combined"},
+                    {"type": "object"}
+                ]
             }
         },
         "$defs": {
+            "Combined": {"type": "object"},
             "Choice": {"type": "boolean"},
+            "ExclusiveChoice": {"type": "null"},
             "Extra": {"type": "number"},
             "Item": {"type": "string"},
             "Unused": {"type": "null"}
@@ -1384,6 +1647,18 @@ fn parse_tool_input_schema_collects_refs_from_schema_child_keywords() {
                         {"type": "string"}
                     ]
                 },
+                "combined": {
+                    "allOf": [
+                        {"$ref": "#/$defs/Combined"},
+                        {"type": "object", "properties": {}}
+                    ]
+                },
+                "exclusive_choice": {
+                    "oneOf": [
+                        {"$ref": "#/$defs/ExclusiveChoice"},
+                        {"type": "integer"}
+                    ]
+                },
                 "items_holder": {
                     "type": "array",
                     "items": {"$ref": "#/$defs/Item"}
@@ -1395,7 +1670,9 @@ fn parse_tool_input_schema_collects_refs_from_schema_child_keywords() {
                 }
             },
             "$defs": {
+                "Combined": {"type": "object", "properties": {}},
                 "Choice": {"type": "boolean"},
+                "ExclusiveChoice": {"type": "null"},
                 "Extra": {"type": "number"},
                 "Item": {"type": "string"}
             }

@@ -3,6 +3,7 @@ use codex_extension_api::ToolCall;
 use codex_extension_api::ToolExecutor;
 use codex_extension_api::ToolName;
 use codex_extension_api::ToolSpec;
+use codex_otel::MetricsClient;
 use schemars::JsonSchema;
 use serde::Deserialize;
 use serde_json::json;
@@ -13,6 +14,9 @@ use crate::MAX_LIST_RESULTS;
 use crate::backend::ListMemoriesRequest;
 use crate::backend::ListMemoriesResponse;
 use crate::backend::MemoriesBackend;
+use crate::metrics::record_tool_call;
+use crate::metrics::scope_from_optional_path;
+use crate::metrics::truncated_tag;
 
 use super::backend_error_to_function_call;
 use super::clamp_max_results;
@@ -32,9 +36,9 @@ struct ListArgs {
 #[derive(Clone)]
 pub(super) struct ListTool<B> {
     pub(super) backend: B,
+    pub(super) metrics_client: Option<MetricsClient>,
 }
 
-#[async_trait::async_trait]
 impl<B> ToolExecutor<ToolCall> for ListTool<B>
 where
     B: MemoriesBackend,
@@ -50,13 +54,23 @@ where
         )
     }
 
-    async fn handle(
+    fn handle(&self, call: ToolCall) -> codex_extension_api::ToolExecutorFuture<'_> {
+        Box::pin(self.handle_call(call))
+    }
+}
+
+impl<B> ListTool<B>
+where
+    B: MemoriesBackend,
+{
+    async fn handle_call(
         &self,
         call: ToolCall,
     ) -> Result<Box<dyn codex_extension_api::ToolOutput>, codex_extension_api::FunctionCallError>
     {
         let backend = self.backend.clone();
         let args: ListArgs = parse_args(&call)?;
+        let scope = scope_from_optional_path(args.path.as_deref(), "root");
         let response = backend
             .list(ListMemoriesRequest {
                 path: args.path,
@@ -67,8 +81,15 @@ where
                     MAX_LIST_RESULTS,
                 ),
             })
-            .await
-            .map_err(backend_error_to_function_call)?;
+            .await;
+        record_tool_call(
+            self.metrics_client.as_ref(),
+            LIST_TOOL_NAME,
+            scope,
+            response.is_ok(),
+            truncated_tag(response.as_ref().ok().map(|response| response.truncated)),
+        );
+        let response = response.map_err(backend_error_to_function_call)?;
         Ok(Box::new(JsonToolOutput::new(json!(response))))
     }
 }

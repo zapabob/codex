@@ -76,6 +76,7 @@ fn cache_rate_limit_snapshot(chat: &mut ChatWidget) {
             resets_at: None,
         }),
         credits: None,
+        individual_limit: None,
         plan_type: None,
         rate_limit_reached_type: None,
     }));
@@ -180,6 +181,18 @@ async fn status_line_setup_popup_hardcoded_only_snapshot() {
 }
 
 #[tokio::test]
+async fn status_line_setup_popup_workspace_headline_snapshot() {
+    let (mut chat, _rx, _op_rx) = make_chatwidget_manual(/*model_override*/ None).await;
+    chat.status_line_workspace_headline = Some("Workspace maintenance starts at 5pm".to_string());
+    chat.config.tui_status_line = Some(vec!["workspace-headline".to_string()]);
+
+    assert_chatwidget_snapshot!(
+        "status_line_setup_popup_workspace_headline",
+        status_line_popup_snapshot(&mut chat)
+    );
+}
+
+#[tokio::test]
 async fn status_surface_preview_lines_mixed_snapshot() {
     let (mut chat, _rx, _op_rx) = make_chatwidget_manual(/*model_override*/ None).await;
     chat.status_line_branch = Some("feature/mixed-preview".to_string());
@@ -233,6 +246,7 @@ async fn status_surface_preview_omits_unavailable_rate_limit_items() {
         }),
         secondary: None,
         credits: None,
+        individual_limit: None,
         plan_type: None,
         rate_limit_reached_type: None,
     }));
@@ -246,7 +260,7 @@ async fn status_surface_preview_omits_unavailable_rate_limit_items() {
             &mut chat,
             &[StatusLineItem::FiveHourLimit, StatusLineItem::WeeklyLimit]
         ),
-        "weekly 91%"
+        "weekly 91% left"
     );
     assert_eq!(
         title_preview_line(
@@ -256,7 +270,7 @@ async fn status_surface_preview_omits_unavailable_rate_limit_items() {
                 TerminalTitleItem::WeeklyLimit
             ],
         ),
-        "weekly 91%"
+        "weekly 91% left"
     );
 }
 

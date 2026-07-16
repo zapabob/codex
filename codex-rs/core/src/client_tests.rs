@@ -10,22 +10,28 @@ use super::X_OPENAI_SUBAGENT_HEADER;
 use crate::AttestationContext;
 use crate::AttestationProvider;
 use crate::GenerateAttestationFuture;
+use crate::responses_metadata::CodexResponsesMetadata;
+use crate::test_support::TestCodexResponsesRequestKind;
+use crate::test_support::responses_metadata as test_responses_metadata;
 use codex_api::ApiError;
 use codex_api::ResponseEvent;
+use codex_api::TransportError;
 use codex_app_server_protocol::AuthMode;
 use codex_login::AuthManager;
 use codex_login::CodexAuth;
 use codex_model_provider::BearerAuthProvider;
+use codex_model_provider::SharedModelProvider;
+use codex_model_provider::create_model_provider;
 use codex_model_provider_info::CHATGPT_CODEX_BASE_URL;
 use codex_model_provider_info::ModelProviderInfo;
 use codex_model_provider_info::WireApi;
 use codex_model_provider_info::create_oss_provider_with_base_url;
 use codex_otel::SessionTelemetry;
-use codex_protocol::SessionId;
 use codex_protocol::ThreadId;
 use codex_protocol::models::ContentItem;
 use codex_protocol::models::ResponseItem;
 use codex_protocol::openai_models::ModelInfo;
+use codex_protocol::openai_models::ReasoningEffort;
 use codex_protocol::protocol::InternalSessionSource;
 use codex_protocol::protocol::SessionSource;
 use codex_protocol::protocol::SubAgentSource;
@@ -60,21 +66,46 @@ use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::registry::LookupSpan;
 use tracing_subscriber::util::SubscriberInitExt;
 
+const TEST_INSTALLATION_ID: &str = "11111111-1111-4111-8111-111111111111";
+
 fn test_model_client(session_source: SessionSource) -> ModelClient {
     let provider = create_oss_provider_with_base_url("https://example.com/v1", WireApi::Responses);
     let thread_id = ThreadId::new();
     ModelClient::new(
         /*auth_manager*/ None,
-        thread_id.into(),
         thread_id,
-        /*installation_id*/ "11111111-1111-4111-8111-111111111111".to_string(),
         provider,
         session_source,
         /*model_verbosity*/ None,
         /*enable_request_compression*/ false,
         /*include_timing_metrics*/ false,
         /*beta_features_header*/ None,
+        /*item_ids_enabled*/ false,
         /*attestation_provider*/ None,
+    )
+}
+
+fn test_model_provider() -> SharedModelProvider {
+    test_model_client(SessionSource::Cli).state.provider.clone()
+}
+
+fn test_responses_metadata_for_client(
+    client: &ModelClient,
+    turn_id: Option<&str>,
+    window_id: String,
+    parent_thread_id: Option<ThreadId>,
+    request_kind: TestCodexResponsesRequestKind,
+) -> CodexResponsesMetadata {
+    let thread_id = client.state.thread_id.to_string();
+    test_responses_metadata(
+        TEST_INSTALLATION_ID,
+        &thread_id,
+        &thread_id,
+        turn_id,
+        window_id,
+        &client.state.session_source,
+        parent_thread_id,
+        request_kind,
     )
 }
 
@@ -121,6 +152,20 @@ fn test_session_telemetry() -> SessionTelemetry {
         "test-terminal".to_string(),
         SessionSource::Cli,
     )
+}
+
+#[test]
+fn ultra_reasoning_uses_max_for_requests() {
+    assert_eq!(
+        (
+            super::reasoning_effort_for_request(ReasoningEffort::Ultra),
+            super::reasoning_effort_for_request(ReasoningEffort::High),
+        ),
+        (
+            ReasoningEffort::Custom("max".to_string()),
+            ReasoningEffort::High,
+        )
+    );
 }
 
 #[derive(Default)]
@@ -203,6 +248,7 @@ fn output_message(id: &str, text: &str) -> ResponseItem {
             text: text.to_string(),
         }],
         phase: None,
+        internal_chat_message_metadata_passthrough: None,
     }
 }
 
@@ -280,34 +326,55 @@ fn build_ws_client_metadata_includes_window_lineage_and_turn_metadata() {
         agent_role: None,
     }));
 
-    client.advance_window_generation();
-
-    let client_metadata = client.build_ws_client_metadata(Some(r#"{"turn_id":"turn-123"}"#));
-    let thread_id = client.state.thread_id;
+    let thread_id = client.state.thread_id.to_string();
+    let expected_window_id = format!("{thread_id}:1");
+    let responses_metadata = test_responses_metadata_for_client(
+        &client,
+        Some("turn-123"),
+        expected_window_id.clone(),
+        Some(parent_thread_id),
+        TestCodexResponsesRequestKind::Turn,
+    );
+    let client_metadata =
+        client.build_ws_client_metadata(&responses_metadata, /*use_responses_lite*/ false);
+    let parent_thread_id = parent_thread_id.to_string();
+    let turn_metadata: serde_json::Value = serde_json::from_str(
+        client_metadata
+            .get(X_CODEX_TURN_METADATA_HEADER)
+            .expect("turn metadata"),
+    )
+    .expect("valid turn metadata");
+    for (client_key, metadata_key, expected) in [
+        (
+            X_CODEX_INSTALLATION_ID_HEADER,
+            "installation_id",
+            "11111111-1111-4111-8111-111111111111",
+        ),
+        ("session_id", "session_id", thread_id.as_str()),
+        ("thread_id", "thread_id", thread_id.as_str()),
+        ("turn_id", "turn_id", "turn-123"),
+        (
+            X_CODEX_WINDOW_ID_HEADER,
+            "window_id",
+            expected_window_id.as_str(),
+        ),
+        (
+            X_CODEX_PARENT_THREAD_ID_HEADER,
+            "parent_thread_id",
+            parent_thread_id.as_str(),
+        ),
+    ] {
+        assert_eq!(
+            client_metadata.get(client_key).map(String::as_str),
+            Some(expected)
+        );
+        assert_eq!(turn_metadata[metadata_key].as_str(), Some(expected));
+    }
     assert_eq!(
-        client_metadata,
-        std::collections::HashMap::from([
-            (
-                X_CODEX_INSTALLATION_ID_HEADER.to_string(),
-                "11111111-1111-4111-8111-111111111111".to_string(),
-            ),
-            (
-                X_CODEX_WINDOW_ID_HEADER.to_string(),
-                format!("{thread_id}:1"),
-            ),
-            (
-                X_OPENAI_SUBAGENT_HEADER.to_string(),
-                "collab_spawn".to_string(),
-            ),
-            (
-                X_CODEX_PARENT_THREAD_ID_HEADER.to_string(),
-                parent_thread_id.to_string(),
-            ),
-            (
-                X_CODEX_TURN_METADATA_HEADER.to_string(),
-                r#"{"turn_id":"turn-123"}"#.to_string(),
-            ),
-        ])
+        client_metadata
+            .get(X_OPENAI_SUBAGENT_HEADER)
+            .map(String::as_str),
+        Some("collab_spawn")
     );
 }
 
@@ -346,6 +413,7 @@ async fn dropped_response_stream_traces_cancelled_partial_output() -> anyhow::Re
         api_stream,
         test_session_telemetry(),
         attempt,
+        test_model_provider(),
     );
 
     let observed = stream
@@ -395,6 +463,7 @@ async fn response_stream_records_last_model_feedback_ids() {
         api_stream,
         test_session_telemetry(),
         InferenceTraceAttempt::disabled(),
+        test_model_provider(),
     );
 
     while stream.next().await.is_some() {}
@@ -407,6 +476,39 @@ async fn response_stream_records_last_model_feedback_ids() {
     assert_eq!(
         tags.get("last_model_response_id").map(String::as_str),
         Some("\"resp-123\"")
+    );
+}
+
+#[tokio::test]
+async fn bedrock_unauthorized_error_uses_provider_mapping() {
+    let provider = create_model_provider(
+        ModelProviderInfo::create_amazon_bedrock_provider(/*aws*/ None),
+        /*auth_manager*/ None,
+    );
+    let mut auth_recovery = None;
+    let url = "https://bedrock-mantle.us-east-2.api.aws/openai/v1/responses";
+    let error = super::handle_unauthorized(
+        TransportError::Http {
+            status: http::StatusCode::UNAUTHORIZED,
+            url: Some(url.to_string()),
+            headers: None,
+            body: Some(
+                "Signature expired: 20260609T133205Z is now earlier than 20260614T062525Z"
+                    .to_string(),
+            ),
+        },
+        &mut auth_recovery,
+        &test_session_telemetry(),
+        &provider,
+    )
+    .await
+    .expect_err("expired Bedrock signature should fail");
+
+    assert_eq!(
+        error.to_string(),
+        format!(
+            "Amazon Bedrock rejected the request because its AWS signature has expired. Refresh your AWS credentials and retry. If `AWS_BEARER_TOKEN_BEDROCK` is set, update or unset it, then restart Codex, url: {url}"
+        )
     );
 }
 
@@ -436,6 +538,7 @@ async fn dropped_backpressured_response_stream_traces_cancelled_partial_output()
         api_stream,
         test_session_telemetry(),
         attempt,
+        test_model_provider(),
     );
 
     // Fill the mapper channel with non-terminal events, then yield one output
@@ -515,15 +618,14 @@ fn model_client_with_counting_attestation(
     };
     let model_client = ModelClient::new(
         auth_manager,
-        SessionId::new(),
         ThreadId::new(),
-        /*installation_id*/ "11111111-1111-4111-8111-111111111111".to_string(),
         provider,
         SessionSource::Exec,
         /*model_verbosity*/ None,
         /*enable_request_compression*/ false,
         /*include_timing_metrics*/ false,
         /*beta_features_header*/ None,
+        /*item_ids_enabled*/ false,
         Some(Arc::new(CountingAttestationProvider {
             calls: attestation_calls.clone(),
         })),
@@ -535,9 +637,16 @@ fn model_client_with_counting_attestation(
 async fn websocket_handshake_includes_attestation_for_chatgpt_codex_responses() {
     let (model_client, attestation_calls) =
         model_client_with_counting_attestation(/*include_attestation*/ true);
+    let responses_metadata = test_responses_metadata_for_client(
+        &model_client,
+        /*turn_id*/ None,
+        format!("{}:0", model_client.state.thread_id),
+        /*parent_thread_id*/ None,
+        TestCodexResponsesRequestKind::WebsocketConnection,
+    );
 
     let headers = model_client
-        .build_websocket_headers(/*turn_state*/ None, /*turn_metadata_header*/ None)
+        .build_websocket_headers(&responses_metadata)
         .await;
 
     assert_eq!(

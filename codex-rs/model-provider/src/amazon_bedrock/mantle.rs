@@ -1,4 +1,5 @@
 use codex_aws_auth::AwsAuthConfig;
+use codex_login::auth::BedrockApiKeyAuth;
 use codex_model_provider_info::ModelProviderAwsAuthInfo;
 use codex_protocol::error::CodexErr;
 use codex_protocol::error::Result;
@@ -7,11 +8,10 @@ use super::auth::BedrockAuthMethod;
 use super::auth::resolve_auth_method;
 
 const BEDROCK_MANTLE_SERVICE_NAME: &str = "bedrock-mantle";
-const BEDROCK_MANTLE_SUPPORTED_REGIONS: [&str; 13] = [
+const BEDROCK_MANTLE_SUPPORTED_REGIONS: [&str; 12] = [
     "us-east-2",
     "us-east-1",
     "us-west-2",
-    "us-gov-west-1",
     "ap-southeast-3",
     "ap-south-1",
     "ap-northeast-1",
@@ -49,14 +49,21 @@ pub(super) fn base_url(region: &str) -> Result<String> {
     }
 }
 
-pub(super) async fn runtime_base_url(aws: &ModelProviderAwsAuthInfo) -> Result<String> {
-    let region = resolve_region(aws).await?;
+pub(super) async fn runtime_base_url(
+    managed_auth: Option<&BedrockApiKeyAuth>,
+    aws: &ModelProviderAwsAuthInfo,
+) -> Result<String> {
+    let region = resolve_region(managed_auth, aws).await?;
     base_url(&region)
 }
 
-async fn resolve_region(aws: &ModelProviderAwsAuthInfo) -> Result<String> {
-    match resolve_auth_method(aws).await? {
-        BedrockAuthMethod::EnvBearerToken { region, .. } => Ok(region),
+async fn resolve_region(
+    managed_auth: Option<&BedrockApiKeyAuth>,
+    aws: &ModelProviderAwsAuthInfo,
+) -> Result<String> {
+    match resolve_auth_method(managed_auth, aws).await? {
+        BedrockAuthMethod::ManagedBearerToken { region, .. }
+        | BedrockAuthMethod::EnvBearerToken { region, .. } => Ok(region),
         BedrockAuthMethod::AwsSdkAuth { context } => Ok(context.region().to_string()),
     }
 }
@@ -72,10 +79,6 @@ mod tests {
         assert_eq!(
             base_url("ap-northeast-1").expect("supported region"),
             "https://bedrock-mantle.ap-northeast-1.api.aws/openai/v1"
-        );
-        assert_eq!(
-            base_url("us-gov-west-1").expect("supported region"),
-            "https://bedrock-mantle.us-gov-west-1.api.aws/openai/v1"
         );
     }
 

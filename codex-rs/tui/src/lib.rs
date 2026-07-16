@@ -7,11 +7,13 @@ use crate::legacy_core::check_execpolicy_for_warnings;
 use crate::legacy_core::config::Config;
 use crate::legacy_core::config::ConfigBuilder;
 use crate::legacy_core::config::ConfigOverrides;
-use crate::legacy_core::config::load_config_as_toml_with_cli_and_load_options;
+use crate::legacy_core::config::ConfigTomlLoadResult;
+use crate::legacy_core::config::load_config_toml_with_layer_stack;
+use crate::legacy_core::config::resolve_bootstrap_auth_keyring_backend_kind;
+use crate::legacy_core::config::resolve_bootstrap_auth_route_config;
 use crate::legacy_core::config::resolve_oss_provider;
 use crate::legacy_core::config::resolve_profile_v2_config_path;
 use crate::legacy_core::format_exec_policy_error_with_source;
-use crate::legacy_core::windows_sandbox::WindowsSandboxLevelExt;
 use crate::session_resume::ResolveCwdOutcome;
 use crate::session_resume::resolve_cwd_for_resume_or_fork;
 pub use crate::startup_error::LocalStateDbStartupError;
@@ -37,8 +39,8 @@ use codex_app_server_protocol::ThreadListCwdFilter;
 use codex_app_server_protocol::ThreadListParams;
 use codex_app_server_protocol::ThreadSortKey as AppServerThreadSortKey;
 use codex_app_server_protocol::ThreadSourceKind;
-use codex_cloud_requirements::cloud_requirements_loader_for_storage;
-use codex_config::CloudRequirementsLoader;
+use codex_cloud_config::cloud_config_bundle_loader_for_storage;
+use codex_config::CloudConfigBundleLoader;
 use codex_config::ConfigLoadError;
 use codex_config::LoaderOverrides;
 use codex_config::format_config_error_with_source;
@@ -51,6 +53,7 @@ use codex_login::enforce_login_restrictions;
 use codex_protocol::ThreadId;
 use codex_protocol::config_types::AltScreenMode;
 use codex_protocol::config_types::SandboxMode;
+#[cfg(target_os = "windows")]
 use codex_protocol::config_types::WindowsSandboxLevel;
 use codex_rollout::StateDbHandle;
 use codex_rollout::state_db;
@@ -62,17 +65,20 @@ use codex_utils_oss::ensure_oss_provider_ready;
 use codex_utils_oss::get_default_model_for_oss_provider;
 use color_eyre::eyre::WrapErr;
 use cwd_prompt::CwdPromptAction;
+pub use session_archive_commands::DeleteConfirmation;
+pub use session_archive_commands::SessionArchiveAction;
+pub use session_archive_commands::SessionArchiveCommandOptions;
+pub use session_archive_commands::run_session_archive_command;
 use std::fs::OpenOptions;
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::time::Instant;
 pub use token_usage::TokenUsage;
-use tracing::Level;
 use tracing::error;
 use tracing::warn;
 use tracing_appender::non_blocking;
 use tracing_subscriber::EnvFilter;
-use tracing_subscriber::filter::Targets;
 use tracing_subscriber::prelude::*;
 use url::Url;
 use uuid::Uuid;
@@ -89,22 +95,6 @@ mod app_server_approval_conversions;
 mod app_server_session;
 mod approval_events;
 mod ascii_animation;
-#[cfg(not(target_os = "linux"))]
-mod audio_device;
-#[cfg(target_os = "linux")]
-#[allow(dead_code)]
-mod audio_device {
-    use crate::app_event::RealtimeAudioDeviceKind;
-
-    pub(crate) fn list_realtime_audio_device_names(
-        kind: RealtimeAudioDeviceKind,
-    ) -> Result<Vec<String>, String> {
-        Err(format!(
-            "Failed to load realtime {} devices: voice input is unavailable in this build",
-            kind.noun()
-        ))
-    }
-}
 mod bottom_pane;
 mod branch_summary;
 mod chatwidget;
@@ -125,13 +115,15 @@ mod diff_render;
 mod exec_cell;
 mod exec_command;
 mod external_agent_config_migration;
-mod external_agent_config_migration_startup;
+mod external_agent_config_migration_flow;
+mod external_agent_config_migration_model;
 mod external_editor;
 mod file_search;
 mod frames;
 mod get_git_diff;
 mod git_action_directives;
 mod goal_display;
+mod goal_files;
 mod history_cell;
 mod hooks_rpc;
 mod ide_context;
@@ -147,6 +139,7 @@ mod local_chatgpt_auth;
 mod markdown;
 mod markdown_render;
 mod markdown_stream;
+mod markdown_text_merge;
 mod mention_codec;
 mod model_catalog;
 mod model_migration;
@@ -165,6 +158,7 @@ mod resize_reflow_cap;
 mod resume_picker;
 mod selection_list;
 mod service_tier_resolution;
+mod session_archive_commands;
 mod session_log;
 mod session_resume;
 mod session_state;
@@ -177,11 +171,14 @@ mod status;
 mod status_indicator_widget;
 mod streaming;
 mod style;
+mod terminal_hyperlinks;
 mod terminal_palette;
 mod terminal_probe;
 mod terminal_title;
+mod terminal_visualization_instructions;
 mod text_formatting;
 mod theme_picker;
+mod thread_transcript;
 mod token_usage;
 mod tooltips;
 mod transcript_reflow;
@@ -195,68 +192,14 @@ mod update_prompt;
 #[cfg(any(not(debug_assertions), test))]
 mod update_versions;
 mod updates;
+#[cfg(any(not(debug_assertions), test))]
+mod updates_cache;
 mod version;
-#[cfg(not(target_os = "linux"))]
-mod voice;
 mod width;
+#[cfg(any(target_os = "windows", test))]
+mod windows_sandbox;
 mod workspace_command;
-#[cfg(target_os = "linux")]
-#[allow(dead_code)]
-mod voice {
-    use crate::app_event_sender::AppEventSender;
-    use crate::legacy_core::config::Config;
-    use codex_app_server_protocol::ThreadRealtimeAudioChunk;
-    use std::sync::Arc;
-    use std::sync::atomic::AtomicBool;
-    use std::sync::atomic::AtomicU16;
-
-    pub struct VoiceCapture;
-
-    pub(crate) struct RecordingMeterState;
-
-    pub(crate) struct RealtimeAudioPlayer;
-
-    impl VoiceCapture {
-        pub fn start_realtime(_config: &Config, _tx: AppEventSender) -> Result<Self, String> {
-            Err("voice input is unavailable in this build".to_string())
-        }
-
-        pub fn stop(self) {}
-
-        pub fn stopped_flag(&self) -> Arc<AtomicBool> {
-            Arc::new(AtomicBool::new(true))
-        }
-
-        pub fn last_peak_arc(&self) -> Arc<AtomicU16> {
-            Arc::new(AtomicU16::new(0))
-        }
-    }
-
-    impl RecordingMeterState {
-        pub(crate) fn new() -> Self {
-            Self
-        }
-
-        pub(crate) fn next_text(&mut self, _peak: u16) -> String {
-            "⠤⠤⠤⠤".to_string()
-        }
-    }
-
-    impl RealtimeAudioPlayer {
-        pub(crate) fn start(_config: &Config) -> Result<Self, String> {
-            Err("voice output is unavailable in this build".to_string())
-        }
-
-        pub(crate) fn enqueue_frame(
-            &self,
-            _frame: &ThreadRealtimeAudioChunk,
-        ) -> Result<(), String> {
-            Err("voice output is unavailable in this build".to_string())
-        }
-
-        pub(crate) fn clear(&self) {}
-    }
-}
+mod workspace_messages;
 
 mod wrapping;
 
@@ -269,6 +212,7 @@ pub(crate) mod test_support;
 use crate::onboarding::onboarding_screen::OnboardingScreenArgs;
 use crate::onboarding::onboarding_screen::run_onboarding_app;
 use crate::startup_hooks_review::StartupHooksReviewOutcome;
+use crate::startup_hooks_review::load_startup_hooks_review_entry;
 use crate::startup_hooks_review::maybe_run_startup_hooks_review;
 use crate::tui::Tui;
 pub use cli::Cli;
@@ -277,6 +221,8 @@ pub use markdown_render::render_markdown_text;
 pub use public_widgets::composer_input::ComposerAction;
 pub use public_widgets::composer_input::ComposerInput;
 // (tests access modules directly within the crate)
+
+const TUI_LOG_FILE_NAME: &str = "codex-tui.log";
 
 #[cfg(unix)]
 const AUTO_CONNECT_DAEMON_CONNECT_TIMEOUT: std::time::Duration =
@@ -289,7 +235,7 @@ async fn start_embedded_app_server(
     cli_kv_overrides: Vec<(String, toml::Value)>,
     loader_overrides: LoaderOverrides,
     strict_config: bool,
-    cloud_requirements: CloudRequirementsLoader,
+    cloud_config_bundle: CloudConfigBundleLoader,
     feedback: codex_feedback::CodexFeedback,
     log_db: Option<log_db::LogDbLayer>,
     state_db: Option<StateDbHandle>,
@@ -301,7 +247,7 @@ async fn start_embedded_app_server(
         cli_kv_overrides,
         loader_overrides,
         strict_config,
-        cloud_requirements,
+        cloud_config_bundle,
         feedback,
         log_db,
         state_db,
@@ -338,15 +284,24 @@ async fn init_state_db_for_app_server_target(
 ) -> std::io::Result<Option<StateDbHandle>> {
     match app_server_target {
         AppServerTarget::Embedded => state_db::try_init(config).await.map(Some).map_err(|err| {
+            let database_path = codex_state::runtime_db_path_for_corruption_error(&err)
+                .unwrap_or_else(|| codex_state::state_db_path(config.sqlite_home.as_path()));
             std::io::Error::other(LocalStateDbStartupError::new(
-                codex_state::state_db_path(config.sqlite_home.as_path()),
-                err.to_string(),
+                database_path,
+                format!("{err:#}"),
             ))
         }),
         AppServerTarget::LocalDaemon { .. } | AppServerTarget::Remote { .. } => {
             Ok(state_db::get_state_db(config).await)
         }
     }
+}
+
+// TODO(jif) delete after 22/11/2026.
+fn remove_legacy_tui_log_file(codex_home: &Path) {
+    // Shared append-only TUI logs could grow without bound. Existing processes
+    // may still hold the file open, so startup cleanup is best effort.
+    let _ = std::fs::remove_file(codex_home.join("log").join(TUI_LOG_FILE_NAME));
 }
 
 fn remote_addr_has_explicit_port(addr: &str, parsed: &Url) -> bool {
@@ -444,6 +399,7 @@ async fn connect_remote_app_server(
         client_name: "codex-tui".to_string(),
         client_version: env!("CARGO_PKG_VERSION").to_string(),
         experimental_api: true,
+        mcp_server_openai_form_elicitation: false,
         opt_out_notification_methods: Vec::new(),
         channel_capacity: DEFAULT_IN_PROCESS_CHANNEL_CAPACITY,
     })
@@ -494,7 +450,7 @@ async fn start_app_server(
     cli_kv_overrides: Vec<(String, toml::Value)>,
     loader_overrides: LoaderOverrides,
     strict_config: bool,
-    cloud_requirements: CloudRequirementsLoader,
+    cloud_config_bundle: CloudConfigBundleLoader,
     feedback: codex_feedback::CodexFeedback,
     log_db: Option<log_db::LogDbLayer>,
     state_db: Option<StateDbHandle>,
@@ -507,7 +463,7 @@ async fn start_app_server(
             cli_kv_overrides,
             loader_overrides,
             strict_config,
-            cloud_requirements,
+            cloud_config_bundle,
             feedback,
             log_db,
             state_db,
@@ -534,7 +490,7 @@ pub(crate) async fn start_app_server_for_picker(
         Vec::new(),
         LoaderOverrides::default(),
         /*strict_config*/ false,
-        CloudRequirementsLoader::default(),
+        CloudConfigBundleLoader::default(),
         codex_feedback::CodexFeedback::new(),
         /*log_db*/ None,
         state_db,
@@ -568,7 +524,7 @@ async fn start_embedded_app_server_with<F, Fut>(
     cli_kv_overrides: Vec<(String, toml::Value)>,
     loader_overrides: LoaderOverrides,
     strict_config: bool,
-    cloud_requirements: CloudRequirementsLoader,
+    cloud_config_bundle: CloudConfigBundleLoader,
     feedback: codex_feedback::CodexFeedback,
     log_db: Option<log_db::LogDbLayer>,
     state_db: Option<StateDbHandle>,
@@ -595,7 +551,7 @@ where
         cli_overrides: cli_kv_overrides,
         loader_overrides,
         strict_config,
-        cloud_requirements,
+        cloud_config_bundle,
         feedback,
         log_db,
         state_db,
@@ -607,6 +563,7 @@ where
         client_name: "codex-tui".to_string(),
         client_version: env!("CARGO_PKG_VERSION").to_string(),
         experimental_api: true,
+        mcp_server_openai_form_elicitation: false,
         opt_out_notification_methods: Vec::new(),
         channel_capacity: DEFAULT_IN_PROCESS_CHANNEL_CAPACITY,
     })
@@ -642,6 +599,17 @@ fn session_target_from_app_server_thread(
     }
 }
 
+pub(crate) fn resume_source_kinds(include_non_interactive: bool) -> Vec<ThreadSourceKind> {
+    let mut source_kinds = vec![ThreadSourceKind::Cli, ThreadSourceKind::VsCode];
+    if include_non_interactive {
+        // `thread/list` treats omitted and empty `sourceKinds` as interactive-only,
+        // so include-non-interactive has to name the user-resumable non-interactive
+        // sources explicitly until the API grows an unfiltered request.
+        source_kinds.extend([ThreadSourceKind::Exec, ThreadSourceKind::AppServer]);
+    }
+    source_kinds
+}
+
 async fn lookup_session_target_by_name_with_app_server(
     app_server: &mut AppServerSession,
     name: &str,
@@ -657,6 +625,7 @@ async fn lookup_session_target_by_name_with_app_server(
                 model_providers: None,
                 source_kinds: Some(vec![ThreadSourceKind::Cli, ThreadSourceKind::VsCode]),
                 archived: Some(false),
+                parent_thread_id: None,
                 cwd: None,
                 use_state_db_only: false,
                 search_term: Some(name.to_string()),
@@ -717,18 +686,37 @@ async fn lookup_latest_session_target_with_app_server(
     cwd_filter: Option<&Path>,
     include_non_interactive: bool,
 ) -> color_eyre::Result<Option<resume_picker::SessionTarget>> {
-    let response = app_server
-        .thread_list(latest_session_lookup_params(
-            app_server.uses_remote_workspace(),
-            config,
-            cwd_filter,
-            include_non_interactive,
-        ))
-        .await?;
-    Ok(response
-        .data
-        .into_iter()
-        .find_map(session_target_from_app_server_thread))
+    let uses_remote_workspace = app_server.uses_remote_workspace();
+    for lookup_mode in [
+        LatestSessionLookupMode::StateDbOnly,
+        LatestSessionLookupMode::ScanAndRepair,
+    ] {
+        let response = app_server
+            .thread_list(latest_session_lookup_params(
+                uses_remote_workspace,
+                config,
+                cwd_filter,
+                include_non_interactive,
+                lookup_mode,
+            ))
+            .await?;
+        let target = response
+            .data
+            .into_iter()
+            .find_map(session_target_from_app_server_thread);
+        if target.as_ref().is_some_and(|target| {
+            uses_remote_workspace || target.path.as_deref().is_some_and(std::path::Path::exists)
+        }) {
+            return Ok(target);
+        }
+    }
+    Ok(None)
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum LatestSessionLookupMode {
+    StateDbOnly,
+    ScanAndRepair,
 }
 
 fn latest_session_lookup_params(
@@ -736,6 +724,7 @@ fn latest_session_lookup_params(
     config: &Config,
     cwd_filter: Option<&Path>,
     include_non_interactive: bool,
+    lookup_mode: LatestSessionLookupMode,
 ) -> ThreadListParams {
     ThreadListParams {
         cursor: None,
@@ -747,11 +736,14 @@ fn latest_session_lookup_params(
         } else {
             Some(vec![config.model_provider_id.clone()])
         },
-        source_kinds: (!include_non_interactive)
-            .then_some(vec![ThreadSourceKind::Cli, ThreadSourceKind::VsCode]),
+        source_kinds: Some(resume_source_kinds(include_non_interactive)),
         archived: Some(false),
+        parent_thread_id: None,
         cwd: cwd_filter.map(|cwd| ThreadListCwdFilter::One(cwd.to_string_lossy().to_string())),
-        use_state_db_only: false,
+        use_state_db_only: match lookup_mode {
+            LatestSessionLookupMode::StateDbOnly => true,
+            LatestSessionLookupMode::ScanAndRepair => false,
+        },
         search_term: None,
     }
 }
@@ -951,64 +943,83 @@ pub async fn run_main(
         loader_overrides.user_config_profile = Some(profile_v2.clone());
     }
 
-    #[allow(clippy::print_stderr)]
-    let config_toml = match load_config_as_toml_with_cli_and_load_options(
+    let bootstrap_config = load_bootstrap_config_or_exit(
         &codex_home,
         config_cwd.as_ref(),
         cli_kv_overrides.clone(),
-        codex_config::ConfigLoadOptions {
-            loader_overrides: loader_overrides.clone(),
-            strict_config,
-        },
+        loader_overrides.clone(),
+        strict_config,
+        CloudConfigBundleLoader::default(),
     )
-    .await
-    {
-        Ok(config_toml) => config_toml,
-        Err(err) => {
-            let config_error = err
-                .get_ref()
-                .and_then(|err| err.downcast_ref::<ConfigLoadError>())
-                .map(ConfigLoadError::config_error);
-            if let Some(config_error) = config_error {
-                eprintln!(
-                    "Error loading config.toml:\n{}",
-                    format_config_error_with_source(config_error)
-                );
-            } else {
-                eprintln!("Error loading config.toml: {err}");
-            }
-            std::process::exit(1);
-        }
-    };
+    .await;
+    let bootstrap_config_toml = &bootstrap_config.config_toml;
 
-    let chatgpt_base_url = config_toml
+    let chatgpt_base_url = bootstrap_config_toml
         .chatgpt_base_url
         .clone()
         .unwrap_or_else(|| "https://chatgpt.com/backend-api/".to_string());
-    let cloud_requirements = cloud_requirements_loader_for_storage(
+    let auth_route_config = resolve_bootstrap_auth_route_config(
+        bootstrap_config_toml,
+        bootstrap_config
+            .config_layer_stack
+            .requirements()
+            .feature_requirements
+            .as_ref(),
+    )?;
+    let cloud_config_bundle = cloud_config_bundle_loader_for_storage(
         codex_home.to_path_buf(),
         /*enable_codex_api_key_env*/ false,
-        config_toml.cli_auth_credentials_store.unwrap_or_default(),
+        bootstrap_config_toml
+            .cli_auth_credentials_store
+            .unwrap_or_default(),
+        resolve_bootstrap_auth_keyring_backend_kind(&bootstrap_config)?,
         chatgpt_base_url,
+        auth_route_config,
     )
     .await;
 
+    let cwd_override = if app_server_target.uses_remote_workspace() {
+        None
+    } else {
+        cwd.clone()
+    };
+
+    let mut manually_selected_oss_provider = None;
     let model_provider_override = if cli.oss {
-        let resolved = resolve_oss_provider(
-            cli.oss_provider.as_deref(),
-            &config_toml,
-            /*config_profile*/ None,
-        );
+        let bootstrap_config_with_cloud_config;
+        let config_toml_for_oss = if cli.oss_provider.is_none() {
+            // The first load intentionally skips cloud config so we can read
+            // auth/base-url settings needed to fetch the bundle. If OSS mode
+            // needs a default provider from config, reload with the bundle.
+            bootstrap_config_with_cloud_config = load_bootstrap_config_or_exit(
+                &codex_home,
+                config_cwd.as_ref(),
+                cli_kv_overrides.clone(),
+                loader_overrides.clone(),
+                strict_config,
+                cloud_config_bundle.clone(),
+            )
+            .await;
+            &bootstrap_config_with_cloud_config.config_toml
+        } else {
+            bootstrap_config_toml
+        };
+
+        let resolved = resolve_oss_provider(cli.oss_provider.as_deref(), config_toml_for_oss);
 
         if let Some(provider) = resolved {
             Some(provider)
         } else {
             // No provider configured, prompt the user
-            let provider = oss_selection::select_oss_provider(&codex_home).await?;
+            let selection = oss_selection::select_oss_provider().await?;
+            let provider = selection.provider;
             if provider == "__CANCELLED__" {
                 return Err(std::io::Error::other(
                     "OSS provider selection was cancelled by user",
                 ));
+            }
+            if selection.manually_selected {
+                manually_selected_oss_provider = Some(provider.clone());
             }
             Some(provider)
         }
@@ -1035,11 +1046,7 @@ pub async fn run_main(
         model,
         approval_policy,
         sandbox_mode,
-        cwd: if app_server_target.uses_remote_workspace() {
-            None
-        } else {
-            cwd
-        },
+        cwd: cwd_override,
         model_provider: model_provider_override.clone(),
         codex_self_exe: arg0_paths.codex_self_exe.clone(),
         codex_linux_sandbox_exe: arg0_paths.codex_linux_sandbox_exe.clone(),
@@ -1054,14 +1061,16 @@ pub async fn run_main(
         cli_kv_overrides.clone(),
         overrides.clone(),
         loader_overrides.clone(),
-        cloud_requirements.clone(),
+        cloud_config_bundle.clone(),
         strict_config,
     )
     .await;
 
+    remove_legacy_tui_log_file(config.codex_home.as_path());
+
     let otel_originator = originator().value;
     let otel = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        crate::legacy_core::otel_init::build_provider(
+        codex_app_server_client::build_otel_provider(
             &config,
             env!("CARGO_PKG_VERSION"),
             /*service_name_override*/ None,
@@ -1084,40 +1093,35 @@ pub async fn run_main(
             None
         }
     };
-    crate::legacy_core::otel_init::record_process_start(otel.as_ref(), otel_originator.as_str());
-    crate::legacy_core::otel_init::install_sqlite_telemetry(
-        otel.as_ref(),
-        otel_originator.as_str(),
-    );
+    if let Some(metrics) = otel.as_ref().and_then(codex_otel::OtelProvider::metrics) {
+        let _ = codex_otel::record_process_start_once(metrics, otel_originator.as_str());
+        let telemetry =
+            codex_rollout::sqlite_telemetry_recorder(metrics.clone(), otel_originator.as_str());
+        let _ = codex_state::install_process_db_telemetry(telemetry);
+    }
     let state_db = init_state_db_for_app_server_target(&config, &app_server_target).await?;
 
     let effective_toml = config.config_layer_stack.effective_config();
     match effective_toml.try_into() {
         Ok(config_toml) => {
-            match crate::legacy_core::personality_migration::maybe_migrate_personality(
+            match codex_app_server_client::migrate_personality_if_needed(
                 &config.codex_home,
                 &config_toml,
                 state_db.clone(),
             )
             .await
             {
-                Ok(
-                    crate::legacy_core::personality_migration::PersonalityMigrationStatus::Applied,
-                ) => {
+                Ok(true) => {
                     config = load_config_or_exit(
                         cli_kv_overrides.clone(),
                         overrides.clone(),
                         loader_overrides.clone(),
-                        cloud_requirements.clone(),
+                        cloud_config_bundle.clone(),
                         strict_config,
                     )
                     .await;
                 }
-                Ok(
-                    crate::legacy_core::personality_migration::PersonalityMigrationStatus::SkippedMarker
-                    | crate::legacy_core::personality_migration::PersonalityMigrationStatus::SkippedExplicitPersonality
-                    | crate::legacy_core::personality_migration::PersonalityMigrationStatus::SkippedNoSessions,
-                ) => {}
+                Ok(false) => {}
                 Err(err) => {
                     tracing::warn!(error = %err, "failed to run personality migration");
                 }
@@ -1127,6 +1131,11 @@ pub async fn run_main(
             tracing::warn!(error = %err, "failed to deserialize config for personality migration");
         }
     }
+    let config_toml_log_dir_configured = config
+        .config_layer_stack
+        .effective_config()
+        .as_table()
+        .is_some_and(|table| table.contains_key("log_dir"));
 
     #[allow(clippy::print_stderr)]
     match check_execpolicy_for_warnings(&config.config_layer_stack).await {
@@ -1155,13 +1164,16 @@ pub async fn run_main(
     }
 
     if !app_server_target.uses_remote_workspace() {
+        let auth_route_config = config.auth_route_config();
         #[allow(clippy::print_stderr)]
         if let Err(err) = enforce_login_restrictions(&AuthConfig {
             codex_home: config.codex_home.to_path_buf(),
             auth_credentials_store_mode: config.cli_auth_credentials_store_mode,
+            keyring_backend_kind: config.auth_keyring_backend_kind(),
             forced_login_method: config.forced_login_method,
             forced_chatgpt_workspace_id: config.forced_chatgpt_workspace_id.clone(),
             chatgpt_base_url: Some(config.chatgpt_base_url.clone()),
+            auth_route_config,
         })
         .await
         {
@@ -1170,46 +1182,39 @@ pub async fn run_main(
         }
     }
 
-    let log_dir = config.log_dir.clone();
-    std::fs::create_dir_all(&log_dir)?;
-    // Open (or create) your log file, appending to it.
-    let mut log_file_opts = OpenOptions::new();
-    log_file_opts.create(true).append(true);
+    let (tui_file_layer, _tui_file_log_guard) = if config_toml_log_dir_configured {
+        let log_dir = config.log_dir.clone();
+        std::fs::create_dir_all(&log_dir)?;
+        let mut log_file_opts = OpenOptions::new();
+        log_file_opts.create(true).append(true);
 
-    // Ensure the file is only readable and writable by the current user.
-    // Doing the equivalent to `chmod 600` on Windows is quite a bit more code
-    // and requires the Windows API crates, so we can reconsider that when
-    // Codex CLI is officially supported on Windows.
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::OpenOptionsExt;
-        log_file_opts.mode(0o600);
-    }
+        // Ensure the file is only readable and writable by the current user.
+        // Doing the equivalent to `chmod 600` on Windows is quite a bit more
+        // code and requires the Windows API crates.
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::OpenOptionsExt;
+            log_file_opts.mode(0o600);
+        }
 
-    let log_file = log_file_opts.open(log_dir.join("codex-tui.log"))?;
-
-    // Wrap file in non‑blocking writer.
-    let (non_blocking, _guard) = non_blocking(log_file);
-
-    // use RUST_LOG env var, default to info for codex crates.
-    let env_filter = || {
-        EnvFilter::try_from_default_env().unwrap_or_else(|_| {
+        let log_file = log_file_opts.open(log_dir.join(TUI_LOG_FILE_NAME))?;
+        let (non_blocking, guard) = non_blocking(log_file);
+        let env_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| {
             EnvFilter::new("codex_core=info,codex_tui=info,codex_rmcp_client=info")
-        })
+        });
+        let file_layer = tracing_subscriber::fmt::layer()
+            .with_writer(non_blocking)
+            .with_target(true)
+            .with_ansi(false)
+            .with_span_events(
+                tracing_subscriber::fmt::format::FmtSpan::NEW
+                    | tracing_subscriber::fmt::format::FmtSpan::CLOSE,
+            )
+            .with_filter(env_filter);
+        (Some(file_layer), Some(guard))
+    } else {
+        (None, None)
     };
-
-    let file_layer = tracing_subscriber::fmt::layer()
-        .with_writer(non_blocking)
-        // `with_target(true)` is the default, but we previously disabled it for file output.
-        // Keep it enabled so we can selectively enable targets via `RUST_LOG=...` and then
-        // grep for a specific module/target while troubleshooting.
-        .with_target(true)
-        .with_ansi(false)
-        .with_span_events(
-            tracing_subscriber::fmt::format::FmtSpan::NEW
-                | tracing_subscriber::fmt::format::FmtSpan::CLOSE,
-        )
-        .with_filter(env_filter());
 
     let feedback = codex_feedback::CodexFeedback::new();
     let feedback_layer = feedback.logger_layer();
@@ -1237,10 +1242,10 @@ pub async fn run_main(
     let log_db = state_db.clone().map(log_db::start);
     let log_db_layer = log_db
         .clone()
-        .map(|layer| layer.with_filter(Targets::new().with_default(Level::TRACE)));
+        .map(|layer| layer.with_filter(log_db::default_filter()));
 
     let _ = tracing_subscriber::registry()
-        .with(file_layer)
+        .with(tui_file_layer)
         .with(feedback_layer)
         .with(feedback_metadata_layer)
         .with(log_db_layer)
@@ -1256,9 +1261,10 @@ pub async fn run_main(
         app_server_target,
         remote_cwd_override,
         config,
+        manually_selected_oss_provider,
         overrides,
         cli_kv_overrides,
-        cloud_requirements,
+        cloud_config_bundle,
         feedback,
         log_db,
         state_db,
@@ -1277,9 +1283,10 @@ async fn run_ratatui_app(
     app_server_target: AppServerTarget,
     remote_cwd_override: Option<PathBuf>,
     initial_config: Config,
+    manually_selected_oss_provider: Option<String>,
     overrides: ConfigOverrides,
     cli_kv_overrides: Vec<(String, toml::Value)>,
-    mut cloud_requirements: CloudRequirementsLoader,
+    mut cloud_config_bundle: CloudConfigBundleLoader,
     feedback: codex_feedback::CodexFeedback,
     log_db: Option<log_db::LogDbLayer>,
     state_db: Option<StateDbHandle>,
@@ -1305,6 +1312,7 @@ async fn run_ratatui_app(
     let mut tui = Tui::new(
         initialized_terminal.terminal,
         initialized_terminal.enhanced_keys_supported,
+        initialized_terminal.stderr_guard,
     );
     let mut terminal_restore_guard = TerminalRestoreGuard::new();
 
@@ -1321,7 +1329,7 @@ async fn run_ratatui_app(
                     return Ok(AppExitInfo {
                         token_usage: crate::token_usage::TokenUsage::default(),
                         thread_id: None,
-                        thread_name: None,
+                        resume_hint: None,
                         update_action: Some(action),
                         exit_reason: ExitReason::UserRequested,
                     });
@@ -1340,7 +1348,7 @@ async fn run_ratatui_app(
         cli_kv_overrides.clone(),
         loader_overrides.clone(),
         strict_config,
-        cloud_requirements.clone(),
+        cloud_config_bundle.clone(),
         feedback.clone(),
         log_db.clone(),
         state_db.clone(),
@@ -1356,10 +1364,24 @@ async fn run_ratatui_app(
         }
     }
     .with_remote_cwd_override(remote_cwd_override.clone());
+    if let Some(provider) = manually_selected_oss_provider.as_deref()
+        && let Err(err) = config_update::write_config_batch(
+            app_server_session.request_handle(),
+            vec![config_update::build_oss_provider_edit(provider)],
+        )
+        .await
+    {
+        warn!(
+            %err,
+            provider,
+            "Failed to persist selected OSS provider preference"
+        );
+    }
     let mut app_server = Some(app_server_session);
 
     let should_show_trust_screen_flag =
         !uses_remote_workspace && should_show_trust_screen(&initial_config);
+    #[cfg(target_os = "windows")]
     let mut trust_decision_was_made = false;
     let login_status = if initial_config.model_provider.requires_openai_auth {
         let Some(app_server) = app_server.as_mut() else {
@@ -1400,35 +1422,40 @@ async fn run_ratatui_app(
             return Ok(AppExitInfo {
                 token_usage: crate::token_usage::TokenUsage::default(),
                 thread_id: None,
-                thread_name: None,
+                resume_hint: None,
                 update_action: None,
                 exit_reason: ExitReason::UserRequested,
             });
         }
-        trust_decision_was_made = onboarding_result.directory_trust_decision.is_some();
-        // If this onboarding run included the login step, always refresh cloud requirements and
-        // rebuild config. This avoids missing newly available cloud requirements due to login
+        #[cfg(target_os = "windows")]
+        {
+            trust_decision_was_made = onboarding_result.directory_trust_persisted;
+        }
+        // If this onboarding run included the login step, always refresh the cloud config bundle
+        // and rebuild config. This avoids missing newly available cloud-managed policy due to login
         // status detection edge cases.
         if show_login_screen && !uses_remote_workspace {
-            cloud_requirements = cloud_requirements_loader_for_storage(
+            cloud_config_bundle = cloud_config_bundle_loader_for_storage(
                 initial_config.codex_home.to_path_buf(),
                 /*enable_codex_api_key_env*/ false,
                 initial_config.cli_auth_credentials_store_mode,
+                initial_config.auth_keyring_backend_kind(),
                 initial_config.chatgpt_base_url.clone(),
+                initial_config.auth_route_config(),
             )
             .await;
         }
 
         // If the user made an explicit trust decision, or we showed the login flow, reload config
         // so current process state reflects persisted trust/auth changes.
-        if onboarding_result.directory_trust_decision.is_some()
+        if onboarding_result.directory_trust_persisted
             || (show_login_screen && !uses_remote_workspace)
         {
             load_config_or_exit(
                 cli_kv_overrides.clone(),
                 overrides.clone(),
                 loader_overrides.clone(),
-                cloud_requirements.clone(),
+                cloud_config_bundle.clone(),
                 strict_config,
             )
             .await
@@ -1447,7 +1474,7 @@ async fn run_ratatui_app(
         Ok(AppExitInfo {
             token_usage: crate::token_usage::TokenUsage::default(),
             thread_id: None,
-            thread_name: None,
+            resume_hint: None,
             update_action: None,
             exit_reason: ExitReason::Fatal(format!(
                 "No saved session found with ID {id_str}. Run `codex {action}` without an ID to choose from existing sessions."
@@ -1504,7 +1531,7 @@ async fn run_ratatui_app(
                     return Ok(AppExitInfo {
                         token_usage: crate::token_usage::TokenUsage::default(),
                         thread_id: None,
-                        thread_name: None,
+                        resume_hint: None,
                         update_action: None,
                         exit_reason: ExitReason::UserRequested,
                     });
@@ -1565,7 +1592,7 @@ async fn run_ratatui_app(
                 return Ok(AppExitInfo {
                     token_usage: crate::token_usage::TokenUsage::default(),
                     thread_id: None,
-                    thread_name: None,
+                    resume_hint: None,
                     update_action: None,
                     exit_reason: ExitReason::UserRequested,
                 });
@@ -1610,7 +1637,7 @@ async fn run_ratatui_app(
                         return Ok(AppExitInfo {
                             token_usage: crate::token_usage::TokenUsage::default(),
                             thread_id: None,
-                            thread_name: None,
+                            resume_hint: None,
                             update_action: None,
                             exit_reason: ExitReason::UserRequested,
                         });
@@ -1632,7 +1659,7 @@ async fn run_ratatui_app(
                 cli_kv_overrides.clone(),
                 overrides.clone(),
                 loader_overrides.clone(),
-                cloud_requirements.clone(),
+                cloud_config_bundle.clone(),
                 strict_config,
                 fallback_cwd,
             )
@@ -1643,7 +1670,7 @@ async fn run_ratatui_app(
                 cli_kv_overrides.clone(),
                 overrides.clone(),
                 loader_overrides.clone(),
-                cloud_requirements.clone(),
+                cloud_config_bundle.clone(),
                 strict_config,
             )
             .await
@@ -1662,11 +1689,25 @@ async fn run_ratatui_app(
     }
 
     set_default_client_residency_requirement(config.enforce_residency.value());
-    let active_profile = config.active_profile.clone();
     let should_show_trust_screen = should_show_trust_screen(&config);
-    let should_prompt_windows_sandbox_nux_at_startup = cfg!(target_os = "windows")
-        && trust_decision_was_made
-        && WindowsSandboxLevel::from_config(&config) == WindowsSandboxLevel::Disabled;
+    #[cfg(target_os = "windows")]
+    let windows_sandbox_level = crate::windows_sandbox::level_from_config(&config);
+    #[cfg(target_os = "windows")]
+    let required_elevated_sandbox_needs_setup = windows_sandbox_level
+        == WindowsSandboxLevel::Elevated
+        && config
+            .config_layer_stack
+            .requirements()
+            .windows_sandbox_mode
+            .source
+            .is_some()
+        && !crate::windows_sandbox::sandbox_setup_is_complete(config.codex_home.as_path());
+    #[cfg(target_os = "windows")]
+    let should_prompt_windows_sandbox_nux_at_startup = (trust_decision_was_made
+        && windows_sandbox_level == WindowsSandboxLevel::Disabled)
+        || required_elevated_sandbox_needs_setup;
+    #[cfg(not(target_os = "windows"))]
+    let should_prompt_windows_sandbox_nux_at_startup = false;
 
     let Cli {
         prompt,
@@ -1687,7 +1728,7 @@ async fn run_ratatui_app(
             cli_kv_overrides.clone(),
             loader_overrides.clone(),
             strict_config,
-            cloud_requirements.clone(),
+            cloud_config_bundle.clone(),
             feedback.clone(),
             log_db.clone(),
             state_db.clone(),
@@ -1707,11 +1748,35 @@ async fn run_ratatui_app(
         },
     };
 
-    let startup_hooks_browser =
-        match maybe_run_startup_hooks_review(&mut app_server, &mut tui, &config).await? {
-            StartupHooksReviewOutcome::Continue => None,
-            StartupHooksReviewOutcome::OpenHooksBrowser(data) => Some(data),
-        };
+    // Persistent app-server resumes may attach to an already-running thread,
+    // where resume config overrides are ignored.
+    let is_persistent_resume = !matches!(&app_server_target, AppServerTarget::Embedded)
+        && matches!(
+            &session_selection,
+            resume_picker::SessionSelection::Resume(_)
+        );
+    let bypass_hook_trust_for_startup_review = config.bypass_hook_trust && !is_persistent_resume;
+    let hooks_request_handle = app_server.request_handle();
+    let hooks_cwd = config.cwd.to_path_buf();
+    let startup_prefetch_started_at = Instant::now();
+    let (startup_bootstrap, startup_hooks_entry) = tokio::join!(
+        app_server.bootstrap(&config),
+        load_startup_hooks_review_entry(hooks_request_handle, hooks_cwd),
+    );
+    let startup_bootstrap = Some(startup_bootstrap?);
+    let startup_elapsed_before_app = startup_prefetch_started_at.elapsed();
+    let startup_hooks_browser = match maybe_run_startup_hooks_review(
+        &mut app_server,
+        &mut tui,
+        &config,
+        bypass_hook_trust_for_startup_review,
+        startup_hooks_entry,
+    )
+    .await?
+    {
+        StartupHooksReviewOutcome::Continue => None,
+        StartupHooksReviewOutcome::OpenHooksBrowser(data) => Some(data),
+    };
 
     let app_result = App::run(
         &mut tui,
@@ -1720,17 +1785,18 @@ async fn run_ratatui_app(
         cli_kv_overrides.clone(),
         overrides.clone(),
         loader_overrides.clone(),
-        active_profile,
+        cloud_config_bundle,
         prompt,
         images,
         session_selection,
         feedback,
         should_show_trust_screen, // Proxy to: is it a first run in this directory?
-        should_show_trust_screen_flag, // Preserve the startup-time trust NUX signal before onboarding
         should_prompt_windows_sandbox_nux_at_startup,
         app_server_target,
         state_db,
         environment_manager,
+        startup_elapsed_before_app,
+        startup_bootstrap,
         startup_hooks_browser,
     )
     .await;
@@ -1822,7 +1888,7 @@ async fn get_login_status(
     Ok(match account.account {
         Some(AppServerAccount::ApiKey {}) => LoginStatus::AuthMode(AppServerAuthMode::ApiKey),
         Some(AppServerAccount::Chatgpt { .. }) => LoginStatus::AuthMode(AppServerAuthMode::Chatgpt),
-        Some(AppServerAccount::AmazonBedrock {}) => LoginStatus::NotAuthenticated,
+        Some(AppServerAccount::AmazonBedrock { .. }) => LoginStatus::NotAuthenticated,
         None => LoginStatus::NotAuthenticated,
     })
 }
@@ -1831,14 +1897,14 @@ async fn load_config_or_exit(
     cli_kv_overrides: Vec<(String, toml::Value)>,
     overrides: ConfigOverrides,
     loader_overrides: LoaderOverrides,
-    cloud_requirements: CloudRequirementsLoader,
+    cloud_config_bundle: CloudConfigBundleLoader,
     strict_config: bool,
 ) -> Config {
     load_config_or_exit_with_fallback_cwd(
         cli_kv_overrides,
         overrides,
         loader_overrides,
-        cloud_requirements,
+        cloud_config_bundle,
         strict_config,
         /*fallback_cwd*/ None,
     )
@@ -1849,7 +1915,7 @@ async fn load_config_or_exit_with_fallback_cwd(
     cli_kv_overrides: Vec<(String, toml::Value)>,
     overrides: ConfigOverrides,
     loader_overrides: LoaderOverrides,
-    cloud_requirements: CloudRequirementsLoader,
+    cloud_config_bundle: CloudConfigBundleLoader,
     strict_config: bool,
     fallback_cwd: Option<PathBuf>,
 ) -> Config {
@@ -1859,7 +1925,7 @@ async fn load_config_or_exit_with_fallback_cwd(
         .harness_overrides(overrides)
         .loader_overrides(loader_overrides)
         .strict_config(strict_config)
-        .cloud_requirements(cloud_requirements)
+        .cloud_config_bundle(cloud_config_bundle)
         .fallback_cwd(fallback_cwd)
         .build()
         .await
@@ -1867,6 +1933,46 @@ async fn load_config_or_exit_with_fallback_cwd(
         Ok(config) => config,
         Err(err) => {
             eprintln!("Error loading configuration: {err}");
+            std::process::exit(1);
+        }
+    }
+}
+
+#[allow(clippy::print_stderr)]
+async fn load_bootstrap_config_or_exit(
+    codex_home: &Path,
+    cwd: Option<&AbsolutePathBuf>,
+    cli_kv_overrides: Vec<(String, codex_config::TomlValue)>,
+    loader_overrides: LoaderOverrides,
+    strict_config: bool,
+    cloud_config_bundle: CloudConfigBundleLoader,
+) -> ConfigTomlLoadResult {
+    match load_config_toml_with_layer_stack(
+        codex_home,
+        cwd,
+        cli_kv_overrides,
+        codex_config::ConfigLoadOptions {
+            loader_overrides,
+            strict_config,
+            cloud_config_bundle,
+        },
+    )
+    .await
+    {
+        Ok(config_toml) => config_toml,
+        Err(err) => {
+            let config_error = err
+                .get_ref()
+                .and_then(|err| err.downcast_ref::<ConfigLoadError>())
+                .map(ConfigLoadError::config_error);
+            if let Some(config_error) = config_error {
+                eprintln!(
+                    "Error loading config.toml:\n{}",
+                    format_config_error_with_source(config_error)
+                );
+            } else {
+                eprintln!("Error loading config.toml: {err}");
+            }
             std::process::exit(1);
         }
     }
@@ -1921,6 +2027,100 @@ mod tests {
             .await
     }
 
+    fn write_session_rollout(
+        codex_home: &Path,
+        filename_ts: &str,
+        meta_rfc3339: &str,
+        preview: &str,
+        model_provider: &str,
+        cwd: &Path,
+    ) -> color_eyre::Result<ThreadId> {
+        let uuid = Uuid::new_v4();
+        let uuid_str = uuid.to_string();
+        let thread_id = ThreadId::from_string(&uuid_str)?;
+        let year = &filename_ts[0..4];
+        let month = &filename_ts[5..7];
+        let day = &filename_ts[8..10];
+        let rollout_path = codex_home
+            .join("sessions")
+            .join(year)
+            .join(month)
+            .join(day)
+            .join(format!("rollout-{filename_ts}-{uuid_str}.jsonl"));
+        let parent = rollout_path
+            .parent()
+            .ok_or_else(|| color_eyre::eyre::eyre!("rollout path is missing a parent directory"))?;
+        std::fs::create_dir_all(parent)?;
+
+        let session_meta = codex_protocol::protocol::SessionMeta {
+            session_id: thread_id.into(),
+            id: thread_id,
+            timestamp: meta_rfc3339.to_string(),
+            cwd: cwd.to_path_buf(),
+            originator: "codex".to_string(),
+            cli_version: "0.0.0".to_string(),
+            source: codex_protocol::protocol::SessionSource::Cli,
+            model_provider: Some(model_provider.to_string()),
+            ..Default::default()
+        };
+        let session_meta = serde_json::to_value(codex_protocol::protocol::SessionMetaLine {
+            meta: session_meta,
+            git: None,
+        })?;
+        let lines = [
+            serde_json::json!({
+                "timestamp": meta_rfc3339,
+                "type": "session_meta",
+                "payload": session_meta,
+            })
+            .to_string(),
+            serde_json::json!({
+                "timestamp": meta_rfc3339,
+                "type": "response_item",
+                "payload": {
+                    "type": "message",
+                    "role": "user",
+                    "content": [{"type": "input_text", "text": preview}],
+                },
+            })
+            .to_string(),
+            serde_json::json!({
+                "timestamp": meta_rfc3339,
+                "type": "event_msg",
+                "payload": {
+                    "type": "user_message",
+                    "message": preview,
+                    "kind": "plain",
+                },
+            })
+            .to_string(),
+        ];
+        std::fs::write(&rollout_path, lines.join("\n") + "\n")?;
+        let updated_at =
+            chrono::DateTime::parse_from_rfc3339(meta_rfc3339)?.with_timezone(&chrono::Utc);
+        let times = std::fs::FileTimes::new().set_modified(updated_at.into());
+        std::fs::OpenOptions::new()
+            .append(true)
+            .open(rollout_path)?
+            .set_times(times)?;
+
+        Ok(thread_id)
+    }
+
+    #[test]
+    fn startup_removes_legacy_tui_log_file() -> std::io::Result<()> {
+        let temp_dir = TempDir::new()?;
+        let legacy_log_dir = temp_dir.path().join("log");
+        std::fs::create_dir_all(&legacy_log_dir)?;
+        let legacy_log = legacy_log_dir.join(TUI_LOG_FILE_NAME);
+        std::fs::write(&legacy_log, "legacy log")?;
+
+        remove_legacy_tui_log_file(temp_dir.path());
+
+        assert!(!legacy_log.exists());
+        Ok(())
+    }
+
     async fn start_test_embedded_app_server(
         config: Config,
     ) -> color_eyre::Result<InProcessAppServerClient> {
@@ -1932,7 +2132,7 @@ mod tests {
             Vec::new(),
             LoaderOverrides::default(),
             /*strict_config*/ false,
-            CloudRequirementsLoader::default(),
+            CloudConfigBundleLoader::default(),
             codex_feedback::CodexFeedback::new(),
             /*log_db*/ None,
             state_db,
@@ -2195,13 +2395,27 @@ mod tests {
             &config,
             Some(cwd.as_path()),
             /*include_non_interactive*/ false,
+            LatestSessionLookupMode::StateDbOnly,
         );
 
-        assert_eq!(params.model_providers, Some(vec![config.model_provider_id]));
+        assert_eq!(
+            params.model_providers,
+            Some(vec![config.model_provider_id.clone()])
+        );
         assert_eq!(
             params.cwd,
             Some(ThreadListCwdFilter::One(cwd.to_string_lossy().to_string()))
         );
+        assert!(params.use_state_db_only);
+
+        let scan_params = latest_session_lookup_params(
+            /*uses_remote_workspace*/ false,
+            &config,
+            Some(cwd.as_path()),
+            /*include_non_interactive*/ false,
+            LatestSessionLookupMode::ScanAndRepair,
+        );
+        assert!(!scan_params.use_state_db_only);
         Ok(())
     }
 
@@ -2222,6 +2436,7 @@ mod tests {
             &config,
             Some(cwd.as_path()),
             /*include_non_interactive*/ false,
+            LatestSessionLookupMode::StateDbOnly,
         );
 
         assert_eq!(params.model_providers, Some(vec![config.model_provider_id]));
@@ -2239,12 +2454,41 @@ mod tests {
         let config = build_config(&temp_dir).await?;
 
         let params = latest_session_lookup_params(
-            /*uses_remote_workspace*/ true, &config, /*cwd_filter*/ None,
+            /*uses_remote_workspace*/ true,
+            &config,
+            /*cwd_filter*/ None,
             /*include_non_interactive*/ false,
+            LatestSessionLookupMode::StateDbOnly,
         );
 
         assert_eq!(params.model_providers, None);
         assert_eq!(params.cwd, None);
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn latest_session_lookup_params_can_include_non_interactive_sources()
+    -> std::io::Result<()> {
+        let temp_dir = TempDir::new()?;
+        let config = build_config(&temp_dir).await?;
+
+        let params = latest_session_lookup_params(
+            /*uses_remote_workspace*/ true,
+            &config,
+            /*cwd_filter*/ None,
+            /*include_non_interactive*/ true,
+            LatestSessionLookupMode::StateDbOnly,
+        );
+
+        assert_eq!(
+            params.source_kinds,
+            Some(vec![
+                ThreadSourceKind::Cli,
+                ThreadSourceKind::VsCode,
+                ThreadSourceKind::Exec,
+                ThreadSourceKind::AppServer,
+            ])
+        );
         Ok(())
     }
 
@@ -2260,6 +2504,7 @@ mod tests {
             &config,
             Some(cwd),
             /*include_non_interactive*/ false,
+            LatestSessionLookupMode::StateDbOnly,
         );
 
         assert_eq!(params.model_providers, None);
@@ -2299,85 +2544,6 @@ mod tests {
 
     #[tokio::test]
     async fn fork_last_filters_latest_session_by_cwd_unless_show_all() -> color_eyre::Result<()> {
-        fn write_session_rollout(
-            codex_home: &Path,
-            filename_ts: &str,
-            meta_rfc3339: &str,
-            preview: &str,
-            model_provider: &str,
-            cwd: &Path,
-        ) -> color_eyre::Result<ThreadId> {
-            let uuid = Uuid::new_v4();
-            let uuid_str = uuid.to_string();
-            let thread_id = ThreadId::from_string(&uuid_str)?;
-            let year = &filename_ts[0..4];
-            let month = &filename_ts[5..7];
-            let day = &filename_ts[8..10];
-            let rollout_path = codex_home
-                .join("sessions")
-                .join(year)
-                .join(month)
-                .join(day)
-                .join(format!("rollout-{filename_ts}-{uuid_str}.jsonl"));
-            let parent = rollout_path.parent().ok_or_else(|| {
-                color_eyre::eyre::eyre!("rollout path is missing a parent directory")
-            })?;
-            std::fs::create_dir_all(parent)?;
-
-            let session_meta = codex_protocol::protocol::SessionMeta {
-                id: thread_id,
-                timestamp: meta_rfc3339.to_string(),
-                cwd: cwd.to_path_buf(),
-                originator: "codex".to_string(),
-                cli_version: "0.0.0".to_string(),
-                source: codex_protocol::protocol::SessionSource::Cli,
-                model_provider: Some(model_provider.to_string()),
-                ..Default::default()
-            };
-            let session_meta = serde_json::to_value(codex_protocol::protocol::SessionMetaLine {
-                meta: session_meta,
-                git: None,
-            })?;
-            let lines = [
-                serde_json::json!({
-                    "timestamp": meta_rfc3339,
-                    "type": "session_meta",
-                    "payload": session_meta,
-                })
-                .to_string(),
-                serde_json::json!({
-                    "timestamp": meta_rfc3339,
-                    "type": "response_item",
-                    "payload": {
-                        "type": "message",
-                        "role": "user",
-                        "content": [{"type": "input_text", "text": preview}],
-                    },
-                })
-                .to_string(),
-                serde_json::json!({
-                    "timestamp": meta_rfc3339,
-                    "type": "event_msg",
-                    "payload": {
-                        "type": "user_message",
-                        "message": preview,
-                        "kind": "plain",
-                    },
-                })
-                .to_string(),
-            ];
-            std::fs::write(&rollout_path, lines.join("\n") + "\n")?;
-            let updated_at =
-                chrono::DateTime::parse_from_rfc3339(meta_rfc3339)?.with_timezone(&chrono::Utc);
-            let times = std::fs::FileTimes::new().set_modified(updated_at.into());
-            OpenOptions::new()
-                .append(true)
-                .open(rollout_path)?
-                .set_times(times)?;
-
-            Ok(thread_id)
-        }
-
         let temp_dir = TempDir::new()?;
         let project_cwd = temp_dir.path().join("project");
         let other_cwd = temp_dir.path().join("other-project");
@@ -2444,6 +2610,51 @@ mod tests {
 
         assert_eq!(scoped_target.thread_id, project_thread_id);
         assert_eq!(show_all_target.thread_id, other_thread_id);
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn latest_session_lookup_falls_back_for_rollout_missing_from_state_db()
+    -> color_eyre::Result<()> {
+        let temp_dir = TempDir::new()?;
+        let project_cwd = temp_dir.path().join("project");
+        std::fs::create_dir_all(&project_cwd)?;
+        let config = ConfigBuilder::default()
+            .codex_home(temp_dir.path().to_path_buf())
+            .harness_overrides(ConfigOverrides {
+                cwd: Some(project_cwd.clone()),
+                ..Default::default()
+            })
+            .build()
+            .await?;
+        let mut app_server = AppServerSession::new(
+            codex_app_server_client::AppServerClient::InProcess(
+                start_test_embedded_app_server(config.clone()).await?,
+            ),
+            ThreadParamsMode::Embedded,
+        );
+
+        // Simulate a legacy writer creating a rollout after the state DB backfill completed.
+        let thread_id = write_session_rollout(
+            temp_dir.path(),
+            "2025-01-02T10-00-00",
+            "2025-01-02T10:00:00Z",
+            "legacy writer session",
+            config.model_provider_id.as_str(),
+            &project_cwd,
+        )?;
+
+        let target = lookup_latest_session_target_with_app_server(
+            &mut app_server,
+            &config,
+            Some(project_cwd.as_path()),
+            /*include_non_interactive*/ false,
+        )
+        .await?
+        .expect("expected scan-and-repair fallback to find the rollout");
+        app_server.shutdown().await?;
+
+        assert_eq!(target.thread_id, thread_id);
         Ok(())
     }
 
@@ -2663,7 +2874,7 @@ mod tests {
             Vec::new(),
             LoaderOverrides::default(),
             /*strict_config*/ false,
-            CloudRequirementsLoader::default(),
+            CloudConfigBundleLoader::default(),
             codex_feedback::CodexFeedback::new(),
             /*log_db*/ None,
             /*state_db*/ None,
@@ -2714,6 +2925,37 @@ mod tests {
         );
         Ok(())
     }
+
+    #[tokio::test]
+    async fn embedded_state_db_corruption_preserves_failed_database_for_cli_recovery()
+    -> color_eyre::Result<()> {
+        let temp_dir = TempDir::new()?;
+        let mut config = build_config(&temp_dir).await?;
+        let sqlite_home = temp_dir.path().join("sqlite-home");
+        std::fs::create_dir_all(&sqlite_home)?;
+        let logs_db_path = codex_state::logs_db_path(&sqlite_home);
+        std::fs::write(&logs_db_path, "not a sqlite database")?;
+        config.sqlite_home = sqlite_home;
+
+        let err =
+            match init_state_db_for_app_server_target(&config, &AppServerTarget::Embedded).await {
+                Ok(_) => panic!("embedded startup should surface state db init failures"),
+                Err(err) => err,
+            };
+        let startup_error = err
+            .get_ref()
+            .and_then(|err| err.downcast_ref::<LocalStateDbStartupError>())
+            .expect("state db startup failure should retain its typed context");
+
+        assert_eq!(startup_error.database_path(), logs_db_path.as_path());
+        assert!(
+            codex_state::sqlite_error_detail_is_corruption(startup_error.detail()),
+            "startup error should preserve the SQLite corruption cause, got: {}",
+            startup_error.detail()
+        );
+        Ok(())
+    }
+
     #[tokio::test]
     #[serial]
     async fn windows_shows_trust_prompt_with_sandbox() -> std::io::Result<()> {

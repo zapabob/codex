@@ -76,13 +76,13 @@ async fn retries_on_early_close() {
 
     codex
         .submit(Op::UserInput {
-            environments: None,
             items: vec![UserInput::Text {
                 text: "hello".into(),
                 text_elements: Vec::new(),
             }],
             final_output_json_schema: None,
             responsesapi_client_metadata: None,
+            additional_context: Default::default(),
             thread_settings: Default::default(),
         })
         .await

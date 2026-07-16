@@ -2,6 +2,12 @@
 
 This crate implements the business logic for Codex. It is designed to be used by the various Codex UIs written in Rust.
 
+## Wine-exec integration tests
+
+On x86-64 Linux, run the shared suite against the Windows exec server with
+`bazel test //codex-rs/core:core-all-wine-exec-test`. Temporary blockers use a
+source-local `skip_if_wine_exec!` call and reason.
+
 ## Dependencies
 
 Note that `codex-core` makes some assumptions about certain helper utilities being available in the environment. Currently, this support matrix is:
@@ -22,7 +28,7 @@ Seatbelt also keeps the legacy default preferences read access
 
 ### Linux
 
-Expects the binary containing `codex-core` to run the equivalent of `codex sandbox linux` (legacy alias: `codex debug landlock`) when `arg0` is `codex-linux-sandbox`. See the `codex-arg0` crate for details.
+Expects the binary containing `codex-core` to run the equivalent of `codex sandbox` when `arg0` is `codex-linux-sandbox`. See the `codex-arg0` crate for details.
 
 Legacy `SandboxPolicy` / `sandbox_mode` configs are still supported on Linux.
 They can continue to use the legacy Landlock path when the split filesystem

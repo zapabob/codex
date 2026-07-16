@@ -25,8 +25,10 @@ fn write_rollout_with_metadata(path: &Path, thread_id: ThreadId) -> std::io::Res
         timestamp: timestamp.clone(),
         item: RolloutItem::SessionMeta(SessionMetaLine {
             meta: SessionMeta {
+                session_id: thread_id.into(),
                 id: thread_id,
                 forked_from_id: None,
+                parent_thread_id: None,
                 timestamp,
                 cwd: ".".into(),
                 originator: "test_originator".into(),
@@ -40,6 +42,7 @@ fn write_rollout_with_metadata(path: &Path, thread_id: ThreadId) -> std::io::Res
                 base_instructions: None,
                 dynamic_tools: None,
                 memory_mode: None,
+                multi_agent_version: None,
             },
             git: None,
         }),

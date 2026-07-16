@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use anyhow::Result;
-use app_test_support::McpProcess;
+use app_test_support::TestAppServer;
 use app_test_support::to_response;
 use codex_app_server_protocol::JSONRPCResponse;
 use codex_app_server_protocol::PermissionProfileListParams;
@@ -41,7 +41,7 @@ description = "Inspect without writes."
 "#,
     )?;
 
-    let mut mcp = McpProcess::new(codex_home.path()).await?;
+    let mut mcp = TestAppServer::new(codex_home.path()).await?;
     timeout(DEFAULT_TIMEOUT, mcp.initialize()).await??;
 
     let request_id = mcp
@@ -60,22 +60,27 @@ description = "Inspect without writes."
                 PermissionProfileSummary {
                     id: BUILT_IN_PERMISSION_PROFILE_READ_ONLY.to_string(),
                     description: None,
+                    allowed: true,
                 },
                 PermissionProfileSummary {
                     id: BUILT_IN_PERMISSION_PROFILE_WORKSPACE.to_string(),
                     description: None,
+                    allowed: true,
                 },
                 PermissionProfileSummary {
                     id: BUILT_IN_PERMISSION_PROFILE_DANGER_FULL_ACCESS.to_string(),
                     description: None,
+                    allowed: true,
                 },
                 PermissionProfileSummary {
                     id: "audit".to_string(),
                     description: Some("Inspect without writes.".to_string()),
+                    allowed: true,
                 },
                 PermissionProfileSummary {
                     id: "dev".to_string(),
                     description: Some("Day-to-day coding work.".to_string()),
+                    allowed: true,
                 },
             ],
             next_cursor: None,
@@ -108,7 +113,7 @@ description = "Project-scoped profile."
     )?;
     set_project_trust_level(codex_home.path(), workspace.path(), TrustLevel::Trusted)?;
 
-    let mut mcp = McpProcess::new(codex_home.path()).await?;
+    let mut mcp = TestAppServer::new(codex_home.path()).await?;
     timeout(DEFAULT_TIMEOUT, mcp.initialize()).await??;
 
     let first_request_id = mcp
@@ -126,14 +131,17 @@ description = "Project-scoped profile."
                 PermissionProfileSummary {
                     id: BUILT_IN_PERMISSION_PROFILE_READ_ONLY.to_string(),
                     description: None,
+                    allowed: true,
                 },
                 PermissionProfileSummary {
                     id: BUILT_IN_PERMISSION_PROFILE_WORKSPACE.to_string(),
                     description: None,
+                    allowed: true,
                 },
                 PermissionProfileSummary {
                     id: BUILT_IN_PERMISSION_PROFILE_DANGER_FULL_ACCESS.to_string(),
                     description: None,
+                    allowed: true,
                 },
             ],
             next_cursor: Some("3".to_string()),
@@ -155,6 +163,7 @@ description = "Project-scoped profile."
             data: vec![PermissionProfileSummary {
                 id: "project".to_string(),
                 description: Some("Project-scoped profile.".to_string()),
+                allowed: true,
             }],
             next_cursor: None,
         }
@@ -181,7 +190,7 @@ description = "Project-scoped profile."
     )?;
     set_project_trust_level(codex_home.path(), workspace.path(), TrustLevel::Trusted)?;
 
-    let mut mcp = McpProcess::new(codex_home.path()).await?;
+    let mut mcp = TestAppServer::new(codex_home.path()).await?;
     timeout(DEFAULT_TIMEOUT, mcp.initialize()).await??;
 
     let request_id = mcp
@@ -200,18 +209,22 @@ description = "Project-scoped profile."
                 PermissionProfileSummary {
                     id: BUILT_IN_PERMISSION_PROFILE_READ_ONLY.to_string(),
                     description: None,
+                    allowed: true,
                 },
                 PermissionProfileSummary {
                     id: BUILT_IN_PERMISSION_PROFILE_WORKSPACE.to_string(),
                     description: None,
+                    allowed: true,
                 },
                 PermissionProfileSummary {
                     id: BUILT_IN_PERMISSION_PROFILE_DANGER_FULL_ACCESS.to_string(),
                     description: None,
+                    allowed: true,
                 },
                 PermissionProfileSummary {
                     id: "project".to_string(),
                     description: Some("Project-scoped profile.".to_string()),
+                    allowed: true,
                 },
             ],
             next_cursor: None,
@@ -221,7 +234,7 @@ description = "Project-scoped profile."
 }
 
 async fn read_response<T: serde::de::DeserializeOwned>(
-    mcp: &mut McpProcess,
+    mcp: &mut TestAppServer,
     request_id: i64,
 ) -> Result<T> {
     let response: JSONRPCResponse = timeout(

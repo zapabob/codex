@@ -2,6 +2,7 @@ use super::shared::v2_enum_from_core;
 use codex_protocol::approvals::ElicitationRequest as CoreElicitationRequest;
 use codex_protocol::items::McpToolCallError as CoreMcpToolCallError;
 use codex_protocol::mcp::CallToolResult as CoreMcpCallToolResult;
+use codex_protocol::mcp::McpServerInfo;
 use codex_protocol::mcp::Resource as McpResource;
 pub use codex_protocol::mcp::ResourceContent as McpResourceContent;
 use codex_protocol::mcp::ResourceTemplate as McpResourceTemplate;
@@ -36,6 +37,8 @@ pub struct ListMcpServerStatusParams {
     /// Defaults to `Full` when omitted.
     #[ts(optional = nullable)]
     pub detail: Option<McpServerStatusDetail>,
+    #[ts(optional = nullable)]
+    pub thread_id: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, JsonSchema, TS)]
@@ -51,6 +54,7 @@ pub enum McpServerStatusDetail {
 #[ts(export_to = "v2/")]
 pub struct McpServerStatus {
     pub name: String,
+    pub server_info: Option<McpServerInfo>,
     pub tools: std::collections::HashMap<String, McpTool>,
     pub resources: Vec<McpResource>,
     pub resource_templates: Vec<McpResourceTemplate>,
@@ -231,6 +235,7 @@ pub enum McpServerStartupState {
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
 pub struct McpServerStatusUpdatedNotification {
+    pub thread_id: Option<String>,
     pub name: String,
     pub status: McpServerStartupState,
     pub error: Option<String>,
@@ -627,6 +632,15 @@ pub enum McpServerElicitationRequest {
         message: String,
         requested_schema: McpElicitationSchema,
     },
+    #[serde(rename = "openai/form", rename_all = "camelCase")]
+    #[ts(rename = "openai/form", rename_all = "camelCase")]
+    OpenAiForm {
+        #[serde(rename = "_meta")]
+        #[ts(rename = "_meta")]
+        meta: Option<JsonValue>,
+        message: String,
+        requested_schema: JsonValue,
+    },
     #[serde(rename_all = "camelCase")]
     #[ts(rename_all = "camelCase")]
     Url {
@@ -652,6 +666,15 @@ impl TryFrom<CoreElicitationRequest> for McpServerElicitationRequest {
                 meta,
                 message,
                 requested_schema: serde_json::from_value(requested_schema)?,
+            }),
+            CoreElicitationRequest::OpenAiForm {
+                meta,
+                message,
+                requested_schema,
+            } => Ok(Self::OpenAiForm {
+                meta,
+                message,
+                requested_schema,
             }),
             CoreElicitationRequest::Url {
                 meta,
@@ -688,6 +711,7 @@ impl From<McpServerElicitationRequestResponse> for rmcp::model::CreateElicitatio
         Self {
             action: value.action.into(),
             content: value.content,
+            meta: None,
         }
     }
 }

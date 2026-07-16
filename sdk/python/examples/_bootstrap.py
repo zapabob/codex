@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import contextlib
 import importlib.util
 import sys
@@ -47,11 +48,11 @@ def ensure_local_sdk_src() -> Path:
 
 
 def runtime_config():
-    """Return an example-friendly AppServerConfig for repo-source SDK usage."""
-    from openai_codex import AppServerConfig
+    """Return an example-friendly CodexConfig for repo-source SDK usage."""
+    from openai_codex import CodexConfig
 
     ensure_runtime_package_installed(sys.executable, _SDK_PYTHON_DIR)
-    return AppServerConfig()
+    return CodexConfig()
 
 
 def _png_chunk(chunk_type: bytes, data: bytes) -> bytes:
@@ -93,6 +94,11 @@ def _generated_sample_png_bytes() -> bytes:
         + _png_chunk(b"IDAT", zlib.compress(bytes(rows)))
         + _png_chunk(b"IEND", b"")
     )
+
+
+def generated_sample_image_data_url() -> str:
+    encoded = base64.b64encode(_generated_sample_png_bytes()).decode("ascii")
+    return f"data:image/png;base64,{encoded}"
 
 
 @contextlib.contextmanager

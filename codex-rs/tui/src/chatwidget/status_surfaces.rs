@@ -65,6 +65,11 @@ impl StatusSurfaceSelections {
                 .status_line_items
                 .contains(&StatusLineItem::BranchChanges)
     }
+
+    fn uses_workspace_headline(&self) -> bool {
+        self.status_line_items
+            .contains(&StatusLineItem::WorkspaceHeadline)
+    }
 }
 
 /// Cached project-root display name keyed by the cwd used for the last lookup.
@@ -156,6 +161,15 @@ impl ChatWidget {
             if !self.status_line_git_summary_lookup_complete {
                 self.request_status_line_git_summary(cwd);
             }
+        }
+
+        if !selections.uses_workspace_headline() {
+            self.status_line_workspace_headline = None;
+            self.status_line_workspace_headline_pending_request_id = None;
+            self.status_line_workspace_headline_last_requested_at = None;
+            self.status_line_workspace_messages_disabled = false;
+        } else {
+            self.request_status_line_workspace_headline_if_due(Instant::now());
         }
     }
 
@@ -553,6 +567,85 @@ impl ChatWidget {
         });
     }
 
+    fn request_status_line_workspace_headline_if_due(&mut self, now: Instant) {
+        if !self.status_line_workspace_headline_should_fetch(now) {
+            return;
+        }
+        let request_id = self.next_status_line_workspace_headline_request_id;
+        self.next_status_line_workspace_headline_request_id = self
+            .next_status_line_workspace_headline_request_id
+            .wrapping_add(/*rhs*/ 1);
+        self.status_line_workspace_headline_pending_request_id = Some(request_id);
+        self.status_line_workspace_headline_last_requested_at = Some(now);
+        self.app_event_tx
+            .send(AppEvent::RefreshStatusLineWorkspaceHeadline { request_id });
+    }
+
+    fn status_line_workspace_headline_should_fetch(&self, now: Instant) -> bool {
+        if self
+            .status_line_workspace_headline_pending_request_id
+            .is_some()
+            || self.status_line_workspace_messages_disabled
+            || !self.has_codex_backend_auth
+        {
+            return false;
+        }
+
+        self.status_line_workspace_headline_last_requested_at
+            .is_none_or(|last_requested_at| {
+                now.saturating_duration_since(last_requested_at)
+                    >= crate::workspace_messages::WORKSPACE_HEADLINE_REFRESH_INTERVAL
+            })
+    }
+
+    pub(super) fn refresh_status_line_if_workspace_headline_due(&mut self) {
+        let now = Instant::now();
+        if self.status_line_workspace_headline_should_fetch(now)
+            && self
+                .status_line_items_with_invalids()
+                .0
+                .contains(&StatusLineItem::WorkspaceHeadline)
+        {
+            self.refresh_status_line();
+        }
+    }
+
+    pub(crate) fn set_status_line_workspace_headline(
+        &mut self,
+        request_id: u64,
+        result: Result<crate::workspace_messages::WorkspaceHeadlineFetchResult, String>,
+    ) -> bool {
+        if self.status_line_workspace_headline_pending_request_id != Some(request_id) {
+            return false;
+        }
+        self.status_line_workspace_headline_pending_request_id = None;
+        match result {
+            Ok(crate::workspace_messages::WorkspaceHeadlineFetchResult::Available(headline)) => {
+                self.status_line_workspace_messages_disabled = false;
+                self.status_line_workspace_headline = headline;
+            }
+            Ok(crate::workspace_messages::WorkspaceHeadlineFetchResult::FeatureDisabled) => {
+                self.status_line_workspace_messages_disabled = true;
+                self.status_line_workspace_headline = None;
+            }
+            Err(err) => {
+                tracing::debug!(error = %err, "failed to fetch workspace headline");
+            }
+        }
+
+        if !self.status_line_workspace_messages_disabled
+            && self
+                .status_line_items_with_invalids()
+                .0
+                .contains(&StatusLineItem::WorkspaceHeadline)
+        {
+            self.frame_requester
+                .schedule_frame_in(crate::workspace_messages::WORKSPACE_HEADLINE_REFRESH_INTERVAL);
+        }
+        self.refresh_status_line();
+        true
+    }
+
     /// Resolves a display string for one configured status-line item.
     ///
     /// Returning `None` means "omit this item for now", not "configuration error". Callers rely on
@@ -562,6 +655,7 @@ impl ChatWidget {
         match item {
             StatusLineItem::ModelName => Some(self.model_display_name().to_string()),
             StatusLineItem::ModelWithReasoning => Some(self.model_with_reasoning_display_name()),
+            StatusLineItem::Reasoning => Some(self.reasoning_display_name()),
             StatusLineItem::CurrentDir => {
                 Some(format_directory_display(
                     self.status_line_cwd(),
@@ -652,6 +746,7 @@ impl ChatWidget {
                     }
                 },
             ),
+            StatusLineItem::WorkspaceHeadline => self.status_line_workspace_headline.clone(),
             StatusLineItem::TaskProgress => self.terminal_title_task_progress(),
         }
     }
@@ -692,8 +787,10 @@ impl ChatWidget {
             StatusSurfacePreviewItem::SessionId => StatusLineItem::SessionId,
             StatusSurfacePreviewItem::FastMode => StatusLineItem::FastMode,
             StatusSurfacePreviewItem::RawOutput => StatusLineItem::RawOutput,
+            StatusSurfacePreviewItem::WorkspaceHeadline => StatusLineItem::WorkspaceHeadline,
             StatusSurfacePreviewItem::Model => StatusLineItem::ModelName,
             StatusSurfacePreviewItem::ModelWithReasoning => StatusLineItem::ModelWithReasoning,
+            StatusSurfacePreviewItem::Reasoning => StatusLineItem::Reasoning,
         };
         self.status_line_value_for_item(status_line_item)
     }
@@ -759,12 +856,21 @@ impl ChatWidget {
                 self.model_with_reasoning_display_name(),
                 /*max_chars*/ 32,
             )),
+            TerminalTitleItem::Reasoning => Some(Self::truncate_terminal_title_part(
+                self.reasoning_display_name(),
+                /*max_chars*/ 32,
+            )),
             TerminalTitleItem::TaskProgress => self.terminal_title_task_progress(),
         }
     }
 
+    fn reasoning_display_name(&self) -> String {
+        let effort = self.effective_reasoning_effort();
+        Self::status_line_reasoning_effort_label(effort.as_ref())
+    }
+
     fn model_with_reasoning_display_name(&self) -> String {
-        let label = Self::status_line_reasoning_effort_label(self.effective_reasoning_effort());
+        let label = self.reasoning_display_name();
         let service_tier_label = self
             .current_service_tier()
             .and_then(|service_tier| {
@@ -1016,13 +1122,14 @@ fn permissions_display(config: &Config) -> String {
 
 fn approval_mode_display(config: &Config) -> String {
     let approval_policy = AskForApproval::from(config.permissions.approval_policy.value());
-    if approval_policy == AskForApproval::OnRequest
-        && config.approvals_reviewer == ApprovalsReviewer::AutoReview
-    {
-        "auto-review".to_string()
-    } else {
-        config.permissions.approval_policy.value().to_string()
+    if approval_policy == AskForApproval::OnRequest {
+        return match config.approvals_reviewer {
+            ApprovalsReviewer::AutoReview => "Approve for me".to_string(),
+            ApprovalsReviewer::User => "Ask for approval".to_string(),
+        };
     }
+
+    config.permissions.approval_policy.value().to_string()
 }
 
 fn parse_items_with_invalids<T>(ids: impl IntoIterator<Item = String>) -> (Vec<T>, Vec<String>)

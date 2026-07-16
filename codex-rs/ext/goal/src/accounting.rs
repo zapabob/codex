@@ -6,10 +6,13 @@ use std::sync::Mutex;
 use std::sync::PoisonError;
 use std::time::Duration;
 use std::time::Instant;
+use tokio::sync::Semaphore;
+use tokio::sync::SemaphorePermit;
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub(crate) struct GoalAccountingState {
     inner: Mutex<GoalAccountingInner>,
+    progress_accounting_lock: Semaphore,
 }
 
 #[derive(Debug)]
@@ -40,6 +43,12 @@ pub(crate) struct GoalProgressSnapshot {
     pub(crate) expected_goal_id: String,
     pub(crate) time_delta_seconds: i64,
     pub(crate) token_delta: i64,
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct IdleGoalProgressSnapshot {
+    pub(crate) expected_goal_id: String,
+    pub(crate) time_delta_seconds: i64,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -75,6 +84,28 @@ impl GoalAccountingState {
 
     pub(crate) fn current_turn_id(&self) -> Option<String> {
         self.inner().current_turn_id.clone()
+    }
+
+    /// Acquires the per-thread progress-accounting permit.
+    ///
+    /// Hold the returned permit from before taking a progress snapshot until after the persistent
+    /// usage write has succeeded and the snapshot has been marked accounted. This serializes
+    /// concurrent tool-completion hooks so only one hook can charge a given token or time delta.
+    pub(crate) async fn progress_accounting_permit(
+        &self,
+    ) -> Result<SemaphorePermit<'_>, tokio::sync::AcquireError> {
+        self.progress_accounting_lock.acquire().await
+    }
+
+    pub(crate) fn turn_is_current_active_goal(&self, turn_id: &str) -> bool {
+        let inner = self.inner();
+        if inner.current_turn_id.as_deref() != Some(turn_id) {
+            return false;
+        }
+        let Some(turn) = inner.turns.get(turn_id) else {
+            return false;
+        };
+        turn.account_tokens && turn.active_goal_id.is_some()
     }
 
     pub(crate) fn record_token_usage(
@@ -131,6 +162,15 @@ impl GoalAccountingState {
         Some(turn_id)
     }
 
+    pub(crate) fn mark_idle_goal_active(&self, goal_id: impl Into<String>) {
+        let mut inner = self.inner();
+        let goal_id = goal_id.into();
+        if inner.budget_limit_reported_goal_id.as_deref() != Some(goal_id.as_str()) {
+            inner.budget_limit_reported_goal_id = None;
+        }
+        inner.wall_clock.mark_active_goal(goal_id);
+    }
+
     pub(crate) fn clear_current_turn_goal(&self) -> Option<String> {
         let mut inner = self.inner();
         let turn_id = inner.current_turn_id.clone()?;
@@ -140,6 +180,17 @@ impl GoalAccountingState {
         inner.wall_clock.clear_active_goal();
         inner.budget_limit_reported_goal_id = None;
         Some(turn_id)
+    }
+
+    pub(crate) fn clear_active_goal(&self) {
+        let mut inner = self.inner();
+        if let Some(turn_id) = inner.current_turn_id.clone()
+            && let Some(turn) = inner.turns.get_mut(turn_id.as_str())
+        {
+            turn.active_goal_id = None;
+        }
+        inner.wall_clock.clear_active_goal();
+        inner.budget_limit_reported_goal_id = None;
     }
 
     pub(crate) fn progress_snapshot(&self, turn_id: &str) -> Option<GoalProgressSnapshot> {
@@ -164,6 +215,19 @@ impl GoalAccountingState {
             expected_goal_id,
             time_delta_seconds,
             token_delta,
+        })
+    }
+
+    pub(crate) fn idle_progress_snapshot(&self) -> Option<IdleGoalProgressSnapshot> {
+        let inner = self.inner();
+        let expected_goal_id = inner.wall_clock.active_goal_id.clone()?;
+        let time_delta_seconds = inner.wall_clock.time_delta_since_last_accounting();
+        if time_delta_seconds == 0 {
+            return None;
+        }
+        Some(IdleGoalProgressSnapshot {
+            expected_goal_id,
+            time_delta_seconds,
         })
     }
 
@@ -199,6 +263,30 @@ impl GoalAccountingState {
         }
     }
 
+    pub(crate) fn mark_idle_progress_accounted_for_status(
+        &self,
+        snapshot: &IdleGoalProgressSnapshot,
+        status: ThreadGoalStatus,
+        budget_limited_goal_disposition: BudgetLimitedGoalDisposition,
+    ) {
+        let clear_active_goal = should_clear_active_goal(status, budget_limited_goal_disposition);
+        let mut inner = self.inner();
+        inner.wall_clock.mark_accounted(snapshot.time_delta_seconds);
+        if clear_active_goal {
+            inner.wall_clock.clear_active_goal();
+        }
+        if status != ThreadGoalStatus::BudgetLimited {
+            inner.budget_limit_reported_goal_id = None;
+        }
+    }
+
+    pub(crate) fn reset_idle_progress_baseline_and_clear_active_goal(&self) {
+        let mut inner = self.inner();
+        inner.wall_clock.reset_baseline();
+        inner.wall_clock.clear_active_goal();
+        inner.budget_limit_reported_goal_id = None;
+    }
+
     pub(crate) fn mark_budget_limit_reported_if_new(&self, goal_id: &str) -> bool {
         let mut inner = self.inner();
         if inner.budget_limit_reported_goal_id.as_deref() == Some(goal_id) {
@@ -210,6 +298,15 @@ impl GoalAccountingState {
 
     fn inner(&self) -> std::sync::MutexGuard<'_, GoalAccountingInner> {
         self.inner.lock().unwrap_or_else(PoisonError::into_inner)
+    }
+}
+
+impl Default for GoalAccountingState {
+    fn default() -> Self {
+        Self {
+            inner: Mutex::new(GoalAccountingInner::default()),
+            progress_accounting_lock: Semaphore::new(/*permits*/ 1),
+        }
     }
 }
 

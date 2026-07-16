@@ -50,13 +50,13 @@ async fn fork_thread_twice_drops_to_first_message() {
     for text in ["first", "second", "third"] {
         codex
             .submit(Op::UserInput {
-                environments: None,
                 items: vec![UserInput::Text {
                     text: text.to_string(),
                     text_elements: Vec::new(),
                 }],
                 final_output_json_schema: None,
                 responsesapi_client_metadata: None,
+                additional_context: Default::default(),
                 thread_settings: Default::default(),
             })
             .await
@@ -103,7 +103,6 @@ async fn fork_thread_twice_drops_to_first_message() {
             config_for_fork.clone(),
             base_path.clone(),
             /*thread_source*/ None,
-            /*persist_extended_history*/ false,
             /*parent_trace*/ None,
         )
         .await
@@ -128,7 +127,6 @@ async fn fork_thread_twice_drops_to_first_message() {
             config_for_fork.clone(),
             fork1_path.clone(),
             /*thread_source*/ None,
-            /*persist_extended_history*/ false,
             /*parent_trace*/ None,
         )
         .await
@@ -174,13 +172,13 @@ async fn fork_thread_from_history_does_not_require_source_rollout_path() {
 
     codex
         .submit(Op::UserInput {
-            environments: None,
             items: vec![UserInput::Text {
                 text: "fork me from stored history".to_string(),
                 text_elements: Vec::new(),
             }],
             final_output_json_schema: None,
             responsesapi_client_metadata: None,
+            additional_context: Default::default(),
             thread_settings: Default::default(),
         })
         .await
@@ -202,8 +200,8 @@ async fn fork_thread_from_history_does_not_require_source_rollout_path() {
                 rollout_path: None,
             }),
             /*thread_source*/ None,
-            /*persist_extended_history*/ false,
             /*parent_trace*/ None,
+            /*supports_openai_form_elicitation*/ false,
         )
         .await
         .expect("fork from stored history");
@@ -225,23 +223,17 @@ async fn fork_thread_from_history_does_not_require_source_rollout_path() {
 }
 
 fn read_rollout_items(path: &std::path::Path) -> Vec<RolloutItem> {
-    let text = match std::fs::read_to_string(path) {
-        Ok(text) => text,
-        Err(err) => panic!("failed to read rollout file {}: {err}", path.display()),
-    };
+    let read_message = format!("failed to read rollout file {}", path.display());
+    let text = std::fs::read_to_string(path).expect(&read_message);
     let mut items: Vec<RolloutItem> = Vec::new();
     for line in text.lines() {
         if line.trim().is_empty() {
             continue;
         }
-        let v: serde_json::Value = match serde_json::from_str(line) {
-            Ok(value) => value,
-            Err(err) => panic!("failed to parse rollout JSON line `{line}`: {err}"),
-        };
-        let rl: RolloutLine = match serde_json::from_value(v) {
-            Ok(line) => line,
-            Err(err) => panic!("failed to parse rollout line `{line}`: {err}"),
-        };
+        let parse_json_message = format!("failed to parse rollout JSON line `{line}`");
+        let v: serde_json::Value = serde_json::from_str(line).expect(&parse_json_message);
+        let parse_line_message = format!("failed to parse rollout line `{line}`");
+        let rl: RolloutLine = serde_json::from_value(v).expect(&parse_line_message);
         match rl.item {
             RolloutItem::SessionMeta(_) => {}
             other => items.push(other),

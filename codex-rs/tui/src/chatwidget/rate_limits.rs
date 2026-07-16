@@ -5,6 +5,7 @@ use codex_app_server_protocol::CodexErrorInfo as AppServerCodexErrorInfo;
 
 pub(super) const NUDGE_MODEL_SLUG: &str = "gpt-5.4-mini";
 pub(super) const RATE_LIMIT_SWITCH_PROMPT_THRESHOLD: f64 = 90.0;
+pub(super) const RATE_LIMIT_SWITCH_PROMPT_VIEW_ID: &str = "rate-limit-switch-prompt";
 
 const RATE_LIMIT_WARNING_THRESHOLDS: [f64; 3] = [75.0, 90.0, 95.0];
 const PRIMARY_LIMIT_FALLBACK_LABEL: &str = "usage";
@@ -150,8 +151,27 @@ pub(super) fn is_app_server_cyber_policy_error(info: &AppServerCodexErrorInfo) -
     matches!(info, AppServerCodexErrorInfo::CyberPolicy)
 }
 
+#[derive(Clone, Copy)]
+enum RateLimitSnapshotSource {
+    AccountUsage,
+    RollingUpdate,
+}
+
 impl ChatWidget {
     pub(crate) fn on_rate_limit_snapshot(&mut self, snapshot: Option<RateLimitSnapshot>) {
+        self.on_rate_limit_snapshot_from(snapshot, RateLimitSnapshotSource::AccountUsage);
+    }
+
+    pub(crate) fn on_rolling_rate_limit_snapshot(&mut self, snapshot: RateLimitSnapshot) {
+        // Rolling app-server notifications are sparse. Preserve metadata learned from the full read.
+        self.on_rate_limit_snapshot_from(Some(snapshot), RateLimitSnapshotSource::RollingUpdate);
+    }
+
+    fn on_rate_limit_snapshot_from(
+        &mut self,
+        snapshot: Option<RateLimitSnapshot>,
+        source: RateLimitSnapshotSource,
+    ) {
         if let Some(mut snapshot) = snapshot {
             let limit_id = snapshot
                 .limit_id
@@ -172,7 +192,16 @@ impl ChatWidget {
                         balance: credits.balance.clone(),
                     });
             }
-
+            let preserved_individual_limit =
+                if matches!(source, RateLimitSnapshotSource::RollingUpdate)
+                    && snapshot.individual_limit.is_none()
+                {
+                    self.rate_limit_snapshots_by_limit_id
+                        .get(&limit_id)
+                        .and_then(|display| display.individual_limit.clone())
+                } else {
+                    None
+                };
             self.plan_type = snapshot.plan_type.or(self.plan_type);
 
             let is_codex_limit = limit_id.eq_ignore_ascii_case("codex");
@@ -234,8 +263,11 @@ impl ChatWidget {
                 self.rate_limit_switch_prompt = RateLimitSwitchPromptState::Pending;
             }
 
-            let display =
+            let mut display =
                 rate_limit_snapshot_display_for_limit(&snapshot, limit_label, Local::now());
+            if display.individual_limit.is_none() {
+                display.individual_limit = preserved_individual_limit;
+            }
             self.rate_limit_snapshots_by_limit_id
                 .insert(limit_id, display);
 
@@ -312,14 +344,16 @@ impl ChatWidget {
                 /*active_permission_profile*/ None,
                 /*windows_sandbox_level*/ None,
                 Some(switch_model_for_events.clone()),
-                Some(Some(default_effort)),
+                Some(Some(default_effort.clone())),
                 /*summary*/ None,
                 /*service_tier*/ None,
                 /*collaboration_mode*/ None,
                 /*personality*/ None,
             )));
             tx.send(AppEvent::UpdateModel(switch_model_for_events.clone()));
-            tx.send(AppEvent::UpdateReasoningEffort(Some(default_effort)));
+            tx.send(AppEvent::UpdateReasoningEffort(Some(
+                default_effort.clone(),
+            )));
         })];
 
         let keep_actions: Vec<SelectionAction> = Vec::new();
@@ -366,6 +400,7 @@ impl ChatWidget {
         ];
 
         self.bottom_pane.show_selection_view(SelectionViewParams {
+            view_id: Some(RATE_LIMIT_SWITCH_PROMPT_VIEW_ID),
             title: Some("Approaching rate limits".to_string()),
             subtitle: Some(format!("Switch to {switch_model} for lower credit usage?")),
             footer_hint: Some(standard_popup_hint_line()),

@@ -30,11 +30,13 @@ use tokio::sync::oneshot;
 use tracing::Event;
 use tracing::field::Field;
 use tracing::field::Visit;
+use tracing::level_filters::LevelFilter;
 use tracing::span::Attributes;
 use tracing::span::Id;
 use tracing::span::Record;
 use tracing_subscriber::Layer;
 use tracing_subscriber::field::RecordFields;
+use tracing_subscriber::filter::Targets;
 use tracing_subscriber::fmt::FormatFields;
 use tracing_subscriber::fmt::FormattedFields;
 use tracing_subscriber::fmt::format::DefaultFields;
@@ -47,6 +49,14 @@ use crate::StateRuntime;
 const LOG_QUEUE_CAPACITY: usize = 512;
 const LOG_BATCH_SIZE: usize = 128;
 const LOG_FLUSH_INTERVAL: Duration = Duration::from_secs(2);
+
+pub fn default_filter() -> Targets {
+    Targets::new()
+        .with_default(LevelFilter::TRACE)
+        .with_target("log", LevelFilter::OFF)
+        .with_target("codex_otel.log_only", LevelFilter::OFF)
+        .with_target("codex_otel.trace_safe", LevelFilter::OFF)
+}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct LogSinkQueueConfig {
@@ -189,6 +199,17 @@ where
 
     fn on_event(&self, event: &Event<'_>, ctx: tracing_subscriber::layer::Context<'_, S>) {
         let metadata = event.metadata();
+        // The SDK emits DEBUG timer meta-events every second per process; these
+        // were over 30% of retained logs in measured high-fanout Codex environments.
+        if metadata.target() == "opentelemetry_sdk"
+            && matches!(
+                *metadata.level(),
+                tracing::Level::TRACE | tracing::Level::DEBUG
+            )
+        {
+            return;
+        }
+
         let mut visitor = MessageVisitor::default();
         event.record(&mut visitor);
         let thread_id = visitor
@@ -450,6 +471,10 @@ impl Visit for MessageVisitor {
         self.record_field(field, format!("{value:?}"));
     }
 }
+
+#[cfg(test)]
+#[path = "log_db_filter_tests.rs"]
+mod filter_tests;
 
 #[cfg(test)]
 mod tests {

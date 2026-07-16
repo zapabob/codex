@@ -1,6 +1,5 @@
 use codex_utils_absolute_path::AbsolutePathBuf;
 use multimap::MultiMap;
-use shlex;
 use starlark::any::ProvidesStaticType;
 use starlark::codemap::FileSpan;
 use starlark::environment::GlobalsBuilder;
@@ -66,12 +65,13 @@ impl PolicyParser {
         )
         .map_err(Error::Starlark)?;
         let globals = GlobalsBuilder::standard().with(policy_builtins).build();
-        let module = Module::new();
-        {
+        Module::with_temp_heap(|module| {
             let mut eval = Evaluator::new(&module);
             eval.extra = Some(&self.builder);
-            eval.eval_module(ast, &globals).map_err(Error::Starlark)?;
-        }
+            eval.eval_module(ast, &globals)
+                .map(|_| ())
+                .map_err(Error::Starlark)
+        })?;
         self.builder
             .borrow()
             .validate_pending_examples_from(pending_validation_count)?;
@@ -346,7 +346,6 @@ fn policy_builder<'v, 'a>(eval: &Evaluator<'v, 'a, '_>) -> RefMut<'a, PolicyBuil
 
 #[starlark_module]
 fn policy_builtins(builder: &mut GlobalsBuilder) {
-    #[allow(clippy::too_many_arguments)]
     fn prefix_rule<'v>(
         pattern: UnpackList<Value<'v>>,
         decision: Option<&'v str>,

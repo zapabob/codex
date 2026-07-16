@@ -1,81 +1,665 @@
 # Upstream Overlay Merge Report
 
-- Baseline ref: `24faf49b2a70f8813e522afb0e701add9b15b0bd`
-- Upstream ref: `upstream/main`
+- Baseline ref: `rust-v0.133.0`
+- Upstream ref: `rust-v0.142.2`
 - Applied: `yes`
-- Planned paths: **59**
+- Planned paths: **2401**
 
 ## Actions
 
-- `checkout-upstream`: **51**
-- `merge-file`: **6**
-- `skip`: **2**
+- `checkout-upstream`: **2063**
+- `delete`: **37**
+- `merge-file`: **246**
+- `skip`: **55**
 
 ## Conflicts
 
+- `.codex/skills/babysit-pr/SKILL.md`
+- `.codex/skills/babysit-pr/agents/openai.yaml`
+- `.codex/skills/babysit-pr/scripts/gh_pr_watch.py`
+- `.codex/skills/babysit-pr/scripts/test_gh_pr_watch.py`
+- `.codex/skills/codex-pr-body/SKILL.md`
+- `.codex/skills/remote-tests/SKILL.md`
+- `.devcontainer/Dockerfile.secure`
+- `.devcontainer/devcontainer.secure.json`
+- `.github/scripts/run-bazel-ci.sh`
+- `.github/scripts/rusty_v8_bazel.py`
+- `.github/scripts/test_rusty_v8_bazel.py`
+- `.github/workflows/bazel.yml`
+- `.github/workflows/cargo-deny.yml`
 - `.github/workflows/ci.yml`
+- `.github/workflows/issue-deduplicator.yml`
+- `.github/workflows/issue-labeler.yml`
+- `.github/workflows/rust-ci-full.yml`
+- `.github/workflows/rust-ci.yml`
+- `.github/workflows/rust-release-argument-comment-lint.yml`
+- `.github/workflows/rust-release-windows.yml`
+- `.github/workflows/rust-release-zsh.yml`
+- `.github/workflows/rust-release.yml`
+- `.github/workflows/rusty-v8-release.yml`
+- `.github/workflows/sdk.yml`
+- `.github/workflows/v8-canary.yml`
+- `.vscode/extensions.json`
+- `AGENTS.md`
 - `MODULE.bazel.lock`
+- `codex-cli/package.json`
+- `codex-cli/scripts/README.md`
 - `codex-cli/scripts/build_npm_package.py`
+- `codex-rs/.cargo/audit.toml`
+- `codex-rs/Cargo.lock`
 - `codex-rs/Cargo.toml`
+- `codex-rs/README.md`
+- `codex-rs/app-server-protocol/schema/json/ClientRequest.json`
+- `codex-rs/app-server-protocol/schema/json/ServerNotification.json`
+- `codex-rs/app-server-protocol/schema/json/codex_app_server_protocol.schemas.json`
+- `codex-rs/app-server-protocol/schema/json/codex_app_server_protocol.v2.schemas.json`
+- `codex-rs/app-server-protocol/schema/typescript/ServerNotification.ts`
+- `codex-rs/app-server-protocol/schema/typescript/index.ts`
+- `codex-rs/app-server-protocol/schema/typescript/v2/index.ts`
+- `codex-rs/app-server-protocol/src/export.rs`
+- `codex-rs/app-server-protocol/src/lib.rs`
+- `codex-rs/app-server-protocol/src/protocol/common.rs`
+- `codex-rs/app-server-protocol/src/protocol/v2/thread.rs`
+- `codex-rs/app-server-transport/src/transport/remote_control/tests.rs`
+- `codex-rs/app-server-transport/src/transport/remote_control/websocket.rs`
+- `codex-rs/app-server/README.md`
+- `codex-rs/app-server/src/lib.rs`
+- `codex-rs/app-server/src/message_processor.rs`
+- `codex-rs/app-server/src/request_processors.rs`
+- `codex-rs/app-server/src/request_processors/apps_processor.rs`
+- `codex-rs/app-server/src/request_processors/catalog_processor.rs`
+- `codex-rs/app-server/src/request_processors/config_processor.rs`
+- `codex-rs/app-server/src/request_processors/mcp_processor.rs`
+- `codex-rs/app-server/src/request_processors/plugins.rs`
+- `codex-rs/app-server/src/request_processors/thread_processor.rs`
+- `codex-rs/app-server/tests/suite/v2/hooks_list.rs`
+- `codex-rs/app-server/tests/suite/v2/mod.rs`
+- `codex-rs/app-server/tests/suite/v2/plugin_read.rs`
+- `codex-rs/app-server/tests/suite/v2/thread_list.rs`
+- `codex-rs/cli/src/doctor.rs`
+- `codex-rs/cli/src/main.rs`
+- `codex-rs/cli/src/mcp_cmd.rs`
+- `codex-rs/codex-mcp/src/connection_manager.rs`
+- `codex-rs/codex-mcp/src/connection_manager_tests.rs`
+- `codex-rs/codex-mcp/src/lib.rs`
+- `codex-rs/codex-mcp/src/mcp/mod.rs`
+- `codex-rs/codex-mcp/src/mcp/mod_tests.rs`
+- `codex-rs/codex-mcp/src/rmcp_client.rs`
+- `codex-rs/codex-mcp/src/runtime.rs`
+- `codex-rs/config/src/lib.rs`
+- `codex-rs/config/src/loader/mod.rs`
+- `codex-rs/config/src/loader/tests.rs`
+- `codex-rs/config/src/mcp_edit.rs`
+- `codex-rs/config/src/mcp_edit_tests.rs`
+- `codex-rs/config/src/mcp_types.rs`
+- `codex-rs/config/src/mcp_types_tests.rs`
+- `codex-rs/core-plugins/src/loader.rs`
+- `codex-rs/core-plugins/src/manager.rs`
+- `codex-rs/core-plugins/src/manager_tests.rs`
+- `codex-rs/core-plugins/src/test_support.rs`
+- `codex-rs/core-skills/src/loader.rs`
+- `codex-rs/core-skills/src/loader_tests.rs`
+- `codex-rs/core/Cargo.toml`
+- `codex-rs/core/config.schema.json`
+- `codex-rs/core/src/client.rs`
+- `codex-rs/core/src/compact_remote.rs`
+- `codex-rs/core/src/compact_remote_v2.rs`
+- `codex-rs/core/src/config/config_tests.rs`
+- `codex-rs/core/src/config/edit.rs`
+- `codex-rs/core/src/config/edit_tests.rs`
+- `codex-rs/core/src/config/mod.rs`
+- `codex-rs/core/src/connectors.rs`
+- `codex-rs/core/src/context/contextual_user_message_tests.rs`
+- `codex-rs/core/src/context/mod.rs`
+- `codex-rs/core/src/context_manager/history.rs`
+- `codex-rs/core/src/event_mapping_tests.rs`
+- `codex-rs/core/src/hook_runtime.rs`
+- `codex-rs/core/src/lib.rs`
+- `codex-rs/core/src/mcp_skill_dependencies.rs`
+- `codex-rs/core/src/mcp_tool_call_tests.rs`
+- `codex-rs/core/src/session/mcp.rs`
+- `codex-rs/core/src/session/mod.rs`
+- `codex-rs/core/src/session/session.rs`
+- `codex-rs/core/src/tools/code_mode/execute_handler.rs`
+- `codex-rs/core/src/tools/code_mode/wait_handler.rs`
+- `codex-rs/core/src/tools/handlers/agent_jobs/report_agent_job_result.rs`
+- `codex-rs/core/src/tools/handlers/agent_jobs/spawn_agents_on_csv.rs`
+- `codex-rs/core/src/tools/handlers/apply_patch.rs`
+- `codex-rs/core/src/tools/handlers/dynamic.rs`
+- `codex-rs/core/src/tools/handlers/extension_tools.rs`
+- `codex-rs/core/src/tools/handlers/list_available_plugins_to_install.rs`
+- `codex-rs/core/src/tools/handlers/mcp.rs`
+- `codex-rs/core/src/tools/handlers/mcp_resource/list_mcp_resource_templates.rs`
+- `codex-rs/core/src/tools/handlers/mcp_resource/list_mcp_resources.rs`
+- `codex-rs/core/src/tools/handlers/mcp_resource/read_mcp_resource.rs`
+- `codex-rs/core/src/tools/handlers/mcp_search_tests.rs`
+- `codex-rs/core/src/tools/handlers/multi_agents/close_agent.rs`
+- `codex-rs/core/src/tools/handlers/multi_agents/resume_agent.rs`
+- `codex-rs/core/src/tools/handlers/multi_agents/send_input.rs`
+- `codex-rs/core/src/tools/handlers/multi_agents/spawn.rs`
+- `codex-rs/core/src/tools/handlers/multi_agents/wait.rs`
+- `codex-rs/core/src/tools/handlers/multi_agents_v2/followup_task.rs`
+- `codex-rs/core/src/tools/handlers/multi_agents_v2/list_agents.rs`
+- `codex-rs/core/src/tools/handlers/multi_agents_v2/send_message.rs`
+- `codex-rs/core/src/tools/handlers/multi_agents_v2/spawn.rs`
+- `codex-rs/core/src/tools/handlers/multi_agents_v2/wait.rs`
+- `codex-rs/core/src/tools/handlers/plan.rs`
+- `codex-rs/core/src/tools/handlers/request_permissions.rs`
+- `codex-rs/core/src/tools/handlers/request_plugin_install.rs`
+- `codex-rs/core/src/tools/handlers/request_user_input.rs`
+- `codex-rs/core/src/tools/handlers/shell/shell_command.rs`
+- `codex-rs/core/src/tools/handlers/test_sync.rs`
+- `codex-rs/core/src/tools/handlers/tool_search.rs`
+- `codex-rs/core/src/tools/handlers/unified_exec/exec_command.rs`
+- `codex-rs/core/src/tools/handlers/unified_exec/write_stdin.rs`
+- `codex-rs/core/src/tools/handlers/view_image.rs`
+- `codex-rs/core/src/tools/mod.rs`
+- `codex-rs/core/src/tools/parallel.rs`
+- `codex-rs/core/src/tools/registry.rs`
+- `codex-rs/core/src/tools/registry_tests.rs`
+- `codex-rs/core/src/tools/router_tests.rs`
+- `codex-rs/core/src/tools/spec_plan.rs`
+- `codex-rs/core/src/tools/spec_plan_tests.rs`
+- `codex-rs/core/src/tools/tool_dispatch_trace_tests.rs`
+- `codex-rs/core/src/unified_exec/process_manager.rs`
+- `codex-rs/core/tests/suite/cli_stream.rs`
+- `codex-rs/core/tests/suite/client_websockets.rs`
+- `codex-rs/core/tests/suite/code_mode.rs`
+- `codex-rs/core/tests/suite/hooks.rs`
+- `codex-rs/core/tests/suite/hooks_mcp.rs`
+- `codex-rs/core/tests/suite/rmcp_client.rs`
+- `codex-rs/core/tests/suite/search_tool.rs`
+- `codex-rs/core/tests/suite/sqlite_state.rs`
+- `codex-rs/core/tests/suite/subagent_notifications.rs`
+- `codex-rs/core/tests/suite/truncation.rs`
+- `codex-rs/deny.toml`
+- `codex-rs/docs/codex_mcp_interface.md`
+- `codex-rs/exec-server/src/client.rs`
+- `codex-rs/exec-server/src/rpc.rs`
+- `codex-rs/exec/src/lib.rs`
+- `codex-rs/execpolicy/src/parser.rs`
+- `codex-rs/execpolicy/tests/basic.rs`
+- `codex-rs/ext/extension-api/src/capabilities/mod.rs`
+- `codex-rs/ext/extension-api/src/lib.rs`
+- `codex-rs/ext/goal/Cargo.toml`
+- `codex-rs/ext/goal/src/accounting.rs`
+- `codex-rs/ext/goal/src/extension.rs`
+- `codex-rs/ext/goal/src/lib.rs`
+- `codex-rs/ext/goal/src/tool.rs`
+- `codex-rs/ext/goal/tests/goal_extension_backend.rs`
+- `codex-rs/ext/memories/src/tests.rs`
+- `codex-rs/ext/memories/src/tools/list.rs`
+- `codex-rs/ext/memories/src/tools/read.rs`
+- `codex-rs/ext/memories/src/tools/search.rs`
+- `codex-rs/features/src/lib.rs`
+- `codex-rs/features/src/tests.rs`
+- `codex-rs/hooks/schema/generated/permission-request.command.input.schema.json`
+- `codex-rs/hooks/schema/generated/post-compact.command.input.schema.json`
+- `codex-rs/hooks/schema/generated/post-tool-use.command.input.schema.json`
+- `codex-rs/hooks/schema/generated/pre-compact.command.input.schema.json`
+- `codex-rs/hooks/schema/generated/pre-tool-use.command.input.schema.json`
+- `codex-rs/hooks/schema/generated/user-prompt-submit.command.input.schema.json`
+- `codex-rs/hooks/src/engine/mod_tests.rs`
+- `codex-rs/hooks/src/events/common.rs`
+- `codex-rs/hooks/src/events/compact.rs`
+- `codex-rs/hooks/src/events/permission_request.rs`
+- `codex-rs/hooks/src/events/post_tool_use.rs`
+- `codex-rs/hooks/src/events/pre_tool_use.rs`
+- `codex-rs/hooks/src/events/user_prompt_submit.rs`
+- `codex-rs/hooks/src/lib.rs`
+- `codex-rs/hooks/src/schema.rs`
+- `codex-rs/linux-sandbox/README.md`
+- `codex-rs/login/src/auth/manager.rs`
+- `codex-rs/model-provider/src/amazon_bedrock/mantle.rs`
+- `codex-rs/network-proxy/src/proxy.rs`
+- `codex-rs/plugin/src/load_outcome.rs`
+- `codex-rs/process-hardening/README.md`
+- `codex-rs/protocol/src/config_types.rs`
+- `codex-rs/rmcp-client/src/bin/test_stdio_server.rs`
+- `codex-rs/rmcp-client/src/stdio_server_launcher.rs`
+- `codex-rs/rollout-trace/src/inference.rs`
+- `codex-rs/rollout/Cargo.toml`
+- `codex-rs/rollout/src/lib.rs`
+- `codex-rs/secrets/src/lib.rs`
+- `codex-rs/shell-escalation/Cargo.toml`
+- `codex-rs/thread-store/Cargo.toml`
+- `codex-rs/thread-store/src/lib.rs`
+- `codex-rs/thread-store/src/local/list_threads.rs`
+- `codex-rs/thread-store/src/local/mod.rs`
+- `codex-rs/thread-store/src/store.rs`
+- `codex-rs/thread-store/src/types.rs`
+- `codex-rs/tools/Cargo.toml`
+- `codex-rs/tools/src/json_schema.rs`
+- `codex-rs/tools/src/json_schema_tests.rs`
+- `codex-rs/tools/src/lib.rs`
+- `codex-rs/tools/src/tool_call.rs`
+- `codex-rs/tools/src/tool_executor.rs`
+- `codex-rs/tui/src/app.rs`
+- `codex-rs/tui/src/app/app_server_event_targets.rs`
+- `codex-rs/tui/src/app/config_persistence.rs`
+- `codex-rs/tui/src/app/event_dispatch.rs`
+- `codex-rs/tui/src/app/platform_actions.rs`
+- `codex-rs/tui/src/app/tests.rs`
+- `codex-rs/tui/src/app/thread_goal_actions.rs`
+- `codex-rs/tui/src/app/thread_routing.rs`
+- `codex-rs/tui/src/app_event.rs`
+- `codex-rs/tui/src/chatwidget.rs`
+- `codex-rs/tui/src/chatwidget/permission_popups.rs`
+- `codex-rs/tui/src/chatwidget/protocol.rs`
+- `codex-rs/tui/src/chatwidget/settings.rs`
+- `codex-rs/tui/src/chatwidget/slash_dispatch.rs`
+- `codex-rs/tui/src/chatwidget/tests/permissions.rs`
+- `codex-rs/tui/src/chatwidget/windows_sandbox_prompts.rs`
+- `codex-rs/tui/src/config_update.rs`
+- `codex-rs/tui/src/lib.rs`
+- `codex-rs/utils/cli/src/shared_options.rs`
+- `codex-rs/utils/plugins/src/lib.rs`
+- `codex-rs/utils/readiness/Cargo.toml`
+- `docs/install.md`
+- `justfile`
+- `pnpm-lock.yaml`
+- `third_party/v8/BUILD.bazel`
+- `third_party/v8/README.md`
 
 ## Planned Paths
 
+- `.bazelrc`: `checkout-upstream` (manual)
+- `.codex/environments/environment.toml`: `skip` (keep-fork)
+- `.codex/environments/setup.py`: `skip` (keep-fork)
+- `.codex/skills/babysit-pr/SKILL.md`: `merge-file` (upstream-first)
+- `.codex/skills/babysit-pr/agents/openai.yaml`: `merge-file` (upstream-first)
+- `.codex/skills/babysit-pr/references/github-api-notes.md`: `checkout-upstream` (upstream-first)
+- `.codex/skills/babysit-pr/scripts/gh_pr_watch.py`: `merge-file` (upstream-first)
+- `.codex/skills/babysit-pr/scripts/test_gh_pr_watch.py`: `merge-file` (upstream-first)
+- `.codex/skills/codex-pr-body/SKILL.md`: `merge-file` (upstream-first)
+- `.codex/skills/path-types/SKILL.md`: `checkout-upstream` (upstream-first)
+- `.codex/skills/pushing-ci-changes/SKILL.md`: `checkout-upstream` (upstream-first)
+- `.codex/skills/remote-tests/SKILL.md`: `merge-file` (upstream-first)
+- `.devcontainer/Dockerfile.secure`: `merge-file` (manual)
+- `.devcontainer/devcontainer.json`: `checkout-upstream` (manual)
+- `.devcontainer/devcontainer.secure.json`: `merge-file` (manual)
+- `.github/CODEOWNERS`: `checkout-upstream` (manual)
+- `.github/actions/macos-code-sign/action.yml`: `delete` (manual)
+- `.github/actions/macos-code-sign/notary_helpers.sh`: `delete` (manual)
+- `.github/actions/setup-akv-pkcs11-codesigning/action.yaml`: `checkout-upstream` (manual)
+- `.github/actions/setup-rusty-v8/action.yml`: `checkout-upstream` (manual)
+- `.github/dotslash-zsh-config.json`: `checkout-upstream` (manual)
+- `.github/scripts/archive-release-symbols-and-strip-binaries.sh`: `checkout-upstream` (manual)
+- `.github/scripts/install-musl-build-tools.sh`: `checkout-upstream` (manual)
+- `.github/scripts/macos-signing/codex.entitlements.plist`: `checkout-upstream` (manual)
+- `.github/scripts/macos-signing/notarize_macos_binary_with_rcodesign.sh`: `checkout-upstream` (manual)
+- `.github/scripts/macos-signing/notarize_macos_dmg_with_rcodesign.sh`: `checkout-upstream` (manual)
+- `.github/scripts/macos-signing/sign_macos_code.sh`: `checkout-upstream` (manual)
+- `.github/scripts/run-bazel-ci.sh`: `merge-file` (manual)
+- `.github/scripts/run-bazel-query-ci.sh`: `checkout-upstream` (manual)
+- `.github/scripts/run_bazel_with_buildbuddy.py`: `checkout-upstream` (manual)
+- `.github/scripts/rusty_v8_bazel.py`: `merge-file` (manual)
+- `.github/scripts/test_run_bazel_with_buildbuddy.py`: `checkout-upstream` (manual)
+- `.github/scripts/test_rusty_v8_bazel.py`: `merge-file` (manual)
+- `.github/scripts/test_v8_canary_changes.py`: `checkout-upstream` (manual)
+- `.github/scripts/v8_canary_changes.py`: `checkout-upstream` (manual)
+- `.github/workflows/bazel.yml`: `merge-file` (upstream-first)
+- `.github/workflows/cargo-deny.yml`: `merge-file` (upstream-first)
 - `.github/workflows/ci.yml`: `merge-file` (upstream-first)
+- `.github/workflows/issue-deduplicator.yml`: `merge-file` (upstream-first)
+- `.github/workflows/issue-labeler.yml`: `merge-file` (upstream-first)
+- `.github/workflows/issue-translator.yml`: `checkout-upstream` (upstream-first)
+- `.github/workflows/python-runtime-build.yml`: `checkout-upstream` (upstream-first)
+- `.github/workflows/python-runtime-release.yml`: `checkout-upstream` (upstream-first)
+- `.github/workflows/python-sdk-release.yml`: `checkout-upstream` (upstream-first)
+- `.github/workflows/rust-ci-full-nextest-platform.yml`: `checkout-upstream` (upstream-first)
+- `.github/workflows/rust-ci-full.yml`: `merge-file` (upstream-first)
+- `.github/workflows/rust-ci.yml`: `merge-file` (upstream-first)
+- `.github/workflows/rust-release-argument-comment-lint.yml`: `merge-file` (upstream-first)
+- `.github/workflows/rust-release-windows.yml`: `merge-file` (upstream-first)
+- `.github/workflows/rust-release-zsh.yml`: `merge-file` (upstream-first)
+- `.github/workflows/rust-release.yml`: `merge-file` (upstream-first)
+- `.github/workflows/rusty-v8-release.yml`: `merge-file` (upstream-first)
+- `.github/workflows/sdk.yml`: `merge-file` (upstream-first)
+- `.github/workflows/v8-canary.yml`: `merge-file` (upstream-first)
+- `.vscode/extensions.json`: `merge-file` (manual)
+- `AGENTS.md`: `merge-file` (manual)
+- `MODULE.bazel`: `checkout-upstream` (manual)
 - `MODULE.bazel.lock`: `merge-file` (manual)
-- `codex-cli/scripts/README.md`: `checkout-upstream` (upstream-first)
+- `README.md`: `skip` (keep-fork)
+- `bazel/modules/BUILD.bazel`: `checkout-upstream` (manual)
+- `bazel/modules/wine.MODULE.bazel`: `checkout-upstream` (manual)
+- `bazel/platforms/BUILD.bazel`: `checkout-upstream` (manual)
+- `bazel/platforms/release_binaries.bzl`: `checkout-upstream` (manual)
+- `bazel/rules/testing/BUILD.bazel`: `checkout-upstream` (manual)
+- `bazel/rules/testing/foreign_platform_binary.bzl`: `checkout-upstream` (manual)
+- `bazel/rules/testing/wine/BUILD.bazel`: `checkout-upstream` (manual)
+- `bazel/rules/testing/wine/fixtures/windows_smoke.rs`: `checkout-upstream` (manual)
+- `bazel/rules/testing/wine/src/lib.rs`: `checkout-upstream` (manual)
+- `bazel/rules/testing/wine/src/lib_tests.rs`: `checkout-upstream` (manual)
+- `bazel/rules/testing/wine/wine.bzl`: `checkout-upstream` (manual)
+- `bazel/rules/testing/wine/wine_runtime.bzl`: `checkout-upstream` (manual)
+- `codex-cli/bin/codex.js`: `checkout-upstream` (upstream-first)
+- `codex-cli/package.json`: `merge-file` (upstream-first)
+- `codex-cli/scripts/README.md`: `merge-file` (upstream-first)
 - `codex-cli/scripts/build_npm_package.py`: `merge-file` (upstream-first)
 - `codex-cli/scripts/install_native_deps.py`: `skip` (upstream-first)
+- `codex-rs/.cargo/audit.toml`: `merge-file` (upstream-first)
+- `codex-rs/.config/nextest.toml`: `checkout-upstream` (upstream-first)
+- `codex-rs/.github/workflows/cargo-audit.yml`: `checkout-upstream` (upstream-first)
 - `codex-rs/Cargo.lock`: `merge-file` (upstream-first)
 - `codex-rs/Cargo.toml`: `merge-file` (upstream-first)
-- `codex-rs/app-server-transport/src/transport/remote_control/tests.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/app-server-transport/src/transport/remote_control/websocket.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/README.md`: `merge-file` (upstream-first)
+- `codex-rs/agent-graph-store/Cargo.toml`: `checkout-upstream` (upstream-first)
+- `codex-rs/agent-graph-store/src/local.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/agent-graph-store/src/store.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/agent-identity/src/lib.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/analytics/Cargo.toml`: `checkout-upstream` (upstream-first)
+- `codex-rs/analytics/src/analytics_capture.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/analytics/src/analytics_client_tests.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/analytics/src/client.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/analytics/src/client_tests.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/analytics/src/events.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/analytics/src/facts.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/analytics/src/lib.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/analytics/src/reducer.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-client/src/lib.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-client/src/path.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-client/src/remote.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-daemon/src/backend/pid.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-daemon/src/backend/pid_tests.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-daemon/src/lib.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-daemon/src/remote_control_client.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/BUILD.bazel`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/Cargo.toml`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/ClientRequest.json`: `merge-file` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/CommandExecutionRequestApprovalParams.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/McpServerElicitationRequestParams.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/PermissionsRequestApprovalParams.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/PermissionsRequestApprovalResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/ServerNotification.json`: `merge-file` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/ServerRequest.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/ToolRequestUserInputParams.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/codex_app_server_protocol.schemas.json`: `merge-file` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/codex_app_server_protocol.v2.schemas.json`: `merge-file` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v1/InitializeParams.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/AccountRateLimitsUpdatedNotification.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/AccountUpdatedNotification.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ConfigReadParams.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ConfigReadResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ConfigRequirementsReadResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ConfigWriteResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ConsumeAccountRateLimitResetCreditParams.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ConsumeAccountRateLimitResetCreditResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ExternalAgentConfigDetectParams.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ExternalAgentConfigImportCompletedNotification.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ExternalAgentConfigImportHistoriesReadResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ExternalAgentConfigImportParams.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ExternalAgentConfigImportProgressNotification.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ExternalAgentConfigImportResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/FeedbackUploadParams.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/GetAccountParams.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/GetAccountRateLimitsResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/GetAccountResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/GetAccountTokenUsageResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/GetWorkspaceMessagesResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/HookCompletedNotification.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/HookStartedNotification.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/HooksListResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ItemCompletedNotification.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ItemGuardianApprovalReviewCompletedNotification.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ItemGuardianApprovalReviewStartedNotification.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ItemStartedNotification.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ListMcpServerStatusParams.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ListMcpServerStatusResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/McpServerStatusUpdatedNotification.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ModelListResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ModelSafetyBufferingUpdatedNotification.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/PermissionProfileListResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/PluginInstallResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/PluginInstalledResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/PluginListParams.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/PluginListResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/PluginReadResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/PluginShareListResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/RawResponseItemCompletedNotification.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ReviewStartResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/SkillsExtraRootsSetParams.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/SkillsExtraRootsSetResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ThreadDeleteParams.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ThreadDeleteResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ThreadDeletedNotification.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ThreadForkParams.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ThreadForkResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ThreadListParams.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ThreadListResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ThreadMetadataUpdateResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ThreadReadParams.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ThreadReadResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ThreadResumeParams.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ThreadResumeResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ThreadRollbackResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ThreadSettingsUpdatedNotification.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ThreadStartParams.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ThreadStartResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ThreadStartedNotification.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/ThreadUnarchiveResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/TurnCompletedNotification.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/TurnModerationMetadataNotification.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/TurnStartParams.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/TurnStartResponse.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/TurnStartedNotification.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/json/v2/TurnSteerParams.json`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/AgentMessageInputContent.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/AmazonBedrockCredentialSource.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/AuthMode.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/ClientRequest.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/ConversationTextRole.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/ImageDetail.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/InitializeCapabilities.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/InternalChatMessageMetadataPassthrough.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/LegacyAppPathString.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/McpServerInfo.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/MultiAgentMode.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/ReasoningEffort.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/ResponseItem.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/ServerNotification.ts`: `merge-file` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/ServerRequest.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/WebSearchMode.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/index.ts`: `merge-file` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/Account.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/AccountRateLimitsUpdatedNotification.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/AccountTokenUsageDailyBucket.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/AccountTokenUsageSummary.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/AdditionalContextEntry.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/AdditionalContextKind.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/AdditionalFileSystemPermissions.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/AppSummary.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/AppTemplateSummary.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/AppTemplateUnavailableReason.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/AppsConfig.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/AppsDefaultConfig.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/CapabilityRootLocation.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/CommandExecutionRequestApprovalParams.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/Config.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ConfigLayerSource.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ConfigReadParams.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ConfigRequirements.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ConsumeAccountRateLimitResetCreditOutcome.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ConsumeAccountRateLimitResetCreditParams.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ConsumeAccountRateLimitResetCreditResponse.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/DynamicToolFunctionSpec.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/DynamicToolNamespaceSpec.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/DynamicToolNamespaceTool.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/DynamicToolSpec.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ExternalAgentConfigDetectParams.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ExternalAgentConfigImportCompletedNotification.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ExternalAgentConfigImportHistoriesReadResponse.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ExternalAgentConfigImportHistory.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ExternalAgentConfigImportItemTypeFailure.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ExternalAgentConfigImportItemTypeSuccess.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ExternalAgentConfigImportParams.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ExternalAgentConfigImportProgressNotification.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ExternalAgentConfigImportResponse.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ExternalAgentConfigImportTypeResult.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/FeedbackUploadParams.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/FileSystemPath.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/GetAccountParams.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/GetAccountRateLimitsResponse.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/GetAccountTokenUsageResponse.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/GetWorkspaceMessagesResponse.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/HookSource.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ListMcpServerStatusParams.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/McpServerElicitationRequestParams.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/McpServerStatus.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/McpServerStatusUpdatedNotification.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/McpToolCallAppContext.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ModelSafetyBufferingUpdatedNotification.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/NetworkUnixSocketPermission.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/PermissionProfileSummary.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/PermissionsRequestApprovalParams.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/PluginDetail.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/PluginInterface.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/PluginListMarketplaceKind.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ProfileV2.ts`: `delete` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/RateLimitResetCreditsSummary.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/RateLimitSnapshot.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/RemoteControlDisableParams.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/RemoteControlEnableParams.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/SelectedCapabilityRoot.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/SkillsExtraRootsSetParams.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/SkillsExtraRootsSetResponse.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/SpendControlLimitSnapshot.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/SubAgentActivityKind.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/Thread.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ThreadDeleteParams.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ThreadDeleteResponse.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ThreadDeletedNotification.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ThreadForkResponse.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ThreadItem.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ThreadListParams.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ThreadReadParams.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ThreadResumeInitialTurnsPageParams.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ThreadResumeResponse.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ThreadSearchResult.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ThreadSettings.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ThreadSortKey.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ThreadSource.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ThreadStartResponse.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/ToolRequestUserInputParams.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/TurnEnvironmentParams.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/TurnModerationMetadataNotification.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/TurnStartParams.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/TurnSteerParams.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/TurnsPage.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/WorkspaceMessage.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/WorkspaceMessageType.ts`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/schema/typescript/v2/index.ts`: `merge-file` (upstream-first)
+- `codex-rs/app-server-protocol/src/export.rs`: `merge-file` (upstream-first)
+- `codex-rs/app-server-protocol/src/lib.rs`: `merge-file` (upstream-plus-reinject)
+- `codex-rs/app-server-protocol/src/protocol/common.rs`: `merge-file` (upstream-plus-reinject)
+- `codex-rs/app-server-protocol/src/protocol/event_mapping.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/src/protocol/item_builders.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/src/protocol/item_builders_tests.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/src/protocol/thread_history.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/src/protocol/v1.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/src/protocol/v2/account.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/src/protocol/v2/apps.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/src/protocol/v2/config.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/src/protocol/v2/current_time.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/src/protocol/v2/environment.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/src/protocol/v2/feedback.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/src/protocol/v2/hook.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/src/protocol/v2/item.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/src/protocol/v2/mcp.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/src/protocol/v2/mod.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/src/protocol/v2/model.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/src/protocol/v2/permissions.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/src/protocol/v2/plugin.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/src/protocol/v2/realtime.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/src/protocol/v2/remote_control.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/src/protocol/v2/remote_control_tests.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/src/protocol/v2/shared.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/src/protocol/v2/tests.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/src/protocol/v2/thread.rs`: `merge-file` (upstream-first)
+- `codex-rs/app-server-protocol/src/protocol/v2/thread_data.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/src/protocol/v2/turn.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-protocol/src/schema_fixtures.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-test-client/Cargo.toml`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-test-client/README.md`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-test-client/src/lib.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-test-client/src/loopback_responses_server.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-test-client/src/plugin_analytics_capture.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-test-client/src/plugin_analytics_capture_tests.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-test-client/src/plugin_analytics_mutation_smoke.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-test-client/src/plugin_analytics_smoke.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-test-client/src/request_user_input.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-test-client/src/request_user_input_tests.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-transport/Cargo.toml`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-transport/src/lib.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-transport/src/transport/mod.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-transport/src/transport/remote_control/auth.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-transport/src/transport/remote_control/client_tracker.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-transport/src/transport/remote_control/clients.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-transport/src/transport/remote_control/desired_state.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-transport/src/transport/remote_control/enroll.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-transport/src/transport/remote_control/mod.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-transport/src/transport/remote_control/protocol.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-transport/src/transport/remote_control/tests.rs`: `merge-file` (upstream-first)
+- `codex-rs/app-server-transport/src/transport/remote_control/tests/clients_tests.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-transport/src/transport/remote_control/tests/pairing_tests.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server-transport/src/transport/remote_control/websocket.rs`: `merge-file` (upstream-first)
+- `codex-rs/app-server-transport/src/transport/websocket.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/BUILD.bazel`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/Cargo.toml`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/README.md`: `merge-file` (upstream-first)
+- `codex-rs/app-server/src/bespoke_event_handling.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/command_exec.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/config/external_agent_config.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/config/external_agent_config_tests.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/config_manager.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/config_manager_service.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/config_manager_service_tests.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/connection_cleanup.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/connection_rpc_gate.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/current_time.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/dynamic_tools.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/extensions.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/fs_watch.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/image_url.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/in_process.rs`: `checkout-upstream` (upstream-first)
 - `codex-rs/app-server/src/lib.rs`: `merge-file` (upstream-plus-reinject)
-- `codex-rs/app-server/tests/suite/v2/thread_list.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/core-plugins/src/loader.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/core-skills/src/loader.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/core-skills/src/loader_tests.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/core-skills/src/manager_tests.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/core/src/context_manager/history.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/core/src/hook_runtime.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/core/src/tools/handlers/extension_tools.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/core/src/tools/handlers/mcp.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/core/src/tools/router_tests.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/core/tests/suite/rmcp_client.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/core/tests/suite/subagent_notifications.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/ext/extension-api/src/lib.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/ext/goal/tests/goal_extension_backend.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/ext/memories/src/tests.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/hooks/schema/generated/permission-request.command.input.schema.json`: `checkout-upstream` (upstream-first)
-- `codex-rs/hooks/schema/generated/post-compact.command.input.schema.json`: `checkout-upstream` (upstream-first)
-- `codex-rs/hooks/schema/generated/post-tool-use.command.input.schema.json`: `checkout-upstream` (upstream-first)
-- `codex-rs/hooks/schema/generated/pre-compact.command.input.schema.json`: `checkout-upstream` (upstream-first)
-- `codex-rs/hooks/schema/generated/pre-tool-use.command.input.schema.json`: `checkout-upstream` (upstream-first)
-- `codex-rs/hooks/schema/generated/user-prompt-submit.command.input.schema.json`: `checkout-upstream` (upstream-first)
-- `codex-rs/hooks/src/engine/mod_tests.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/hooks/src/events/common.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/hooks/src/events/compact.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/hooks/src/events/permission_request.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/hooks/src/events/post_tool_use.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/hooks/src/events/pre_tool_use.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/hooks/src/events/user_prompt_submit.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/hooks/src/lib.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/hooks/src/schema.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/login/src/auth/manager.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/model-provider/src/amazon_bedrock/mantle.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/network-proxy/src/proxy.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/plugin/src/load_outcome.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/rmcp-client/src/bin/test_stdio_server.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/rollout/Cargo.toml`: `checkout-upstream` (upstream-first)
-- `codex-rs/rollout/src/search.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/tools/Cargo.toml`: `checkout-upstream` (upstream-first)
-- `codex-rs/tools/src/json_schema.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/tools/src/json_schema_tests.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/tools/src/lib.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/tools/src/tool_call.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/tui/src/app.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/tui/src/app/config_persistence.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/tui/src/app/event_dispatch.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/tui/src/app/tests.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/tui/src/config_update.rs`: `checkout-upstream` (upstream-first)
-- `codex-rs/utils/plugins/src/lib.rs`: `checkout-upstream` (upstream-first)
-- `scripts/stage_npm_packages.py`: `skip` (keep-fork)
+- `codex-rs/app-server/src/main.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/main_tests.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/mcp_refresh.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/message_processor.rs`: `merge-file` (upstream-first)
+- `codex-rs/app-server/src/message_processor_tracing_tests.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/models.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/models_refresh_worker.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/models_refresh_worker_tests.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/outgoing_message.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/request_processors.rs`: `merge-file` (upstream-first)
+- `codex-rs/app-server/src/request_processors/account_processor.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/request_processors/account_processor/rate_limit_resets.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/request_processors/apps_processor.rs`: `merge-file` (upstream-first)
+- `codex-rs/app-server/src/request_processors/catalog_processor.rs`: `merge-file` (upstream-first)
+- `codex-rs/app-server/src/request_processors/command_exec_processor.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/request_processors/config_errors.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/request_processors/config_processor.rs`: `merge-file` (upstream-first)
+- `codex-rs/app-server/src/request_processors/environment_processor.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/request_processors/external_agent_config_processor.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/request_processors/external_agent_session_import.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/request_processors/feedback_processor.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/request_processors/fs_processor.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/request_processors/initialize_processor.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/request_processors/mcp_processor.rs`: `merge-file` (upstream-first)
+- `codex-rs/app-server/src/request_processors/plugins.rs`: `merge-file` (upstream-first)
+- `codex-rs/app-server/src/request_processors/remote_control_processor.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/request_processors/remote_control_processor/remote_control_processor_tests.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/request_processors/request_errors.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/request_processors/thread_delete.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/request_processors/thread_goal_processor.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/request_processors/thread_lifecycle.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/request_processors/thread_processor.rs`: `merge-file` (upstream-first)
+- `codex-rs/app-server/src/request_processors/thread_processor_tests.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/request_processors/thread_resume_redaction.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/request_processors/thread_summary.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/request_processors/thread_summary_tests.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/request_processors/token_usage_replay.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/request_processors/turn_processor.rs`: `checkout-upstream` (upstream-first)
+- `codex-rs/app-server/src/request_processors/windows_sandbox_processor.rs`: `checkout-upstream` (upstream-first)

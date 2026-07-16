@@ -120,12 +120,16 @@ impl McpRequestProcessor {
             timeout_secs,
         } = params;
 
-        let configured_servers = self
+        let auth = self.auth_manager.auth().await;
+        let effective_servers = self
             .thread_manager
             .mcp_manager()
-            .configured_servers(&config)
+            .effective_servers(&config, auth.as_ref())
             .await;
-        let Some(server) = configured_servers.get(&name) else {
+        let Some(server) = effective_servers
+            .get(&name)
+            .and_then(codex_mcp::EffectiveMcpServer::configured_config)
+        else {
             return Err(invalid_request(format!(
                 "No MCP server named '{name}' found."
             )));
@@ -157,6 +161,7 @@ impl McpRequestProcessor {
             &name,
             &url,
             config.mcp_oauth_credentials_store_mode,
+            config.auth_keyring_backend_kind(),
             http_headers,
             env_http_headers,
             &resolved_scopes.scopes,
@@ -199,15 +204,33 @@ impl McpRequestProcessor {
         let request = request_id.clone();
 
         let outgoing = Arc::clone(&self.outgoing);
-        let config = self.load_latest_config(/*fallback_cwd*/ None).await?;
-        let mcp_config = config
-            .to_mcp_config(self.thread_manager.plugins_manager().as_ref())
-            .await;
+        let (config, thread) = match params.thread_id.as_deref() {
+            Some(thread_id) => {
+                let (_, thread) = self.load_thread(thread_id).await?;
+                let thread_config = thread.config().await;
+                let config = self
+                    .config_manager
+                    .load_latest_config_for_thread(thread_config.as_ref())
+                    .await
+                    .map_err(|err| internal_error(format!("failed to reload config: {err}")))?;
+                (config, Some(thread))
+            }
+            None => (self.load_latest_config(/*fallback_cwd*/ None).await?, None),
+        };
+        let mcp_config = match thread {
+            Some(thread) => thread.runtime_mcp_config(&config).await,
+            None => {
+                self.thread_manager
+                    .mcp_manager()
+                    .runtime_config(&config)
+                    .await
+            }
+        };
         let auth = self.auth_manager.auth().await;
         let environment_manager = self.thread_manager.environment_manager();
-        // This threadless status path has no turn cwd or turn-selected
-        // environment. Use config cwd only as the local stdio fallback; named
-        // environment stdio MCPs must declare their own absolute cwd.
+        // This status path has no turn-selected environment. Use config cwd
+        // as the local stdio fallback; named environment stdio MCPs must
+        // declare their own absolute cwd.
         let runtime_context =
             McpRuntimeContext::new(Arc::clone(&environment_manager), config.cwd.to_path_buf());
 
@@ -266,6 +289,7 @@ impl McpRequestProcessor {
         .await;
 
         let McpServerStatusSnapshot {
+            server_infos,
             tools_by_server,
             resources,
             resource_templates,
@@ -305,6 +329,7 @@ impl McpRequestProcessor {
             .iter()
             .map(|name| McpServerStatus {
                 name: name.clone(),
+                server_info: server_infos.get(name).cloned(),
                 tools: tools_by_server.get(name).cloned().unwrap_or_default(),
                 resources: resources.get(name).cloned().unwrap_or_default(),
                 resource_templates: resource_templates.get(name).cloned().unwrap_or_default(),
@@ -349,8 +374,10 @@ impl McpRequestProcessor {
         }
 
         let config = self.load_latest_config(/*fallback_cwd*/ None).await?;
-        let mcp_config = config
-            .to_mcp_config(self.thread_manager.plugins_manager().as_ref())
+        let mcp_config = self
+            .thread_manager
+            .mcp_manager()
+            .runtime_config(&config)
             .await;
         let auth = self.auth_manager.auth().await;
         let environment_manager = self.thread_manager.environment_manager();

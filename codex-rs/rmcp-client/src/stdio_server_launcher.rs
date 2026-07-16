@@ -15,6 +15,7 @@ use std::collections::HashMap;
 use std::ffi::OsString;
 use std::future::Future;
 use std::io;
+use std::path::Path;
 use std::path::PathBuf;
 use std::process::Stdio;
 use std::sync::Arc;
@@ -35,6 +36,8 @@ use codex_exec_server::ExecEnvPolicy;
 use codex_exec_server::ExecParams;
 use codex_exec_server::ExecProcess;
 use codex_protocol::config_types::ShellEnvironmentPolicyInherit;
+use codex_utils_path_uri::LegacyAppPathString;
+use codex_utils_path_uri::PathUri;
 #[cfg(unix)]
 use codex_utils_pty::process_group::kill_process_group;
 #[cfg(unix)]
@@ -81,7 +84,7 @@ pub struct StdioServerCommand {
     args: Vec<OsString>,
     env: Option<HashMap<OsString, OsString>>,
     env_vars: Vec<McpServerEnvVar>,
-    cwd: Option<PathBuf>,
+    cwd: Option<String>,
 }
 
 /// Client-side rmcp transport for a launched MCP stdio server.
@@ -148,7 +151,7 @@ impl StdioServerCommand {
         args: Vec<OsString>,
         env: Option<HashMap<OsString, OsString>>,
         env_vars: Vec<McpServerEnvVar>,
-        cwd: Option<PathBuf>,
+        cwd: Option<String>,
     ) -> Self {
         Self {
             program,
@@ -246,7 +249,7 @@ impl LocalStdioServerLauncher {
         } = command;
         let program_name = program.to_string_lossy().into_owned();
         let envs = create_env_for_mcp_server(env, &env_vars).map_err(io::Error::other)?;
-        let cwd = cwd.unwrap_or(fallback_cwd);
+        let cwd = cwd.map(PathBuf::from).unwrap_or(fallback_cwd);
         let resolved_program =
             program_resolver::resolve(program, &envs, &cwd).map_err(io::Error::other)?;
 
@@ -478,6 +481,9 @@ impl ExecutorStdioServerLauncher {
                 "executor stdio server requires an explicit cwd",
             ));
         };
+        let cwd: PathUri = LegacyAppPathString::from_path(Path::new(&cwd))
+            .try_into()
+            .map_err(|err| io::Error::new(io::ErrorKind::InvalidInput, err))?;
         let program_name = program.to_string_lossy().into_owned();
         let envs = create_env_overlay_for_remote_mcp_server(env, &env_vars);
         let remote_env_vars = remote_mcp_env_var_names(&env_vars);
@@ -501,6 +507,8 @@ impl ExecutorStdioServerLauncher {
                 tty: false,
                 pipe_stdin: true,
                 arg0: None,
+                sandbox: None,
+                enforce_managed_network: false,
             })
             .await
             .map_err(io::Error::other)?;

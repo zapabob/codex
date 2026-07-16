@@ -9,6 +9,7 @@ use codex_protocol::protocol::Op;
 use codex_protocol::protocol::RolloutItem;
 use codex_protocol::protocol::RolloutLine;
 use codex_protocol::user_input::UserInput;
+use core_test_support::TempDirExt;
 use core_test_support::responses;
 use core_test_support::responses::ev_assistant_message;
 use core_test_support::responses::ev_completed;
@@ -17,6 +18,7 @@ use core_test_support::responses::sse;
 use core_test_support::responses::start_mock_server;
 use core_test_support::skip_if_no_network;
 use core_test_support::test_codex::TestCodex;
+use core_test_support::test_codex::local_selections;
 use core_test_support::test_codex::test_codex;
 use core_test_support::test_codex::turn_permission_fields;
 use core_test_support::wait_for_event;
@@ -124,11 +126,11 @@ async fn copy_paste_local_image_persists_rollout_request_shape() -> anyhow::Resu
                     text_elements: Vec::new(),
                 },
             ],
-            environments: None,
             final_output_json_schema: None,
             responsesapi_client_metadata: None,
+            additional_context: Default::default(),
             thread_settings: codex_protocol::protocol::ThreadSettingsOverrides {
-                cwd: Some(cwd.path().to_path_buf()),
+                environments: Some(local_selections(cwd.abs())),
                 approval_policy: Some(AskForApproval::Never),
                 sandbox_policy: Some(sandbox_policy),
                 permission_profile,
@@ -160,7 +162,9 @@ async fn copy_paste_local_image_persists_rollout_request_shape() -> anyhow::Resu
         role: "user".to_string(),
         content: vec![
             ContentItem::InputText {
-                text: codex_protocol::models::local_image_open_tag_text(/*label_number*/ 1),
+                text: codex_protocol::models::local_image_open_tag_text_with_path(
+                    /*label_number*/ 1, &abs_path,
+                ),
             },
             ContentItem::InputImage {
                 image_url,
@@ -174,9 +178,10 @@ async fn copy_paste_local_image_persists_rollout_request_shape() -> anyhow::Resu
             },
         ],
         phase: None,
+        internal_chat_message_metadata_passthrough: None,
     };
 
-    assert_eq!(actual, expected);
+    assert_eq!(responses::strip_metadata(actual), expected);
 
     Ok(())
 }
@@ -195,7 +200,7 @@ async fn drag_drop_image_persists_rollout_request_shape() -> anyhow::Result<()> 
         ..
     } = test_codex().build(&server).await?;
 
-    let image_url = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=".to_string();
+    let image_url = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9HQAAAABJRU5ErkJggg==".to_string();
 
     let response = sse(vec![
         ev_response_created("resp-1"),
@@ -220,11 +225,11 @@ async fn drag_drop_image_persists_rollout_request_shape() -> anyhow::Result<()> 
                     text_elements: Vec::new(),
                 },
             ],
-            environments: None,
             final_output_json_schema: None,
             responsesapi_client_metadata: None,
+            additional_context: Default::default(),
             thread_settings: codex_protocol::protocol::ThreadSettingsOverrides {
-                cwd: Some(cwd.path().to_path_buf()),
+                environments: Some(local_selections(cwd.abs())),
                 approval_policy: Some(AskForApproval::Never),
                 sandbox_policy: Some(sandbox_policy),
                 permission_profile,
@@ -255,24 +260,19 @@ async fn drag_drop_image_persists_rollout_request_shape() -> anyhow::Result<()> 
         id: None,
         role: "user".to_string(),
         content: vec![
-            ContentItem::InputText {
-                text: codex_protocol::models::image_open_tag_text(),
-            },
             ContentItem::InputImage {
                 image_url,
                 detail: Some(DEFAULT_IMAGE_DETAIL),
-            },
-            ContentItem::InputText {
-                text: codex_protocol::models::image_close_tag_text(),
             },
             ContentItem::InputText {
                 text: "dropped image".to_string(),
             },
         ],
         phase: None,
+        internal_chat_message_metadata_passthrough: None,
     };
 
-    assert_eq!(actual, expected);
+    assert_eq!(responses::strip_metadata(actual), expected);
 
     Ok(())
 }

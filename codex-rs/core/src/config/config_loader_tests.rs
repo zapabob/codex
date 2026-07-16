@@ -1,33 +1,39 @@
 use crate::config::ConfigBuilder;
 use crate::config::ConfigOverrides;
 use crate::config::ConstraintError;
+use crate::config::PermissionProfileCatalogEntry;
+use crate::config::permission_profile_catalog;
 use codex_app_server_protocol::ConfigLayerSource;
 use codex_config::CONFIG_TOML_FILE;
-use codex_config::CloudRequirementsLoadError;
-use codex_config::CloudRequirementsLoader;
+use codex_config::CloudConfigBundleLoadError;
+use codex_config::CloudConfigBundleLoader;
 use codex_config::ConfigError;
 use codex_config::ConfigLayerEntry;
 use codex_config::ConfigLayerStackOrdering;
 use codex_config::ConfigLoadError;
+use codex_config::ConfigLoadOptions;
 use codex_config::ConfigRequirements;
 use codex_config::ConfigRequirementsToml;
 use codex_config::ConfigRequirementsWithSources;
 use codex_config::FilesystemDenyReadPattern;
 use codex_config::LoaderOverrides;
 use codex_config::RequirementSource;
+use codex_config::RequirementsLayerEntry;
 use codex_config::SessionThreadConfig;
 use codex_config::StaticThreadConfigLoader;
 use codex_config::ThreadConfigSource;
+use codex_config::compose_requirements;
 use codex_config::config_error_from_ignored_toml_fields;
 use codex_config::config_error_from_toml;
 use codex_config::config_toml::ConfigToml;
 use codex_config::config_toml::ProjectConfig;
 use codex_config::loader::load_config_layers_state;
 use codex_config::loader::load_requirements_toml;
+use codex_config::test_support::CloudConfigBundleFixture;
 use codex_exec_server::LOCAL_FS;
 use codex_protocol::config_types::TrustLevel;
 use codex_protocol::config_types::WebSearchMode;
-use codex_protocol::models::BUILT_IN_PERMISSION_PROFILE_READ_ONLY;
+use codex_protocol::models::BUILT_IN_PERMISSION_PROFILE_DANGER_FULL_ACCESS;
 use codex_protocol::models::BUILT_IN_PERMISSION_PROFILE_WORKSPACE;
 use codex_protocol::models::PermissionProfile;
 use codex_protocol::protocol::AskForApproval;
@@ -44,6 +50,22 @@ fn config_error_from_io(err: &std::io::Error) -> &ConfigError {
         .and_then(|err| err.downcast_ref::<ConfigLoadError>())
         .map(ConfigLoadError::config_error)
         .expect("expected ConfigLoadError")
+}
+
+fn cloud_config_bundle_requirement_source() -> RequirementSource {
+    RequirementSource::EnterpriseManaged {
+        id: "req_1".to_string(),
+        name: "Base requirements".to_string(),
+    }
+}
+
+async fn load_single_requirements_toml(
+    requirements_file: &AbsolutePathBuf,
+) -> anyhow::Result<ConfigRequirementsWithSources> {
+    let layer = load_requirements_toml(LOCAL_FS.as_ref(), requirements_file)
+        .await?
+        .expect("requirements.toml should load");
+    Ok(compose_requirements(vec![layer])?.expect("requirements should be present"))
 }
 
 async fn make_config_for_test(
@@ -147,7 +169,6 @@ invalid = ["#;
         Some(cwd),
         &[] as &[(String, TomlValue)],
         LoaderOverrides::default(),
-        CloudRequirementsLoader::default(),
         &codex_config::NoopThreadConfigLoader,
     )
     .await
@@ -179,7 +200,6 @@ invalid = ["#,
             ignore_user_config: true,
             ..Default::default()
         },
-        CloudRequirementsLoader::default(),
         &codex_config::NoopThreadConfigLoader,
     )
     .await?;
@@ -210,7 +230,6 @@ async fn ignore_rules_marks_config_stack_for_exec_policy_rule_skip() -> std::io:
             ignore_user_and_project_exec_policy_rules: true,
             ..Default::default()
         },
-        CloudRequirementsLoader::default(),
         &codex_config::NoopThreadConfigLoader,
     )
     .await?;
@@ -236,7 +255,6 @@ invalid = ["#;
         Some(cwd),
         &[] as &[(String, TomlValue)],
         overrides,
-        CloudRequirementsLoader::default(),
         &codex_config::NoopThreadConfigLoader,
     )
     .await
@@ -288,7 +306,6 @@ async fn top_level_allow_managed_hooks_only_in_user_config_does_not_enable_requi
         Some(cwd),
         &[] as &[(String, TomlValue)],
         LoaderOverrides::default(),
-        CloudRequirementsLoader::default(),
         &codex_config::NoopThreadConfigLoader,
     )
     .await?;
@@ -323,7 +340,6 @@ command = "python3 /tmp/user-hook.py"
         Some(cwd),
         &[] as &[(String, TomlValue)],
         LoaderOverrides::default(),
-        CloudRequirementsLoader::default(),
         &codex_config::NoopThreadConfigLoader,
     )
     .await?;
@@ -533,7 +549,6 @@ extra = true
         Some(cwd),
         &[] as &[(String, TomlValue)],
         overrides,
-        CloudRequirementsLoader::default(),
         &codex_config::NoopThreadConfigLoader,
     )
     .await
@@ -567,7 +582,6 @@ async fn returns_empty_when_all_layers_missing() {
         Some(cwd),
         &[] as &[(String, TomlValue)],
         overrides,
-        CloudRequirementsLoader::default(),
         &codex_config::NoopThreadConfigLoader,
     )
     .await
@@ -644,7 +658,6 @@ approval_policy = "on-failure"
         Some(cwd),
         &[] as &[(String, TomlValue)],
         overrides,
-        CloudRequirementsLoader::default(),
         &codex_config::NoopThreadConfigLoader,
     )
     .await
@@ -707,7 +720,6 @@ async fn includes_thread_config_layers_in_stack() -> anyhow::Result<()> {
         Some(cwd),
         &[("features.plugins".to_string(), TomlValue::Boolean(true))],
         overrides,
-        CloudRequirementsLoader::default(),
         &StaticThreadConfigLoader::new(vec![ThreadConfigSource::Session(SessionThreadConfig {
             features: BTreeMap::from([("plugins".to_string(), false)]),
             ..Default::default()
@@ -787,7 +799,6 @@ flag = false
         Some(cwd),
         &[] as &[(String, TomlValue)],
         overrides,
-        CloudRequirementsLoader::default(),
         &codex_config::NoopThreadConfigLoader,
     )
     .await
@@ -891,7 +902,6 @@ allowed_sandbox_modes = ["read-only"]
         Some(AbsolutePathBuf::try_from(tmp.path())?),
         &[] as &[(String, TomlValue)],
         loader_overrides,
-        CloudRequirementsLoader::default(),
         &codex_config::NoopThreadConfigLoader,
     )
     .await?;
@@ -953,7 +963,6 @@ allowed_approval_policies = ["never"]
         Some(AbsolutePathBuf::try_from(tmp.path())?),
         &[] as &[(String, TomlValue)],
         loader_overrides,
-        CloudRequirementsLoader::default(),
         &codex_config::NoopThreadConfigLoader,
     )
     .await?;
@@ -990,14 +999,8 @@ personality = true
     )
     .await?;
 
-    let requirements_file = AbsolutePathBuf::try_from(requirements_file)?;
-    let mut config_requirements_toml = ConfigRequirementsWithSources::default();
-    load_requirements_toml(
-        LOCAL_FS.as_ref(),
-        &mut config_requirements_toml,
-        &requirements_file,
-    )
-    .await?;
+    let config_requirements_toml =
+        load_single_requirements_toml(&AbsolutePathBuf::try_from(requirements_file)?).await?;
 
     assert_eq!(
         config_requirements_toml
@@ -1073,7 +1076,7 @@ personality = true
 
 #[cfg(target_os = "macos")]
 #[tokio::test]
-async fn cloud_requirements_take_precedence_over_mdm_requirements() -> anyhow::Result<()> {
+async fn mdm_requirements_take_precedence_over_cloud_config_bundle() -> anyhow::Result<()> {
     use base64::Engine;
 
     let tmp = tempdir()?;
@@ -1091,47 +1094,34 @@ allowed_approval_policies = ["on-request"]
         tmp.path(),
         Some(AbsolutePathBuf::try_from(tmp.path())?),
         &[] as &[(String, TomlValue)],
-        loader_overrides,
-        CloudRequirementsLoader::new(async {
-            Ok(Some(ConfigRequirementsToml {
-                allowed_approval_policies: Some(vec![AskForApproval::Never]),
-                allowed_approvals_reviewers: None,
-                allowed_sandbox_modes: None,
-                allowed_permissions: None,
-                remote_sandbox_config: None,
-                allowed_web_search_modes: None,
-                allow_managed_hooks_only: None,
-                computer_use: None,
-                feature_requirements: None,
-                hooks: None,
-                mcp_servers: None,
-                plugins: None,
-                apps: None,
-                rules: None,
-                enforce_residency: None,
-                network: None,
-                permissions: None,
-                guardian_policy_config: None,
-            }))
-        }),
+        ConfigLoadOptions {
+            loader_overrides,
+            cloud_config_bundle: CloudConfigBundleFixture::loader_with_enterprise_requirement(
+                r#"allowed_approval_policies = ["never"]"#,
+            ),
+            ..Default::default()
+        },
         &codex_config::NoopThreadConfigLoader,
     )
     .await?;
 
     assert_eq!(
         state.requirements().approval_policy.value(),
-        AskForApproval::Never
+        AskForApproval::OnRequest
     );
     assert_eq!(
         state
             .requirements()
             .approval_policy
-            .can_set(&AskForApproval::OnRequest),
+            .can_set(&AskForApproval::Never),
         Err(ConstraintError::InvalidValue {
             field_name: "approval_policy",
-            candidate: "OnRequest".into(),
-            allowed: "[Never]".into(),
-            requirement_source: RequirementSource::CloudRequirements,
+            candidate: "Never".into(),
+            allowed: "[OnRequest]".into(),
+            requirement_source: RequirementSource::MdmManagedPreferences {
+                domain: "com.openai.codex".to_string(),
+                key: "requirements_toml_base64".to_string(),
+            },
         })
     );
 
@@ -1139,7 +1129,7 @@ allowed_approval_policies = ["on-request"]
 }
 
 #[tokio::test(flavor = "current_thread")]
-async fn cloud_requirements_are_not_overwritten_by_system_requirements() -> anyhow::Result<()> {
+async fn cloud_config_bundle_are_not_overwritten_by_system_requirements() -> anyhow::Result<()> {
     let tmp = tempdir()?;
     let requirements_file = tmp.path().join("requirements.toml");
     tokio::fs::write(
@@ -1150,36 +1140,20 @@ allowed_approval_policies = ["on-request"]
     )
     .await?;
 
-    let mut config_requirements_toml = ConfigRequirementsWithSources::default();
-    config_requirements_toml.merge_unset_fields(
-        RequirementSource::CloudRequirements,
-        ConfigRequirementsToml {
-            allowed_approval_policies: Some(vec![AskForApproval::Never]),
-            allowed_approvals_reviewers: None,
-            allowed_sandbox_modes: None,
-            allowed_permissions: None,
-            remote_sandbox_config: None,
-            allowed_web_search_modes: None,
-            allow_managed_hooks_only: None,
-            computer_use: None,
-            feature_requirements: None,
-            hooks: None,
-            mcp_servers: None,
-            plugins: None,
-            apps: None,
-            rules: None,
-            enforce_residency: None,
-            network: None,
-            permissions: None,
-            guardian_policy_config: None,
-        },
-    );
-    load_requirements_toml(
+    let system_layer = load_requirements_toml(
         LOCAL_FS.as_ref(),
-        &mut config_requirements_toml,
         &AbsolutePathBuf::try_from(requirements_file)?,
     )
-    .await?;
+    .await?
+    .expect("system requirements should load");
+    let config_requirements_toml = compose_requirements(vec![
+        system_layer,
+        RequirementsLayerEntry::from_toml(
+            cloud_config_bundle_requirement_source(),
+            r#"allowed_approval_policies = ["never"]"#,
+        ),
+    ])?
+    .expect("requirements should be present");
 
     assert_eq!(
         config_requirements_toml
@@ -1193,7 +1167,7 @@ allowed_approval_policies = ["on-request"]
             .allowed_approval_policies
             .as_ref()
             .map(|sourced| sourced.source.clone()),
-        Some(RequirementSource::CloudRequirements)
+        Some(cloud_config_bundle_requirement_source())
     );
 
     Ok(())
@@ -1213,22 +1187,21 @@ allowed_sandbox_modes = ["read-only", "workspace-write"]
     )
     .await?;
 
-    let cloud_source = RequirementSource::CloudRequirements;
-    let mut config_requirements_toml = ConfigRequirementsWithSources::default();
-    config_requirements_toml.merge_unset_fields(
-        cloud_source.clone(),
-        toml::from_str(
-            r#"
-allowed_sandbox_modes = ["read-only"]
-"#,
-        )?,
-    );
-    load_requirements_toml(
+    let cloud_source = cloud_config_bundle_requirement_source();
+    let system_layer = load_requirements_toml(
         LOCAL_FS.as_ref(),
-        &mut config_requirements_toml,
         &AbsolutePathBuf::try_from(requirements_file)?,
     )
-    .await?;
+    .await?
+    .expect("system requirements should load");
+    let config_requirements_toml = compose_requirements(vec![
+        system_layer,
+        RequirementsLayerEntry::from_toml(
+            cloud_source.clone(),
+            r#"allowed_sandbox_modes = ["read-only"]"#,
+        ),
+    ])?
+    .expect("requirements should be present");
     let config_requirements: ConfigRequirements = config_requirements_toml.try_into()?;
 
     assert_eq!(
@@ -1262,13 +1235,7 @@ deny_read = ["./sensitive", "../shared/secret.txt"]
     .await?;
 
     let requirements_file = AbsolutePathBuf::try_from(requirements_file)?;
-    let mut config_requirements_toml = ConfigRequirementsWithSources::default();
-    load_requirements_toml(
-        LOCAL_FS.as_ref(),
-        &mut config_requirements_toml,
-        &requirements_file,
-    )
-    .await?;
+    let config_requirements_toml = load_single_requirements_toml(&requirements_file).await?;
 
     let permissions = config_requirements_toml
         .permissions
@@ -1316,13 +1283,7 @@ deny_read = ["./sensitive/**/*.txt"]
     .await?;
 
     let requirements_file = AbsolutePathBuf::try_from(requirements_file)?;
-    let mut config_requirements_toml = ConfigRequirementsWithSources::default();
-    load_requirements_toml(
-        LOCAL_FS.as_ref(),
-        &mut config_requirements_toml,
-        &requirements_file,
-    )
-    .await?;
+    let config_requirements_toml = load_single_requirements_toml(&requirements_file).await?;
 
     let permissions = config_requirements_toml
         .permissions
@@ -1356,42 +1317,26 @@ deny_read = ["./sensitive/**/*.txt"]
 }
 
 #[tokio::test]
-async fn load_config_layers_includes_cloud_requirements() -> anyhow::Result<()> {
+async fn load_config_layers_includes_cloud_config_bundle() -> anyhow::Result<()> {
     let tmp = tempdir()?;
     let codex_home = tmp.path().join("home");
     tokio::fs::create_dir_all(&codex_home).await?;
     let cwd = AbsolutePathBuf::from_absolute_path(tmp.path())?;
 
-    let requirements = ConfigRequirementsToml {
-        allowed_approval_policies: Some(vec![AskForApproval::Never]),
-        allowed_approvals_reviewers: None,
-        allowed_sandbox_modes: None,
-        allowed_permissions: None,
-        remote_sandbox_config: None,
-        allowed_web_search_modes: None,
-        allow_managed_hooks_only: None,
-        computer_use: None,
-        feature_requirements: None,
-        hooks: None,
-        mcp_servers: None,
-        plugins: None,
-        apps: None,
-        rules: None,
-        enforce_residency: None,
-        network: None,
-        permissions: None,
-        guardian_policy_config: None,
-    };
-    let expected = requirements.clone();
-    let cloud_requirements = CloudRequirementsLoader::new(async move { Ok(Some(requirements)) });
+    let requirements = r#"allowed_approval_policies = ["never"]"#;
+    let expected: ConfigRequirementsToml = toml::from_str(requirements)?;
+    let cloud_config_bundle =
+        CloudConfigBundleFixture::loader_with_enterprise_requirement(requirements);
 
     let layers = load_config_layers_state(
         LOCAL_FS.as_ref(),
         &codex_home,
         Some(cwd),
         &[] as &[(String, TomlValue)],
-        LoaderOverrides::default(),
-        cloud_requirements,
+        ConfigLoadOptions {
+            cloud_config_bundle,
+            ..Default::default()
+        },
         &codex_config::NoopThreadConfigLoader,
     )
     .await?;
@@ -1409,7 +1354,7 @@ async fn load_config_layers_includes_cloud_requirements() -> anyhow::Result<()> 
             field_name: "approval_policy",
             candidate: "OnRequest".into(),
             allowed: "[Never]".into(),
-            requirement_source: RequirementSource::CloudRequirements,
+            requirement_source: cloud_config_bundle_requirement_source(),
         })
     );
 
@@ -1432,7 +1377,10 @@ default_permissions = "managed-standard"
     tokio::fs::write(
         &requirements_path,
         r#"
-allowed_permissions = ["managed-standard"]
+default_permissions = "managed-standard"
+
+[allowed_permission_profiles]
+managed-standard = true
 
 [permissions.managed-standard]
 extends = ":workspace"
@@ -1454,8 +1402,8 @@ extends = ":workspace"
         config
             .config_layer_stack
             .requirements_toml()
-            .allowed_permissions,
-        Some(vec!["managed-standard".to_string()])
+            .allowed_permission_profiles,
+        Some(BTreeMap::from([("managed-standard".to_string(), true)]))
     );
     assert_eq!(
         config
@@ -1468,26 +1416,9 @@ extends = ":workspace"
 }
 
 #[tokio::test]
-async fn system_allowed_permissions_keep_builtin_permission_fallbacks() -> anyhow::Result<()> {
-    for (trust_level, expected_profile) in [
-        (
-            Some(TrustLevel::Trusted),
-            if cfg!(target_os = "windows") {
-                BUILT_IN_PERMISSION_PROFILE_READ_ONLY
-            } else {
-                BUILT_IN_PERMISSION_PROFILE_WORKSPACE
-            },
-        ),
-        (
-            Some(TrustLevel::Untrusted),
-            if cfg!(target_os = "windows") {
-                BUILT_IN_PERMISSION_PROFILE_READ_ONLY
-            } else {
-                BUILT_IN_PERMISSION_PROFILE_WORKSPACE
-            },
-        ),
-        (None, BUILT_IN_PERMISSION_PROFILE_READ_ONLY),
-    ] {
+async fn system_allowed_permission_profiles_select_managed_default_without_local_default()
+-> anyhow::Result<()> {
+    for trust_level in [Some(TrustLevel::Trusted), Some(TrustLevel::Untrusted), None] {
         let tmp = tempdir()?;
         let codex_home = tmp.path().join("home");
         tokio::fs::create_dir_all(&codex_home).await?;
@@ -1504,10 +1435,17 @@ async fn system_allowed_permissions_keep_builtin_permission_fallbacks() -> anyho
         tokio::fs::write(
             &requirements_path,
             r#"
-allowed_permissions = ["managed-standard"]
+default_permissions = "managed-standard"
+
+[allowed_permission_profiles]
+managed-build = true
+managed-standard = true
 
 [permissions.managed-standard.filesystem]
 ":workspace_roots" = "read"
+
+[permissions.managed-build]
+extends = ":workspace"
 "#,
         )
         .await?;
@@ -1527,30 +1465,189 @@ allowed_permissions = ["managed-standard"]
                 .permissions
                 .active_permission_profile()
                 .map(|profile| profile.id),
-            Some(expected_profile.to_string()),
+            Some("managed-standard".to_string()),
             "trust level {trust_level:?}",
+        );
+        assert!(
+            !config.startup_warnings.iter().any(|warning| warning
+                .contains("Configured value for `permission_profile` is disallowed")),
+            "{:?}",
+            config.startup_warnings
         );
     }
     Ok(())
 }
 
 #[tokio::test]
-async fn system_allowed_permissions_keep_explicit_builtin_defaults() -> anyhow::Result<()> {
+async fn system_allowed_permission_profiles_require_managed_default() -> anyhow::Result<()> {
+    let tmp = tempdir()?;
+    let codex_home = tmp.path().join("home");
+    tokio::fs::create_dir_all(&codex_home).await?;
+    let requirements_path = tmp.path().join("requirements.toml");
+    tokio::fs::write(
+        &requirements_path,
+        r#"
+[permissions.managed-standard]
+extends = ":read-only"
+
+[allowed_permission_profiles]
+managed-standard = true
+"#,
+    )
+    .await?;
+
+    let mut overrides = LoaderOverrides::without_managed_config_for_tests();
+    overrides.system_requirements_path = Some(requirements_path);
+    let err = ConfigBuilder::default()
+        .codex_home(codex_home)
+        .fallback_cwd(Some(tmp.path().to_path_buf()))
+        .loader_overrides(overrides)
+        .build()
+        .await
+        .expect_err("allowed_permission_profiles without default_permissions should fail");
+
+    assert!(
+        err.to_string().contains(
+            "default_permissions must be set unless allowed_permission_profiles allows both"
+        ),
+        "{err}"
+    );
+    Ok(())
+}
+
+#[tokio::test]
+async fn system_allowed_permission_profiles_standard_pair_defaults_to_workspace()
+-> anyhow::Result<()> {
+    let tmp = tempdir()?;
+    let codex_home = tmp.path().join("home");
+    tokio::fs::create_dir_all(&codex_home).await?;
+    let requirements_path = tmp.path().join("requirements.toml");
+    tokio::fs::write(
+        &requirements_path,
+        r#"
+[allowed_permission_profiles]
+":read-only" = true
+":workspace" = true
+"#,
+    )
+    .await?;
+
+    let mut overrides = LoaderOverrides::without_managed_config_for_tests();
+    overrides.system_requirements_path = Some(requirements_path);
+    let config = ConfigBuilder::default()
+        .codex_home(codex_home)
+        .fallback_cwd(Some(tmp.path().to_path_buf()))
+        .loader_overrides(overrides)
+        .build()
+        .await?;
+
+    assert_eq!(
+        config
+            .permissions
+            .active_permission_profile()
+            .map(|profile| profile.id),
+        Some(BUILT_IN_PERMISSION_PROFILE_WORKSPACE.to_string())
+    );
+    Ok(())
+}
+
+#[tokio::test]
+async fn system_managed_default_must_be_allowed() -> anyhow::Result<()> {
+    let tmp = tempdir()?;
+    let codex_home = tmp.path().join("home");
+    tokio::fs::create_dir_all(&codex_home).await?;
+    let requirements_path = tmp.path().join("requirements.toml");
+    tokio::fs::write(
+        &requirements_path,
+        r#"
+default_permissions = "managed-build"
+
+[allowed_permission_profiles]
+managed-standard = true
+
+[permissions.managed-standard]
+extends = ":read-only"
+
+[permissions.managed-build]
+extends = ":workspace"
+"#,
+    )
+    .await?;
+
+    let mut overrides = LoaderOverrides::without_managed_config_for_tests();
+    overrides.system_requirements_path = Some(requirements_path);
+    let err = ConfigBuilder::default()
+        .codex_home(codex_home)
+        .fallback_cwd(Some(tmp.path().to_path_buf()))
+        .loader_overrides(overrides)
+        .build()
+        .await
+        .expect_err("managed default outside allowed_permission_profiles should fail");
+
+    assert!(
+        err.to_string().contains(
+            "default_permissions `managed-build` must be allowed by allowed_permission_profiles"
+        ),
+        "{err}"
+    );
+    Ok(())
+}
+
+#[tokio::test]
+async fn system_managed_default_requires_allowed_permission_profiles() -> anyhow::Result<()> {
+    let tmp = tempdir()?;
+    let codex_home = tmp.path().join("home");
+    tokio::fs::create_dir_all(&codex_home).await?;
+    let requirements_path = tmp.path().join("requirements.toml");
+    tokio::fs::write(
+        &requirements_path,
+        r#"
+default_permissions = ":read-only"
+"#,
+    )
+    .await?;
+
+    let mut overrides = LoaderOverrides::without_managed_config_for_tests();
+    overrides.system_requirements_path = Some(requirements_path);
+    let err = ConfigBuilder::default()
+        .codex_home(codex_home)
+        .fallback_cwd(Some(tmp.path().to_path_buf()))
+        .loader_overrides(overrides)
+        .build()
+        .await
+        .expect_err("managed default without allowed_permission_profiles should fail");
+
+    assert!(
+        err.to_string()
+            .contains("default_permissions requires allowed_permission_profiles"),
+        "{err}"
+    );
+    Ok(())
+}
+
+#[tokio::test]
+async fn system_allowed_permission_profiles_fall_back_from_disallowed_danger_full_access()
+-> anyhow::Result<()> {
     let tmp = tempdir()?;
     let codex_home = tmp.path().join("home");
     tokio::fs::create_dir_all(&codex_home).await?;
     tokio::fs::write(
         codex_home.join(CONFIG_TOML_FILE),
-        r#"
-default_permissions = ":workspace"
-"#,
+        format!(
+            r#"
+default_permissions = "{BUILT_IN_PERMISSION_PROFILE_DANGER_FULL_ACCESS}"
+"#
+        ),
     )
     .await?;
     let requirements_path = tmp.path().join("requirements.toml");
     tokio::fs::write(
         &requirements_path,
         r#"
-allowed_permissions = ["managed-standard"]
+default_permissions = "managed-standard"
+
+[allowed_permission_profiles]
+managed-standard = true
 
 [permissions.managed-standard.filesystem]
 ":workspace_roots" = "read"
@@ -1573,7 +1670,135 @@ allowed_permissions = ["managed-standard"]
             .permissions
             .active_permission_profile()
             .map(|profile| profile.id),
-        Some(BUILT_IN_PERMISSION_PROFILE_WORKSPACE.to_string())
+        Some("managed-standard".to_string())
+    );
+    assert!(
+        config.startup_warnings.iter().any(|warning| warning
+            .contains("Configured value for `permission_profile` is disallowed by requirements")),
+        "{:?}",
+        config.startup_warnings
+    );
+    Ok(())
+}
+
+#[tokio::test]
+async fn system_allowed_permission_profiles_fall_back_from_disallowed_workspace()
+-> anyhow::Result<()> {
+    let tmp = tempdir()?;
+    let codex_home = tmp.path().join("home");
+    tokio::fs::create_dir_all(&codex_home).await?;
+    tokio::fs::write(
+        codex_home.join(CONFIG_TOML_FILE),
+        r#"
+default_permissions = ":workspace"
+"#,
+    )
+    .await?;
+    let requirements_path = tmp.path().join("requirements.toml");
+    tokio::fs::write(
+        &requirements_path,
+        r#"
+default_permissions = "managed-standard"
+
+[allowed_permission_profiles]
+managed-standard = true
+
+[permissions.managed-standard.filesystem]
+":workspace_roots" = "read"
+"#,
+    )
+    .await?;
+
+    let cwd = AbsolutePathBuf::from_absolute_path(tmp.path())?;
+    let mut overrides = LoaderOverrides::without_managed_config_for_tests();
+    overrides.system_requirements_path = Some(requirements_path);
+    let config = ConfigBuilder::default()
+        .codex_home(codex_home)
+        .fallback_cwd(Some(cwd.to_path_buf()))
+        .loader_overrides(overrides)
+        .build()
+        .await?;
+
+    assert_eq!(
+        config
+            .permissions
+            .active_permission_profile()
+            .map(|profile| profile.id),
+        Some("managed-standard".to_string())
+    );
+    assert!(
+        config.startup_warnings.iter().any(|warning| warning
+            .contains("Configured value for `permission_profile` is disallowed by requirements")),
+        "{:?}",
+        config.startup_warnings
+    );
+    Ok(())
+}
+
+#[tokio::test]
+async fn permission_profile_catalog_marks_profiles_disallowed_by_requirements() -> anyhow::Result<()>
+{
+    let tmp = tempdir()?;
+    let codex_home = tmp.path().join("home");
+    tokio::fs::create_dir_all(&codex_home).await?;
+    let requirements_path = tmp.path().join("requirements.toml");
+    tokio::fs::write(
+        &requirements_path,
+        r#"
+allowed_sandbox_modes = ["read-only", "workspace-write"]
+default_permissions = "managed-standard"
+
+[allowed_permission_profiles]
+managed-standard = true
+
+[permissions.managed-standard]
+extends = ":workspace"
+
+[permissions.managed-disabled]
+extends = ":workspace"
+"#,
+    )
+    .await?;
+
+    let cwd = AbsolutePathBuf::from_absolute_path(tmp.path())?;
+    let mut overrides = LoaderOverrides::without_managed_config_for_tests();
+    overrides.system_requirements_path = Some(requirements_path);
+    let config = ConfigBuilder::default()
+        .codex_home(codex_home)
+        .fallback_cwd(Some(cwd.to_path_buf()))
+        .loader_overrides(overrides)
+        .build()
+        .await?;
+
+    assert_eq!(
+        permission_profile_catalog(&config.config_layer_stack)?,
+        vec![
+            PermissionProfileCatalogEntry {
+                id: ":read-only".to_string(),
+                description: None,
+                allowed: false,
+            },
+            PermissionProfileCatalogEntry {
+                id: ":workspace".to_string(),
+                description: None,
+                allowed: false,
+            },
+            PermissionProfileCatalogEntry {
+                id: ":danger-full-access".to_string(),
+                description: None,
+                allowed: false,
+            },
+            PermissionProfileCatalogEntry {
+                id: "managed-disabled".to_string(),
+                description: None,
+                allowed: false,
+            },
+            PermissionProfileCatalogEntry {
+                id: "managed-standard".to_string(),
+                description: None,
+                allowed: true,
+            },
+        ]
     );
     Ok(())
 }
@@ -1595,7 +1820,11 @@ default_permissions = "managed-build"
     tokio::fs::write(
         &requirements_path,
         r#"
-allowed_permissions = ["managed-standard", "managed-build"]
+default_permissions = "managed-standard"
+
+[allowed_permission_profiles]
+managed-build = true
+managed-standard = true
 
 [permissions.managed-standard]
 extends = ":read-only"
@@ -1636,7 +1865,10 @@ async fn system_requirements_warn_for_disallowed_explicit_permission_override() 
     tokio::fs::write(
         &requirements_path,
         r#"
-allowed_permissions = ["managed-standard"]
+default_permissions = "managed-standard"
+
+[allowed_permission_profiles]
+managed-standard = true
 
 [permissions.managed-standard]
 extends = ":workspace"
@@ -1675,6 +1907,88 @@ extends = ":workspace"
 }
 
 #[tokio::test]
+async fn load_config_layers_inserts_cloud_config_between_system_and_user() -> anyhow::Result<()> {
+    let tmp = tempdir()?;
+    let codex_home = tmp.path().join("home");
+    tokio::fs::create_dir_all(&codex_home).await?;
+    tokio::fs::write(
+        codex_home.join(CONFIG_TOML_FILE),
+        r#"model = "user"
+"#,
+    )
+    .await?;
+
+    let system_config_path = tmp.path().join("system_config.toml");
+    tokio::fs::write(
+        &system_config_path,
+        r#"model = "system"
+model_provider = "system-provider"
+review_model = "system-review"
+"#,
+    )
+    .await?;
+
+    let mut overrides = LoaderOverrides::without_managed_config_for_tests();
+    overrides.system_config_path = Some(system_config_path.clone());
+
+    let cwd = AbsolutePathBuf::from_absolute_path(tmp.path())?;
+    let layers = load_config_layers_state(
+        LOCAL_FS.as_ref(),
+        &codex_home,
+        Some(cwd),
+        &[] as &[(String, TomlValue)],
+        ConfigLoadOptions {
+            loader_overrides: overrides,
+            cloud_config_bundle: CloudConfigBundleFixture::loader_with_enterprise_config(
+                r#"model = "cloud"
+model_provider = "cloud-provider"
+"#,
+            ),
+            ..Default::default()
+        },
+        &codex_config::NoopThreadConfigLoader,
+    )
+    .await?;
+
+    let merged = layers.effective_config();
+    let table = merged.as_table().expect("merged config should be a table");
+    assert_eq!(table.get("model"), Some(&TomlValue::String("user".into())));
+    assert_eq!(
+        table.get("model_provider"),
+        Some(&TomlValue::String("cloud-provider".into()))
+    );
+    assert_eq!(
+        table.get("review_model"),
+        Some(&TomlValue::String("system-review".into()))
+    );
+    assert_eq!(
+        layers
+            .get_layers(
+                ConfigLayerStackOrdering::LowestPrecedenceFirst,
+                /*include_disabled*/ false,
+            )
+            .iter()
+            .map(|layer| layer.name.clone())
+            .collect::<Vec<_>>(),
+        vec![
+            ConfigLayerSource::System {
+                file: AbsolutePathBuf::from_absolute_path(&system_config_path)?,
+            },
+            ConfigLayerSource::EnterpriseManaged {
+                id: "cfg_1".to_string(),
+                name: "Base config".to_string(),
+            },
+            ConfigLayerSource::User {
+                file: AbsolutePathBuf::from_absolute_path(codex_home.join(CONFIG_TOML_FILE))?,
+                profile: None,
+            },
+        ]
+    );
+
+    Ok(())
+}
+
+#[tokio::test]
 async fn load_config_layers_can_ignore_managed_requirements() -> anyhow::Result<()> {
     let tmp = tempdir()?;
     let codex_home = tmp.path().join("home");
@@ -1700,18 +2014,15 @@ async fn load_config_layers_can_ignore_managed_requirements() -> anyhow::Result<
     overrides.system_requirements_path = Some(system_requirements_path);
     overrides.ignore_managed_requirements = true;
 
-    let cloud_requirements = CloudRequirementsLoader::new(async {
-        Ok(Some(ConfigRequirementsToml {
-            allowed_approval_policies: Some(vec![AskForApproval::Never]),
-            ..Default::default()
-        }))
-    });
+    let cloud_config_bundle = CloudConfigBundleFixture::loader_with_enterprise_requirement(
+        r#"allowed_approval_policies = ["never"]"#,
+    );
 
     let mut config = ConfigBuilder::default()
         .codex_home(codex_home)
         .fallback_cwd(Some(cwd.to_path_buf()))
         .loader_overrides(overrides)
-        .cloud_requirements(cloud_requirements)
+        .cloud_config_bundle(cloud_config_bundle)
         .build()
         .await?;
 
@@ -1741,36 +2052,36 @@ async fn load_config_layers_includes_cloud_hook_requirements() -> anyhow::Result
     tokio::fs::create_dir_all(&managed_dir).await?;
     let cwd = AbsolutePathBuf::from_absolute_path(tmp.path())?;
 
-    let requirements = ConfigRequirementsToml {
-        hooks: Some(codex_config::ManagedHooksRequirementsToml {
-            managed_dir: Some(managed_dir.clone()),
-            windows_managed_dir: None,
-            hooks: codex_config::HookEventsToml {
-                pre_tool_use: vec![codex_config::MatcherGroup {
-                    matcher: Some("^Bash$".to_string()),
-                    hooks: vec![codex_config::HookHandlerConfig::Command {
-                        command: format!("python3 {}/pre.py", managed_dir.display()),
-                        command_windows: None,
-                        timeout_sec: Some(10),
-                        r#async: false,
-                        status_message: Some("checking".to_string()),
-                    }],
-                }],
-                ..Default::default()
-            },
-        }),
-        ..ConfigRequirementsToml::default()
-    };
-    let expected = requirements.clone();
-    let cloud_requirements = CloudRequirementsLoader::new(async move { Ok(Some(requirements)) });
+    let requirements = format!(
+        r#"
+[hooks]
+managed_dir = '{}'
+
+[[hooks.PreToolUse]]
+matcher = "^Bash$"
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = 'python3 {}/pre.py'
+timeout = 10
+statusMessage = "checking"
+"#,
+        managed_dir.display(),
+        managed_dir.display()
+    );
+    let expected: ConfigRequirementsToml = toml::from_str(&requirements)?;
+    let cloud_config_bundle =
+        CloudConfigBundleFixture::loader_with_enterprise_requirement(requirements);
 
     let layers = load_config_layers_state(
         LOCAL_FS.as_ref(),
         &codex_home,
         Some(cwd),
         &[] as &[(String, TomlValue)],
-        LoaderOverrides::default(),
-        cloud_requirements,
+        ConfigLoadOptions {
+            cloud_config_bundle,
+            ..Default::default()
+        },
         &codex_config::NoopThreadConfigLoader,
     )
     .await?;
@@ -1782,10 +2093,92 @@ async fn load_config_layers_includes_cloud_hook_requirements() -> anyhow::Result
             .managed_hooks
             .as_ref()
             .map(|hooks| hooks.source.clone()),
-        Some(Some(RequirementSource::CloudRequirements))
+        Some(Some(cloud_config_bundle_requirement_source()))
     );
 
     Ok(())
+}
+
+#[tokio::test]
+async fn load_config_layers_resolves_relative_bundle_requirements_paths_against_codex_home()
+-> anyhow::Result<()> {
+    let tmp = tempdir()?;
+    let codex_home = tmp.path().join("home");
+    tokio::fs::create_dir_all(&codex_home).await?;
+    let cwd = AbsolutePathBuf::from_absolute_path(tmp.path())?;
+
+    let requirements = r#"
+[permissions.filesystem]
+deny_read = ["secrets/**"]
+"#;
+    let cloud_config_bundle =
+        CloudConfigBundleFixture::loader_with_enterprise_requirement(requirements);
+
+    let layers = load_config_layers_state(
+        LOCAL_FS.as_ref(),
+        &codex_home,
+        Some(cwd),
+        &[] as &[(String, TomlValue)],
+        ConfigLoadOptions {
+            loader_overrides: LoaderOverrides::without_managed_config_for_tests(),
+            cloud_config_bundle,
+            ..Default::default()
+        },
+        &codex_config::NoopThreadConfigLoader,
+    )
+    .await?;
+
+    let permissions = layers
+        .requirements_toml()
+        .permissions
+        .clone()
+        .expect("permissions requirements should load");
+    let filesystem = permissions
+        .filesystem
+        .expect("filesystem requirements should load");
+
+    assert_eq!(
+        filesystem.deny_read,
+        Some(vec![
+            FilesystemDenyReadPattern::from_input(&format!("{}/secrets/**", codex_home.display()))
+                .expect("bundle requirements path should resolve against codex_home")
+        ])
+    );
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn strict_config_rejects_unknown_cloud_config_key() {
+    let tmp = tempdir().expect("tempdir");
+    let codex_home = tmp.path().join("home");
+    tokio::fs::create_dir_all(&codex_home)
+        .await
+        .expect("create codex home");
+    let cwd = AbsolutePathBuf::from_absolute_path(tmp.path()).expect("cwd");
+
+    let err = load_config_layers_state(
+        LOCAL_FS.as_ref(),
+        &codex_home,
+        Some(cwd),
+        &[] as &[(String, TomlValue)],
+        ConfigLoadOptions {
+            loader_overrides: LoaderOverrides::without_managed_config_for_tests(),
+            strict_config: true,
+            cloud_config_bundle: CloudConfigBundleFixture::loader_with_enterprise_config(
+                "unknown_key = true",
+            ),
+        },
+        &codex_config::NoopThreadConfigLoader,
+    )
+    .await
+    .expect_err("strict config should reject unknown cloud config keys");
+
+    assert!(
+        err.to_string()
+            .contains("unknown configuration field `unknown_key`"),
+        "{err:?}"
+    );
 }
 
 #[tokio::test]
@@ -1795,23 +2188,24 @@ async fn load_config_layers_applies_matching_remote_sandbox_config() -> anyhow::
     tokio::fs::create_dir_all(&codex_home).await?;
     let cwd = AbsolutePathBuf::from_absolute_path(tmp.path())?;
 
-    let requirements: ConfigRequirementsToml = toml::from_str(
-        r#"
+    let requirements = r#"
             allowed_sandbox_modes = ["read-only"]
 
             [[remote_sandbox_config]]
             hostname_patterns = ["*"]
             allowed_sandbox_modes = ["read-only", "workspace-write"]
-        "#,
-    )?;
-    let cloud_requirements = CloudRequirementsLoader::new(async move { Ok(Some(requirements)) });
+        "#;
+    let cloud_config_bundle =
+        CloudConfigBundleFixture::loader_with_enterprise_requirement(requirements);
     let layers = load_config_layers_state(
         LOCAL_FS.as_ref(),
         &codex_home,
         Some(cwd),
         &[] as &[(String, TomlValue)],
-        LoaderOverrides::default(),
-        cloud_requirements,
+        ConfigLoadOptions {
+            cloud_config_bundle,
+            ..Default::default()
+        },
         &codex_config::NoopThreadConfigLoader,
     )
     .await?;
@@ -1835,7 +2229,7 @@ async fn load_config_layers_applies_matching_remote_sandbox_config() -> anyhow::
 }
 
 #[tokio::test]
-async fn load_config_layers_fails_when_cloud_requirements_loader_fails() -> anyhow::Result<()> {
+async fn load_config_layers_fails_when_cloud_config_bundle_loader_fails() -> anyhow::Result<()> {
     let tmp = tempdir()?;
     let codex_home = tmp.path().join("home");
     tokio::fs::create_dir_all(&codex_home).await?;
@@ -1846,21 +2240,23 @@ async fn load_config_layers_fails_when_cloud_requirements_loader_fails() -> anyh
         &codex_home,
         Some(cwd),
         &[] as &[(String, TomlValue)],
-        LoaderOverrides::default(),
-        CloudRequirementsLoader::new(async {
-            Err(CloudRequirementsLoadError::new(
-                codex_config::CloudRequirementsLoadErrorCode::RequestFailed,
-                /*status_code*/ None,
-                "cloud requirements failed",
-            ))
-        }),
+        ConfigLoadOptions {
+            cloud_config_bundle: CloudConfigBundleLoader::new(async {
+                Err(CloudConfigBundleLoadError::new(
+                    codex_config::CloudConfigBundleLoadErrorCode::RequestFailed,
+                    /*status_code*/ None,
+                    "cloud config bundle failed",
+                ))
+            }),
+            ..Default::default()
+        },
         &codex_config::NoopThreadConfigLoader,
     )
     .await
-    .expect_err("cloud requirements failure should fail closed");
+    .expect_err("cloud config bundle failure should fail closed");
 
     assert_eq!(err.kind(), std::io::ErrorKind::Other);
-    assert!(err.to_string().contains("cloud requirements failed"));
+    assert!(err.to_string().contains("cloud config bundle failed"));
 
     Ok(())
 }
@@ -1903,7 +2299,6 @@ async fn project_layers_prefer_closest_cwd() -> std::io::Result<()> {
         Some(cwd),
         &[] as &[(String, TomlValue)],
         LoaderOverrides::default(),
-        CloudRequirementsLoader::default(),
         &codex_config::NoopThreadConfigLoader,
     )
     .await?;
@@ -1986,7 +2381,6 @@ async fn linked_worktree_project_layers_keep_worktree_config_but_use_root_repo_h
         Some(cwd),
         &[] as &[(String, TomlValue)],
         LoaderOverrides::default(),
-        CloudRequirementsLoader::default(),
         &codex_config::NoopThreadConfigLoader,
     )
     .await?;
@@ -2068,7 +2462,6 @@ async fn linked_worktree_project_layers_use_root_repo_hooks_without_worktree_con
         Some(cwd),
         &[] as &[(String, TomlValue)],
         LoaderOverrides::default(),
-        CloudRequirementsLoader::default(),
         &codex_config::NoopThreadConfigLoader,
     )
     .await?;
@@ -2139,7 +2532,6 @@ async fn nested_project_root_markers_do_not_redirect_regular_repo_hooks() -> std
         Some(cwd),
         &[] as &[(String, TomlValue)],
         LoaderOverrides::default(),
-        CloudRequirementsLoader::default(),
         &codex_config::NoopThreadConfigLoader,
     )
     .await?;
@@ -2327,7 +2719,6 @@ async fn project_layer_is_added_when_dot_codex_exists_without_config_toml() -> s
         Some(cwd),
         &[] as &[(String, TomlValue)],
         LoaderOverrides::default(),
-        CloudRequirementsLoader::default(),
         &codex_config::NoopThreadConfigLoader,
     )
     .await?;
@@ -2368,7 +2759,6 @@ async fn codex_home_is_not_loaded_as_project_layer_from_home_dir() -> std::io::R
         Some(cwd),
         &[] as &[(String, TomlValue)],
         LoaderOverrides::default(),
-        CloudRequirementsLoader::default(),
         &codex_config::NoopThreadConfigLoader,
     )
     .await?;
@@ -2434,7 +2824,6 @@ async fn codex_home_within_project_tree_is_not_double_loaded() -> std::io::Resul
         Some(cwd),
         &[] as &[(String, TomlValue)],
         LoaderOverrides::default(),
-        CloudRequirementsLoader::default(),
         &codex_config::NoopThreadConfigLoader,
     )
     .await?;
@@ -2510,7 +2899,6 @@ profile = "ignored"
         Some(cwd.clone()),
         &[] as &[(String, TomlValue)],
         LoaderOverrides::default(),
-        CloudRequirementsLoader::default(),
         &codex_config::NoopThreadConfigLoader,
     )
     .await?;
@@ -2557,7 +2945,6 @@ profile = "ignored"
         Some(cwd),
         &[] as &[(String, TomlValue)],
         LoaderOverrides::default(),
-        CloudRequirementsLoader::default(),
         &codex_config::NoopThreadConfigLoader,
     )
     .await?;
@@ -2614,6 +3001,9 @@ notify = ["sh", "-c", "echo attacker"]
 profile = "attacker"
 experimental_realtime_ws_base_url = "wss://attacker.example/realtime"
 
+[features]
+respect_system_proxy = true
+
 [otel]
 environment = "attacker"
 
@@ -2646,7 +3036,6 @@ wire_api = "responses"
         Some(cwd),
         &[] as &[(String, TomlValue)],
         LoaderOverrides::default(),
-        CloudRequirementsLoader::default(),
         &codex_config::NoopThreadConfigLoader,
     )
     .await?;
@@ -2668,6 +3057,7 @@ wire_api = "responses"
         "profiles",
         "experimental_realtime_ws_base_url",
         "otel",
+        "features.respect_system_proxy",
     ];
     let expected_startup_warnings = vec![format!(
         concat!(
@@ -2748,7 +3138,6 @@ async fn project_trust_does_not_match_configured_alias_for_canonical_cwd() -> st
         Some(AbsolutePathBuf::from_absolute_path(&project_root)?),
         &[] as &[(String, TomlValue)],
         LoaderOverrides::default(),
-        CloudRequirementsLoader::default(),
         &codex_config::NoopThreadConfigLoader,
     )
     .await?;
@@ -2914,7 +3303,6 @@ async fn invalid_project_config_ignored_when_untrusted_or_unknown() -> std::io::
             Some(cwd.clone()),
             &[] as &[(String, TomlValue)],
             LoaderOverrides::default(),
-            CloudRequirementsLoader::default(),
             &codex_config::NoopThreadConfigLoader,
         )
         .await?;
@@ -2983,7 +3371,6 @@ async fn project_layer_without_config_toml_is_disabled_when_untrusted_or_unknown
             Some(cwd.clone()),
             &[] as &[(String, TomlValue)],
             LoaderOverrides::default(),
-            CloudRequirementsLoader::default(),
             &codex_config::NoopThreadConfigLoader,
         )
         .await?;
@@ -3044,7 +3431,6 @@ async fn cli_overrides_with_relative_paths_do_not_break_trust_check() -> std::io
         Some(cwd),
         &cli_overrides,
         LoaderOverrides::default(),
-        CloudRequirementsLoader::default(),
         &codex_config::NoopThreadConfigLoader,
     )
     .await?;
@@ -3090,7 +3476,6 @@ async fn project_root_markers_supports_alternate_markers() -> std::io::Result<()
         Some(cwd),
         &[] as &[(String, TomlValue)],
         LoaderOverrides::default(),
-        CloudRequirementsLoader::default(),
         &codex_config::NoopThreadConfigLoader,
     )
     .await?;

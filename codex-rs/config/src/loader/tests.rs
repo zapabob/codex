@@ -1,78 +1,106 @@
 use super::*;
-use async_trait::async_trait;
 use codex_file_system::CopyOptions;
 use codex_file_system::CreateDirectoryOptions;
+use codex_file_system::ExecutorFileSystemFuture;
 use codex_file_system::FileMetadata;
-use codex_file_system::FileSystemResult;
+use codex_file_system::FileSystemReadStream;
 use codex_file_system::FileSystemSandboxContext;
 use codex_file_system::ReadDirectoryEntry;
 use codex_file_system::RemoveOptions;
+use codex_utils_path_uri::PathUri;
 use pretty_assertions::assert_eq;
 use tempfile::tempdir;
 
 struct TestFileSystem;
 
-#[async_trait]
 impl ExecutorFileSystem for TestFileSystem {
-    async fn read_file(
-        &self,
-        path: &AbsolutePathBuf,
-        _sandbox: Option<&FileSystemSandboxContext>,
-    ) -> FileSystemResult<Vec<u8>> {
-        tokio::fs::read(path.as_path()).await
+    fn canonicalize<'a>(
+        &'a self,
+        path: &'a PathUri,
+        _sandbox: Option<&'a FileSystemSandboxContext>,
+    ) -> ExecutorFileSystemFuture<'a, PathUri> {
+        Box::pin(async move {
+            let path = path.to_abs_path()?;
+            let canonicalized = path.canonicalize()?;
+            Ok(PathUri::from_abs_path(&canonicalized))
+        })
     }
 
-    async fn write_file(
-        &self,
-        _path: &AbsolutePathBuf,
+    fn read_file<'a>(
+        &'a self,
+        path: &'a PathUri,
+        _sandbox: Option<&'a FileSystemSandboxContext>,
+    ) -> ExecutorFileSystemFuture<'a, Vec<u8>> {
+        Box::pin(async move {
+            let path = path.to_abs_path()?;
+            tokio::fs::read(path.as_path()).await
+        })
+    }
+
+    fn read_file_stream<'a>(
+        &'a self,
+        _path: &'a PathUri,
+        _sandbox: Option<&'a FileSystemSandboxContext>,
+    ) -> ExecutorFileSystemFuture<'a, FileSystemReadStream> {
+        Box::pin(async {
+            Err(std::io::Error::new(
+                std::io::ErrorKind::Unsupported,
+                "test filesystem does not support streaming reads",
+            ))
+        })
+    }
+
+    fn write_file<'a>(
+        &'a self,
+        _path: &'a PathUri,
         _contents: Vec<u8>,
-        _sandbox: Option<&FileSystemSandboxContext>,
-    ) -> FileSystemResult<()> {
-        unimplemented!("test filesystem only supports reads")
+        _sandbox: Option<&'a FileSystemSandboxContext>,
+    ) -> ExecutorFileSystemFuture<'a, ()> {
+        Box::pin(async move { unimplemented!("test filesystem only supports reads") })
     }
 
-    async fn create_directory(
-        &self,
-        _path: &AbsolutePathBuf,
+    fn create_directory<'a>(
+        &'a self,
+        _path: &'a PathUri,
         _create_directory_options: CreateDirectoryOptions,
-        _sandbox: Option<&FileSystemSandboxContext>,
-    ) -> FileSystemResult<()> {
-        unimplemented!("test filesystem only supports reads")
+        _sandbox: Option<&'a FileSystemSandboxContext>,
+    ) -> ExecutorFileSystemFuture<'a, ()> {
+        Box::pin(async move { unimplemented!("test filesystem only supports reads") })
     }
 
-    async fn get_metadata(
-        &self,
-        _path: &AbsolutePathBuf,
-        _sandbox: Option<&FileSystemSandboxContext>,
-    ) -> FileSystemResult<FileMetadata> {
-        unimplemented!("test filesystem only supports reads")
+    fn get_metadata<'a>(
+        &'a self,
+        _path: &'a PathUri,
+        _sandbox: Option<&'a FileSystemSandboxContext>,
+    ) -> ExecutorFileSystemFuture<'a, FileMetadata> {
+        Box::pin(async move { unimplemented!("test filesystem only supports reads") })
     }
 
-    async fn read_directory(
-        &self,
-        _path: &AbsolutePathBuf,
-        _sandbox: Option<&FileSystemSandboxContext>,
-    ) -> FileSystemResult<Vec<ReadDirectoryEntry>> {
-        unimplemented!("test filesystem only supports reads")
+    fn read_directory<'a>(
+        &'a self,
+        _path: &'a PathUri,
+        _sandbox: Option<&'a FileSystemSandboxContext>,
+    ) -> ExecutorFileSystemFuture<'a, Vec<ReadDirectoryEntry>> {
+        Box::pin(async move { unimplemented!("test filesystem only supports reads") })
     }
 
-    async fn remove(
-        &self,
-        _path: &AbsolutePathBuf,
+    fn remove<'a>(
+        &'a self,
+        _path: &'a PathUri,
         _remove_options: RemoveOptions,
-        _sandbox: Option<&FileSystemSandboxContext>,
-    ) -> FileSystemResult<()> {
-        unimplemented!("test filesystem only supports reads")
+        _sandbox: Option<&'a FileSystemSandboxContext>,
+    ) -> ExecutorFileSystemFuture<'a, ()> {
+        Box::pin(async move { unimplemented!("test filesystem only supports reads") })
     }
 
-    async fn copy(
-        &self,
-        _source_path: &AbsolutePathBuf,
-        _destination_path: &AbsolutePathBuf,
+    fn copy<'a>(
+        &'a self,
+        _source_path: &'a PathUri,
+        _destination_path: &'a PathUri,
         _copy_options: CopyOptions,
-        _sandbox: Option<&FileSystemSandboxContext>,
-    ) -> FileSystemResult<()> {
-        unimplemented!("test filesystem only supports reads")
+        _sandbox: Option<&'a FileSystemSandboxContext>,
+    ) -> ExecutorFileSystemFuture<'a, ()> {
+        Box::pin(async move { unimplemented!("test filesystem only supports reads") })
     }
 }
 
@@ -107,7 +135,6 @@ model = "gpt-work"
         /*cwd*/ None,
         &[],
         overrides,
-        CloudRequirementsLoader::default(),
         &crate::NoopThreadConfigLoader,
     )
     .await
@@ -133,6 +160,60 @@ model = "gpt-work"
     );
     assert!(
         message.contains("https://developers.openai.com/codex/config-advanced#profiles"),
+        "unexpected error message: {message}"
+    );
+}
+
+#[tokio::test]
+async fn profile_v2_rejects_matching_legacy_profile_selector_in_base_user_config() {
+    let tmp = tempdir().expect("tempdir");
+    let selected_config = tmp.path().join("work.config.toml");
+
+    std::fs::write(
+        tmp.path().join(CONFIG_TOML_FILE),
+        r#"
+profile = "work"
+model = "gpt-main"
+"#,
+    )
+    .expect("write default user config");
+    std::fs::write(&selected_config, r#"model = "gpt-work-v2""#)
+        .expect("write selected user config");
+
+    let mut overrides = LoaderOverrides::without_managed_config_for_tests();
+    overrides.user_config_path = Some(AbsolutePathBuf::resolve_path_against_base(
+        "work.config.toml",
+        tmp.path(),
+    ));
+    overrides.user_config_profile = Some("work".parse().expect("profile-v2 name"));
+
+    let err = load_config_layers_state(
+        &TestFileSystem,
+        tmp.path(),
+        /*cwd*/ None,
+        &[],
+        overrides,
+        &crate::NoopThreadConfigLoader,
+    )
+    .await
+    .expect_err("profile-v2 should reject a matching legacy profile selector");
+
+    assert_eq!(
+        err.kind(),
+        io::ErrorKind::InvalidData,
+        "a matching legacy profile selector should be a hard config error"
+    );
+    let message = err.to_string();
+    assert!(
+        message.contains("--profile `work` cannot be used"),
+        "unexpected error message: {message}"
+    );
+    assert!(
+        message.contains("profile = \"work\""),
+        "unexpected error message: {message}"
+    );
+    assert!(
+        message.contains("work.config.toml"),
         "unexpected error message: {message}"
     );
 }
@@ -168,7 +249,6 @@ model = "gpt-dev"
         /*cwd*/ None,
         &[],
         overrides,
-        CloudRequirementsLoader::default(),
         &crate::NoopThreadConfigLoader,
     )
     .await

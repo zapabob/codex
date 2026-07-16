@@ -74,6 +74,12 @@ pub struct BootstrapOptions {
     pub remote_control_enabled: bool,
 }
 
+/// Passively probes an existing app-server socket and returns its reported
+/// app-server version.
+pub async fn probe_app_server_version(socket_path: &Path) -> Result<String> {
+    Ok(client::probe(socket_path).await?.app_server_version)
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum BootstrapStatus {
@@ -537,6 +543,16 @@ impl Daemon {
             } else {
                 None
             };
+            if info.is_some() {
+                match mode {
+                    RemoteControlMode::Enabled => {
+                        remote_control_client::enable_remote_control(&self.socket_path).await?;
+                    }
+                    RemoteControlMode::Disabled => {
+                        remote_control_client::disable_remote_control(&self.socket_path).await?;
+                    }
+                }
+            }
             return Ok(self.remote_control_output(
                 already_remote_control_status(mode),
                 backend.map(|_| BackendKind::Pid),

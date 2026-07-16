@@ -156,7 +156,9 @@ fn expected_plugin_interface() -> PluginInterface {
         composer_icon: None,
         composer_icon_url: None,
         logo: None,
+        logo_dark: None,
         logo_url: None,
+        logo_url_dark: None,
         screenshots: Vec::new(),
         screenshot_urls: Vec::new(),
     }
@@ -323,6 +325,34 @@ fn archive_plugin_for_upload_places_manifest_at_archive_root() {
             .get("skills/example/SKILL.md")
             .map(Vec::as_slice),
         Some(b"# Example\n\nA test skill.\n".as_slice())
+    );
+}
+
+#[test]
+fn archive_plugin_for_upload_round_trips_through_plugin_bundle_archive_with_long_paths() {
+    let temp_dir = TempDir::new().unwrap();
+    let plugin_path = write_test_plugin(temp_dir.path(), "demo-plugin");
+    let long_skill_path = Path::new("skills")
+        .join(["segment"; 40].join("/"))
+        .join("SKILL.md");
+    write_file(&plugin_path.join(&long_skill_path), "# Long path skill\n");
+
+    let archive_bytes = archive_plugin_for_upload(&plugin_path).unwrap();
+    let destination = TempDir::new().unwrap();
+    crate::plugin_bundle_archive::unpack_plugin_bundle_tar_gz(
+        &archive_bytes,
+        destination.path(),
+        /*max_total_bytes*/ 1024 * 1024,
+    )
+    .expect("extract shared plugin archive");
+
+    assert_eq!(
+        fs::read_to_string(destination.path().join(".codex-plugin/plugin.json")).unwrap(),
+        r#"{"name":"demo-plugin"}"#
+    );
+    assert_eq!(
+        fs::read_to_string(destination.path().join(long_skill_path)).unwrap(),
+        "# Long path skill\n"
     );
 }
 

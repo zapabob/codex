@@ -31,6 +31,7 @@ use serde::Serialize;
 
 pub use crate::tui_keymap::KeybindingSpec;
 pub use crate::tui_keymap::KeybindingsSpec;
+pub use crate::tui_keymap::MAX_FUNCTION_KEY;
 pub use crate::tui_keymap::TuiApprovalKeymap;
 pub use crate::tui_keymap::TuiChatKeymap;
 pub use crate::tui_keymap::TuiComposerKeymap;
@@ -110,6 +111,26 @@ pub enum OAuthCredentialsStoreMode {
     File,
     /// Keyring when available, otherwise fail.
     Keyring,
+}
+
+/// Determine how auth credentials should use keyring-backed storage.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum AuthKeyringBackendKind {
+    /// Store the serialized auth payload directly in the OS keyring.
+    Direct,
+    /// Store auth payloads in the local encrypted secrets file, with the file key in the OS keyring.
+    Secrets,
+}
+
+impl Default for AuthKeyringBackendKind {
+    fn default() -> Self {
+        if cfg!(windows) {
+            Self::Secrets
+        } else {
+            Self::Direct
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, JsonSchema)]
@@ -266,6 +287,8 @@ pub struct MemoriesToml {
     pub generate_memories: Option<bool>,
     /// When `false`, skip injecting memory usage instructions into developer prompts.
     pub use_memories: Option<bool>,
+    /// When `true`, expose dedicated memory tools through the extension tool surface.
+    pub dedicated_tools: Option<bool>,
     /// Maximum number of recent raw memories retained for global consolidation.
     #[schemars(range(min = 1, max = 4096))]
     pub max_raw_memories_for_consolidation: Option<usize>,
@@ -293,6 +316,7 @@ pub struct MemoriesConfig {
     pub disable_on_external_context: bool,
     pub generate_memories: bool,
     pub use_memories: bool,
+    pub dedicated_tools: bool,
     pub max_raw_memories_for_consolidation: usize,
     pub max_unused_days: i64,
     pub max_rollout_age_days: i64,
@@ -309,6 +333,7 @@ impl Default for MemoriesConfig {
             disable_on_external_context: false,
             generate_memories: true,
             use_memories: true,
+            dedicated_tools: false,
             max_raw_memories_for_consolidation: DEFAULT_MEMORIES_MAX_RAW_MEMORIES_FOR_CONSOLIDATION,
             max_unused_days: DEFAULT_MEMORIES_MAX_UNUSED_DAYS,
             max_rollout_age_days: DEFAULT_MEMORIES_MAX_ROLLOUT_AGE_DAYS,
@@ -330,6 +355,7 @@ impl From<MemoriesToml> for MemoriesConfig {
                 .unwrap_or(defaults.disable_on_external_context),
             generate_memories: toml.generate_memories.unwrap_or(defaults.generate_memories),
             use_memories: toml.use_memories.unwrap_or(defaults.use_memories),
+            dedicated_tools: toml.dedicated_tools.unwrap_or(defaults.dedicated_tools),
             max_raw_memories_for_consolidation: toml
                 .max_raw_memories_for_consolidation
                 .unwrap_or(defaults.max_raw_memories_for_consolidation)
@@ -374,6 +400,10 @@ pub struct AppsDefaultConfig {
     #[serde(default = "default_enabled")]
     pub enabled: bool,
 
+    /// Reviewer for approval prompts unless overridden by per-app settings.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub approvals_reviewer: Option<ApprovalsReviewer>,
+
     /// Whether tools with `destructive_hint = true` are allowed by default.
     #[serde(
         default = "default_enabled",
@@ -387,6 +417,10 @@ pub struct AppsDefaultConfig {
         skip_serializing_if = "std::clone::Clone::clone"
     )]
     pub open_world_enabled: bool,
+
+    /// Approval mode for tools unless overridden by per-app or per-tool settings.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_tools_approval_mode: Option<AppToolApproval>,
 }
 
 /// Per-tool settings for a single app tool.
@@ -418,6 +452,10 @@ pub struct AppConfig {
     /// When `false`, Codex does not surface this app.
     #[serde(default = "default_enabled")]
     pub enabled: bool,
+
+    /// Reviewer for approval prompts from this app, overriding the thread default.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub approvals_reviewer: Option<ApprovalsReviewer>,
 
     /// Whether tools with `destructive_hint = true` are allowed for this app.
     #[serde(default, skip_serializing_if = "Option::is_none")]

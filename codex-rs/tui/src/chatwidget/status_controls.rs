@@ -212,7 +212,7 @@ impl ChatWidget {
                 });
         let reasoning_effort_override = Some(
             self.effective_reasoning_effort()
-                .or(self.config.model_reasoning_effort)
+                .or_else(|| self.config.model_reasoning_effort.clone())
                 .or(model_default_reasoning_effort),
         );
         let rate_limit_snapshots: Vec<RateLimitSnapshotDisplay> = self
@@ -225,6 +225,7 @@ impl ChatWidget {
         let (cell, handle) = crate::status::new_status_output_with_rate_limits_handle(
             &self.config,
             self.runtime_model_provider_base_url.as_deref(),
+            self.remote_connection.as_ref(),
             self.status_account_display.as_ref(),
             token_info,
             total_usage,
@@ -246,9 +247,21 @@ impl ChatWidget {
         self.add_to_history(cell);
     }
 
-    pub(crate) fn finish_status_rate_limit_refresh(&mut self, request_id: u64) {
-        if self.refreshing_status_outputs.is_empty() {
+    pub(crate) fn finish_status_rate_limit_refresh(
+        &mut self,
+        request_id: u64,
+        snapshots: Vec<RateLimitSnapshot>,
+    ) {
+        if !self
+            .refreshing_status_outputs
+            .iter()
+            .any(|(pending_request_id, _)| *pending_request_id == request_id)
+        {
             return;
+        }
+
+        for snapshot in snapshots {
+            self.on_rate_limit_snapshot(Some(snapshot));
         }
 
         let rate_limit_snapshots: Vec<RateLimitSnapshotDisplay> = self
@@ -377,19 +390,15 @@ impl ChatWidget {
     ) -> Option<String> {
         let window = window?;
         let remaining = (100.0f64 - window.used_percent).clamp(0.0f64, 100.0f64);
-        Some(format!("{label} {remaining:.0}%"))
+        Some(format!("{label} {remaining:.0}% left"))
     }
 
     pub(super) fn status_line_reasoning_effort_label(
-        effort: Option<ReasoningEffortConfig>,
-    ) -> &'static str {
+        effort: Option<&ReasoningEffortConfig>,
+    ) -> String {
         match effort {
-            Some(ReasoningEffortConfig::Minimal) => "minimal",
-            Some(ReasoningEffortConfig::Low) => "low",
-            Some(ReasoningEffortConfig::Medium) => "medium",
-            Some(ReasoningEffortConfig::High) => "high",
-            Some(ReasoningEffortConfig::XHigh) => "xhigh",
-            None | Some(ReasoningEffortConfig::None) => "default",
+            None | Some(ReasoningEffortConfig::None) => "default".to_string(),
+            Some(effort) => effort.as_str().to_string(),
         }
     }
 }

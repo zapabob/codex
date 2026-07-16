@@ -50,6 +50,9 @@ pub struct InitializeCapabilities {
     /// Opt into `attestation/generate` requests for upstream `x-oai-attestation`.
     #[serde(default)]
     pub request_attestation: bool,
+    /// Allow downstream MCP servers to request OpenAI extended form elicitations.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub mcp_server_openai_form_elicitation: bool,
     /// Exact notification method names that should be suppressed for this
     /// connection (for example `thread/started`).
     #[ts(optional = nullable)]
@@ -209,20 +212,6 @@ pub struct UserSavedConfig {
     pub model_reasoning_summary: Option<ReasoningSummary>,
     pub model_verbosity: Option<Verbosity>,
     pub tools: Option<Tools>,
-    pub profile: Option<String>,
-    pub profiles: HashMap<String, Profile>,
-}
-
-#[derive(Deserialize, Debug, Clone, PartialEq, Serialize, JsonSchema, TS)]
-#[serde(rename_all = "camelCase")]
-pub struct Profile {
-    pub model: Option<String>,
-    pub model_provider: Option<String>,
-    pub approval_policy: Option<AskForApproval>,
-    pub model_reasoning_effort: Option<ReasoningEffort>,
-    pub model_reasoning_summary: Option<ReasoningSummary>,
-    pub model_verbosity: Option<Verbosity>,
-    pub chatgpt_base_url: Option<String>,
 }
 
 #[derive(Deserialize, Debug, Clone, PartialEq, Serialize, JsonSchema, TS)]

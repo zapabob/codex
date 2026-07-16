@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use anyhow::Result;
+use codex_git_utils::get_git_repo_root;
 use codex_keyring_store::DefaultKeyringStore;
 use codex_keyring_store::KeyringStore;
 use schemars::JsonSchema;
@@ -16,6 +17,7 @@ mod local;
 mod sanitizer;
 
 pub use local::LocalSecretsBackend;
+pub use local::LocalSecretsNamespace;
 pub use sanitizer::redact_secrets;
 
 const KEYRING_SERVICE: &str = "codex";
@@ -121,6 +123,22 @@ impl SecretsManager {
         Self { backend }
     }
 
+    pub fn new_with_keyring_store_and_namespace(
+        codex_home: PathBuf,
+        backend_kind: SecretsBackendKind,
+        keyring_store: Arc<dyn KeyringStore>,
+        namespace: LocalSecretsNamespace,
+    ) -> Self {
+        let backend: Arc<dyn SecretsBackend> = match backend_kind {
+            SecretsBackendKind::Local => Arc::new(LocalSecretsBackend::new_with_namespace(
+                codex_home,
+                keyring_store,
+                namespace,
+            )),
+        };
+        Self { backend }
+    }
+
     pub fn set(&self, scope: &SecretScope, name: &SecretName, value: &str) -> Result<()> {
         self.backend.set(scope, name, value)
     }
@@ -161,23 +179,8 @@ pub fn environment_id_from_cwd(cwd: &Path) -> String {
     format!("cwd-{short}")
 }
 
-fn get_git_repo_root(base_dir: &Path) -> Option<PathBuf> {
-    let mut dir = base_dir.to_path_buf();
-
-    loop {
-        if dir.join(".git").exists() {
-            return Some(dir);
-        }
-
-        if !dir.pop() {
-            break;
-        }
-    }
-
-    None
-}
-
-pub(crate) fn compute_keyring_account(codex_home: &Path) -> String {
+/// Computes the OS keyring account name used to store the local secrets passphrase.
+pub fn compute_keyring_account(codex_home: &Path) -> String {
     let canonical = codex_home
         .canonicalize()
         .unwrap_or_else(|_| codex_home.to_path_buf())
@@ -234,7 +237,7 @@ mod tests {
         manager.set(&scope, &name, "token-1")?;
         assert_eq!(manager.get(&scope, &name)?, Some("token-1".to_string()));
 
-        let listed = manager.list(None)?;
+        let listed = manager.list(/*scope_filter*/ None)?;
         assert_eq!(listed.len(), 1);
         assert_eq!(listed[0].name, name);
 

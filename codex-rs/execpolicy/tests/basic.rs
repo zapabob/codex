@@ -1,3 +1,4 @@
+#![allow(clippy::expect_used)]
 use std::any::Any;
 use std::fs;
 use std::path::PathBuf;
@@ -10,14 +11,14 @@ use codex_execpolicy::Error;
 use codex_execpolicy::Evaluation;
 use codex_execpolicy::MatchOptions;
 use codex_execpolicy::NetworkRuleProtocol;
+use codex_execpolicy::PatternToken;
 use codex_execpolicy::Policy;
 use codex_execpolicy::PolicyParser;
+use codex_execpolicy::PrefixPattern;
+use codex_execpolicy::PrefixRule;
 use codex_execpolicy::RuleMatch;
 use codex_execpolicy::RuleRef;
 use codex_execpolicy::blocking_append_allow_prefix_rule;
-use codex_execpolicy::rule::PatternToken;
-use codex_execpolicy::rule::PrefixPattern;
-use codex_execpolicy::rule::PrefixRule;
 use codex_utils_absolute_path::AbsolutePathBuf;
 use pretty_assertions::assert_eq;
 use tempfile::tempdir;
@@ -35,8 +36,7 @@ fn prompt_all(_: &[String]) -> Decision {
 }
 
 fn absolute_path(path: &str) -> AbsolutePathBuf {
-    AbsolutePathBuf::try_from(path.to_string())
-        .unwrap_or_else(|error| panic!("expected absolute path `{path}`: {error}"))
+    AbsolutePathBuf::try_from(path.to_string()).expect("path should be absolute")
 }
 
 fn host_absolute_path(segments: &[&str]) -> String {
