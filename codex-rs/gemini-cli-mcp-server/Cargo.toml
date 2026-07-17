@@ -5,6 +5,9 @@ name = "codex-gemini-cli-mcp-server"
 license = { workspace = true }
 version.workspace = true
 
+[lints]
+workspace = true
+
 [lib]
 name = "codex_gemini_cli_mcp_server"
 path = "src/lib.rs"

@@ -1,10 +1,13 @@
 [package]
 authors = ["zapabob"]
 description = "CUDA Runtime integration for Codex - GPU acceleration for AI inference and git analysis"
-edition = "2024"
-license = "Apache-2.0"
+edition.workspace = true
+license.workspace = true
 name = "codex-cuda-runtime"
 version = { workspace = true }
+
+[lints]
+workspace = true
 
 [dependencies]
 # Rust-CUDA ecosystem (https://github.com/Rust-GPU/Rust-CUDA)

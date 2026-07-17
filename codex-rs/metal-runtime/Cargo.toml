@@ -2,9 +2,12 @@
 authors = ["zapabob"]
 description = "macOS Metal Runtime integration for Codex - GPU acceleration using Metal 3 and MPS"
 edition = { workspace = true }
-license = "Apache-2.0"
+license.workspace = true
 name = "codex-metal-runtime"
 version = { workspace = true }
+
+[lints]
+workspace = true
 
 [dependencies]
 # Workspace dependencies
@@ -22,11 +25,8 @@ objc = { version = "0.2", optional = true }
 [features]
 default = []
 metal-api = ["objc"] # Enable full Metal API (requires objc crate)
+mps = [] # Metal Performance Shaders support
 
 [dev-dependencies]
 tokio-test = "0.4"
-
-[features]
-default = []
-mps = [] # Metal Performance Shaders support
 

@@ -70,3 +70,5 @@ fast-build-install *args:
 
 upstream-sync *args:
     {{python_cmd}} {{build_script}} upstream-sync "$@"
+bench-smoke:
+    cargo bench --workspace --bench '*' -- --test

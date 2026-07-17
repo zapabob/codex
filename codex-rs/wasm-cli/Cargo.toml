@@ -1,8 +1,11 @@
 [package]
-edition = "2024"
+edition.workspace = true
 name = "codex-wasm-cli"
-version = "0.83.0"
+version.workspace = true
 license = { workspace = true }
+
+[lints]
+workspace = true
 
 [lib]
 crate-type = ["cdylib"]

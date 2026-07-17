@@ -60,8 +60,8 @@ def buildifier_formatter_group(*, check: bool) -> FormatterGroup:
         path = Path(os.fsdecode(encoded_path))
         name = path.name
         if (
-            name in {"BUILD", "WORKSPACE", "MODULE.bazel"}
-            or name.startswith(("BUILD.", "WORKSPACE."))
+            name
+            in {"BUILD", "BUILD.bazel", "WORKSPACE", "WORKSPACE.bazel", "MODULE.bazel"}
             or name.endswith((".BUILD.bazel", ".MODULE.bazel", ".bzl", ".sky"))
             or ".bzl." in name
             or ".sky." in name

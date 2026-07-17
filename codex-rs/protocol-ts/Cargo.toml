@@ -1,5 +1,5 @@
 [package]
-edition = "2024"
+edition.workspace = true
 name = "codex-protocol-ts"
 version = { workspace = true }
 license = { workspace = true }

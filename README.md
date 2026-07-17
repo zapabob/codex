@@ -10,7 +10,7 @@ app-server helpers, Python SDK goal APIs, and guarded Windows installation.
 > Official base: `rust-v0.144.5` plus upstream main `71448a29e7343b9613eaea620fcdbd196aed2af0`
 
 <!-- version-sync:start -->
-> **Current release:** v3.4.0 (2026-07-17) · canonical source `VERSION` · fork/upstream mapping in `version-metadata.json`.
+> **Current release:** v3.4.0 (2026-07-17) | canonical source `VERSION` | fork/upstream mapping in `version-metadata.json`.
 > Legacy v2.x release notes are archived under `releases/legacy/v2.x/RELEASE_NOTES.md`.
 <!-- version-sync:end -->
 

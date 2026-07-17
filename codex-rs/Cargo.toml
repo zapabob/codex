@@ -516,6 +516,32 @@ ignored = [
     "openssl-sys",
     "codex-v8-poc",
 ]
+# The fork keeps dormant custom modules available for opt-in and downstream
+# builds. Cargo-shear cannot infer that out-of-tree module topology, so preserve
+# those files while continuing to audit dependency usage everywhere.
+ignored-paths = [
+    "analytics/src/*.rs",
+    "codex-api/src/**/*.rs",
+    "app-server/src/**/*.rs",
+    "app-server/tests/**/*.rs",
+    "cli/src/*.rs",
+    "cloud-tasks-client/src/*.rs",
+    "code-mode/src/*.rs",
+    "core/src/**/*.rs",
+    "core/tests/**/*.rs",
+    "core-skills/src/*.rs",
+    "exec-server/src/**/*.rs",
+    "hooks/src/*.rs",
+    "codex-mcp/src/*.rs",
+    "mcp-server/src/**/*.rs",
+    "memories/read/src/*.rs",
+    "otel/src/*.rs",
+    "thread-store/src/**/*.rs",
+    "tools/src/*.rs",
+    "tui/src/**/*.rs",
+    "utils/cli/src/*.rs",
+    "windows-sandbox-rs/src/**/*.rs",
+]
 
 [profile.dev]
 # Keep line tables/backtraces while avoiding expensive full variable debug info

@@ -4,6 +4,9 @@ name = "codex-deep-research"
 license = { workspace = true }
 version.workspace = true
 
+[lints]
+workspace = true
+
 [dependencies]
 anyhow.workspace = true
 async-trait.workspace = true

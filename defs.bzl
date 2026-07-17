@@ -198,6 +198,7 @@ def codex_rust_crate(
         test_data_extra = [],
         test_shard_counts = {},
         test_tags = [],
+        unit_test_args = [],
         unit_test_timeout = None,
         extra_binaries = [],
         extra_binaries_non_windows = [],
@@ -242,6 +243,7 @@ def codex_rust_crate(
             them Bazel's default three attempts.
         test_tags: Tags applied to unit + integration test targets.
             Typically used to disable the sandbox, but see https://bazel.build/reference/be/common-definitions#common.tags
+        unit_test_args: Optional args for the generated unit test binary.
         unit_test_timeout: Optional Bazel timeout for the unit-test target
             generated from `src/**/*.rs`.
         extra_binaries: Additional binary labels to surface as test data and
@@ -347,6 +349,8 @@ def codex_rust_crate(
         )
 
         unit_test_kwargs = {}
+        if unit_test_args:
+            unit_test_kwargs["args"] = unit_test_args
         if unit_test_timeout:
             unit_test_kwargs["timeout"] = unit_test_timeout
         if unit_test_shard_count:

@@ -4,6 +4,9 @@ name = "codex-supervisor"
 license = { workspace = true }
 version.workspace = true
 
+[lints]
+workspace = true
+
 [dependencies]
 anyhow.workspace = true
 chrono = { version = "0.4", features = ["serde"] }

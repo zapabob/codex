@@ -2,9 +2,12 @@
 authors = ["zapabob"]
 description = "Windows 11 AI API integration for Codex"
 edition = { workspace = true }
-license = "Apache-2.0"
+license.workspace = true
 name = "codex-windows-ai"
 version = { workspace = true }
+
+[lints]
+workspace = true
 
 [dependencies]
 # Windows AI API

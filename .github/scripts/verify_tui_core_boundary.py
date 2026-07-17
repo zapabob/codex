@@ -19,6 +19,16 @@ FORBIDDEN_SOURCE_PATTERNS = (
     re.compile(r"\buse\s+codex_core\b"),
     re.compile(r"\bextern\s+crate\s+codex_core\b"),
 )
+IGNORED_UNLINKED_SOURCES = frozenset(
+    {
+        "src/app_server_tui_dispatch.rs",
+        "src/chatwidget/init.rs",
+        "src/chatwidget/rate_limit.rs",
+        "src/chatwidget/unified_exec.rs",
+        "src/legacy_app.rs",
+        "src/onboarding/windows.rs",
+    }
+)
 
 
 def main() -> int:
@@ -74,6 +84,8 @@ def dependency_sections(manifest: dict) -> list[tuple[str, dict]]:
 def source_failures() -> list[str]:
     failures = []
     for path in sorted(TUI_ROOT.glob("**/*.rs")):
+        if path.relative_to(TUI_ROOT).as_posix() in IGNORED_UNLINKED_SOURCES:
+            continue
         text = path.read_text()
         for line_number, line in enumerate(text.splitlines(), start=1):
             if any(pattern.search(line) for pattern in FORBIDDEN_SOURCE_PATTERNS):

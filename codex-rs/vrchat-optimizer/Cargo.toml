@@ -2,9 +2,12 @@
 authors = ["zapabob"]
 description = "VRChat world optimization tools for Codex - Material atlas, post-processing optimization, Udon 2 support"
 edition = { workspace = true }
-license = "Apache-2.0"
+license.workspace = true
 name = "codex-vrchat-optimizer"
 version = { workspace = true }
+
+[lints]
+workspace = true
 
 [dependencies]
 # Workspace dependencies

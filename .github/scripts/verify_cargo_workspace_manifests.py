@@ -20,6 +20,8 @@ ROOT = Path(__file__).resolve().parents[2]
 CARGO_RS_ROOT = ROOT / "codex-rs"
 WORKSPACE_PACKAGE_FIELDS = ("version", "edition", "license")
 TOP_LEVEL_NAME_EXCEPTIONS = {
+    "mcp-types": "mcp-types",
+    "tui_app_server": "codex-tui-app-server",
     "windows-sandbox-rs": "codex-windows-sandbox",
 }
 UTILITY_NAME_EXCEPTIONS = {
@@ -27,10 +29,72 @@ UTILITY_NAME_EXCEPTIONS = {
 }
 MANIFEST_FEATURE_EXCEPTIONS = {
     "codex-rs/code-mode/Cargo.toml": {"sandbox": ("v8/v8_enable_sandbox",)},
+    "codex-rs/core/Cargo.toml": {
+        "default": (),
+        "custom-features": (),
+        "cuda": ("dep:cudarc",),
+    },
+    "codex-rs/cuda-runtime/Cargo.toml": {
+        "default": (),
+        "cuda": ("cust",),
+        "cublas": ("cuda",),
+        "cufft": ("cuda",),
+        "glam": ("dep:glam",),
+    },
+    "codex-rs/metal-runtime/Cargo.toml": {
+        "default": (),
+        "metal-api": ("objc",),
+        "mps": (),
+    },
+    "codex-rs/supervisor/Cargo.toml": {"integration_tests": ()},
+    "codex-rs/tauri-gui/src-tauri/Cargo.toml": {"cuda": ()},
+    "codex-rs/tui_app_server/Cargo.toml": {
+        "default": ("voice-input",),
+        "voice-input": ("dep:cpal", "dep:hound"),
+        "debug-logs": (),
+        "vt100-tests": (),
+    },
     "codex-rs/v8-poc/Cargo.toml": {"sandbox": ("v8/v8_enable_sandbox",)},
+    "codex-rs/vr-runtime/Cargo.toml": {
+        "default": (),
+        "openxr": ("bindgen",),
+    },
+    "codex-rs/vrchat-optimizer/Cargo.toml": {
+        "default": (),
+        "udon2": (),
+    },
+    "codex-rs/windows-ai/Cargo.toml": {
+        "default": (),
+        "experimental-actions": (),
+    },
 }
-OPTIONAL_DEPENDENCY_EXCEPTIONS = set()
-INTERNAL_DEPENDENCY_FEATURE_EXCEPTIONS = {}
+OPTIONAL_DEPENDENCY_EXCEPTIONS = {
+    ("codex-rs/core/Cargo.toml", "dependencies", "cudarc"),
+    ("codex-rs/cuda-runtime/Cargo.toml", "dependencies", "cust"),
+    ("codex-rs/cuda-runtime/Cargo.toml", "dependencies", "glam"),
+    ("codex-rs/metal-runtime/Cargo.toml", "dependencies", "objc"),
+    (
+        "codex-rs/tui_app_server/Cargo.toml",
+        'target.cfg(not(target_os = "linux")).dependencies',
+        "cpal",
+    ),
+    (
+        "codex-rs/tui_app_server/Cargo.toml",
+        'target.cfg(not(target_os = "linux")).dependencies',
+        "hound",
+    ),
+    ("codex-rs/vr-runtime/Cargo.toml", "build-dependencies", "bindgen"),
+    ("codex-rs/vr-runtime/Cargo.toml", "build-dependencies", "pkg-config"),
+}
+INTERNAL_DEPENDENCY_FEATURE_EXCEPTIONS = {
+    ("codex-rs/gui/Cargo.toml", "dependencies", "codex-core"): (
+        "custom-features",
+        "git4d-base",
+    ),
+    ("codex-rs/orchestrator/Cargo.toml", "dependencies", "codex-core"): (
+        "custom-features",
+    ),
+}
 
 
 def main() -> int:
@@ -225,7 +289,7 @@ def is_workspace_reference(value: object) -> bool:
 
 
 def manifest_key(path: Path) -> str:
-    return str(path.relative_to(ROOT))
+    return path.relative_to(ROOT).as_posix()
 
 
 def normalize_feature_mapping(value: object) -> dict[str, tuple[str, ...]] | None:
@@ -380,6 +444,7 @@ def cargo_manifests() -> list[Path]:
         path
         for path in CARGO_RS_ROOT.rglob("Cargo.toml")
         if path != CARGO_RS_ROOT / "Cargo.toml"
+        and CARGO_RS_ROOT / "vendor" not in path.parents
     )
 
 
