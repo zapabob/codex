@@ -300,8 +300,12 @@ class AppServerClient:
             if self._active_turn_consumer == turn_id:
                 self._active_turn_consumer = None
 
-    def thread_start(self, params: V2ThreadStartParams | JsonObject | None = None) -> ThreadStartResponse:
-        return self.request("thread/start", _params_dict(params), response_model=ThreadStartResponse)
+    def thread_start(
+        self, params: V2ThreadStartParams | JsonObject | None = None
+    ) -> ThreadStartResponse:
+        return self.request(
+            "thread/start", _params_dict(params), response_model=ThreadStartResponse
+        )
 
     def thread_resume(
         self,
@@ -311,7 +315,9 @@ class AppServerClient:
         payload = {"threadId": thread_id, **_params_dict(params)}
         return self.request("thread/resume", payload, response_model=ThreadResumeResponse)
 
-    def thread_list(self, params: V2ThreadListParams | JsonObject | None = None) -> ThreadListResponse:
+    def thread_list(
+        self, params: V2ThreadListParams | JsonObject | None = None
+    ) -> ThreadListResponse:
         return self.request("thread/list", _params_dict(params), response_model=ThreadListResponse)
 
     def thread_read(self, thread_id: str, include_turns: bool = False) -> ThreadReadResponse:
@@ -330,10 +336,14 @@ class AppServerClient:
         return self.request("thread/fork", payload, response_model=ThreadForkResponse)
 
     def thread_archive(self, thread_id: str) -> ThreadArchiveResponse:
-        return self.request("thread/archive", {"threadId": thread_id}, response_model=ThreadArchiveResponse)
+        return self.request(
+            "thread/archive", {"threadId": thread_id}, response_model=ThreadArchiveResponse
+        )
 
     def thread_unarchive(self, thread_id: str) -> ThreadUnarchiveResponse:
-        return self.request("thread/unarchive", {"threadId": thread_id}, response_model=ThreadUnarchiveResponse)
+        return self.request(
+            "thread/unarchive", {"threadId": thread_id}, response_model=ThreadUnarchiveResponse
+        )
 
     def thread_set_name(self, thread_id: str, name: str) -> ThreadSetNameResponse:
         return self.request(

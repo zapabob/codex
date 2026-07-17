@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Delete files with names > 255 bytes using rename trick on Windows."""
+
 import os
 from pathlib import Path
 

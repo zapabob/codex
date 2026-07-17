@@ -2,7 +2,8 @@ use anyhow::Result;
 use std::collections::HashMap;
 use std::sync::Mutex;
 
-use crate::vr_ar_integration::types::{VRController, XRPlatform};
+use crate::vr_ar_integration::types::VRController;
+use crate::vr_ar_integration::types::XRPlatform;
 
 /// XR system abstraction
 pub struct XRSystem {

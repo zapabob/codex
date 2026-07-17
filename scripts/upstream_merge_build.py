@@ -27,7 +27,9 @@ DEFAULT_JOBS = int(
 DEFAULT_METHOD = os.environ.get("CODEX_FAST_BUILD_METHOD", "md5")
 DEFAULT_PROFILE = os.environ.get("CODEX_FAST_BUILD_PROFILE", "release")
 DEFAULT_MIN_FREE_GB = float(os.environ.get("CODEX_MIN_FREE_GB", "8"))
-DEFAULT_WATCH_INTERVAL_SECONDS = int(os.environ.get("CODEX_WATCH_INTERVAL_SECONDS", "30"))
+DEFAULT_WATCH_INTERVAL_SECONDS = int(
+    os.environ.get("CODEX_WATCH_INTERVAL_SECONDS", "30")
+)
 DEFAULT_MAX_ATTEMPTS = int(os.environ.get("CODEX_WATCH_MAX_ATTEMPTS", "0"))
 
 DEFAULT_WORK_DIR = Path(r"F:\codex-sync")
@@ -257,7 +259,9 @@ def choose_storage(args: argparse.Namespace, logger: Logger) -> StoragePlan:
     target_fallback = free_gb < args.min_free_gb
     worktree_fallback = free_gb < args.min_free_gb
     chosen_target_dir = fallback_target_dir if target_fallback else target_dir
-    chosen_worktree_root = fallback_work_dir if worktree_fallback else (work_dir / "worktrees")
+    chosen_worktree_root = (
+        fallback_work_dir if worktree_fallback else (work_dir / "worktrees")
+    )
     report_dir = work_dir / "reports"
     log_dir = work_dir / "logs"
     logger.info(
@@ -489,7 +493,9 @@ def save_cache(cache_path: Path, cache: dict) -> None:
     )
 
 
-def resolve_targets(requested: list[str] | None, targets: dict[str, Target]) -> list[str]:
+def resolve_targets(
+    requested: list[str] | None, targets: dict[str, Target]
+) -> list[str]:
     if not requested:
         return ["codex-cli", "codex-tui", "codex-gui", "codex-gui-x", "extensions"]
     resolved: list[str] = []
@@ -558,7 +564,9 @@ def add_common_flags(command: list[str], profile: str, jobs: int) -> list[str]:
     return patched
 
 
-def build_env(storage: StoragePlan, jobs: int, deny_warnings: bool, args: argparse.Namespace) -> dict[str, str]:
+def build_env(
+    storage: StoragePlan, jobs: int, deny_warnings: bool, args: argparse.Namespace
+) -> dict[str, str]:
     env = {
         "CARGO_HOME": str(storage.cargo_home),
         "CARGO_TARGET_DIR": str(storage.target_dir),
@@ -635,13 +643,17 @@ def kill_processes(
                     check=False,
                 )
         return
-    names = sorted({name for target in targets_to_kill for name in target.process_names})
+    names = sorted(
+        {name for target in targets_to_kill for name in target.process_names}
+    )
     if not names:
         logger.info("No processes configured for selected targets.")
         return
     for name in names:
         subprocess.run(
-            ["pkill", "-f", name] if os.name != "nt" else ["taskkill", "/F", "/IM", binary_name(name), "/T"],
+            ["pkill", "-f", name]
+            if os.name != "nt"
+            else ["taskkill", "/F", "/IM", binary_name(name), "/T"],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             check=False,
@@ -669,7 +681,9 @@ def verify_binary(binary_path: Path, logger: Logger) -> dict[str, str | None]:
         info["version"] = completed.stdout.strip()
         logger.info(f"Verified {binary_path.name}: {info['version']}")
     else:
-        logger.warn(f"Version check failed for {binary_path}: exit {completed.returncode}")
+        logger.warn(
+            f"Version check failed for {binary_path}: exit {completed.returncode}"
+        )
     return info
 
 
@@ -688,7 +702,9 @@ def feature_equivalent(
 ) -> bool:
     for pattern in rule.upstream_patterns:
         matches = git_lines(
-            repo_root, ["ls-tree", "-r", "--name-only", upstream_ref, "--", pattern], logger
+            repo_root,
+            ["ls-tree", "-r", "--name-only", upstream_ref, "--", pattern],
+            logger,
         )
         if matches:
             return True
@@ -701,14 +717,22 @@ def collect_analysis(
     base_branch: str,
     logger: Logger,
 ) -> dict:
-    current_branch = git_output(repo_root, ["branch", "--show-current"], logger) or "DETACHED"
+    current_branch = (
+        git_output(repo_root, ["branch", "--show-current"], logger) or "DETACHED"
+    )
     custom_paths = sorted(
-        set(git_lines(repo_root, ["diff", "--name-only", f"{base_branch}...main"], logger))
+        set(
+            git_lines(
+                repo_root, ["diff", "--name-only", f"{base_branch}...main"], logger
+            )
+        )
     )
     upstream_paths = sorted(
         set(
             git_lines(
-                repo_root, ["diff", "--name-only", f"{base_branch}...{upstream_ref}"], logger
+                repo_root,
+                ["diff", "--name-only", f"{base_branch}...{upstream_ref}"],
+                logger,
             )
         )
     )
@@ -735,7 +759,12 @@ def collect_analysis(
     )
     try:
         range_diff = subprocess.run(
-            ["git", "range-diff", f"{upstream_ref}...main", f"{upstream_ref}...{base_branch}"],
+            [
+                "git",
+                "range-diff",
+                f"{upstream_ref}...main",
+                f"{upstream_ref}...{base_branch}",
+            ],
             cwd=repo_root,
             text=True,
             encoding="utf-8",
@@ -967,7 +996,12 @@ def attempt_merge(
         resolver_exit_code = resolver_run.returncode
         resolver_failed = resolver_run.returncode != 0
         if initial_conflicts:
-            run(["git", "add", "--", *initial_conflicts], worktree_root, logger, check=False)
+            run(
+                ["git", "add", "--", *initial_conflicts],
+                worktree_root,
+                logger,
+                check=False,
+            )
         unresolved_conflicts = git_lines(
             repo_root,
             ["diff", "--name-only", "--diff-filter=U"],
@@ -979,7 +1013,9 @@ def attempt_merge(
                 f"Merge still has {len(unresolved_conflicts)} unresolved conflicts after rewrite attempt."
             )
         else:
-            logger.warn("Merge conflicts were rewritten and staged; review the worktree carefully.")
+            logger.warn(
+                "Merge conflicts were rewritten and staged; review the worktree carefully."
+            )
     return {
         "merge_exit_code": merge.returncode,
         "resolver_failed": resolver_failed,
@@ -1027,8 +1063,12 @@ def cmd_sync(args: argparse.Namespace) -> int:
     if not args.dry_run:
         run(["git", "rev-parse", "--verify", upstream_ref], repo_root, logger)
         run(["git", "rev-parse", "--verify", args.base_branch], repo_root, logger)
-    ensure_branch_ref(repo_root, args.create_branch, args.base_branch, logger, args.dry_run)
-    worktree_root = prepare_worktree(repo_root, storage, args.create_branch, logger, args.dry_run)
+    ensure_branch_ref(
+        repo_root, args.create_branch, args.base_branch, logger, args.dry_run
+    )
+    worktree_root = prepare_worktree(
+        repo_root, storage, args.create_branch, logger, args.dry_run
+    )
     merge_result: dict[str, object] = {
         "merge_exit_code": None,
         "resolver_failed": False,
@@ -1038,9 +1078,13 @@ def cmd_sync(args: argparse.Namespace) -> int:
     }
     if args.merge:
         if args.dry_run:
-            logger.info(f"[dry-run] would merge {upstream_ref} into worktree {worktree_root}")
+            logger.info(
+                f"[dry-run] would merge {upstream_ref} into worktree {worktree_root}"
+            )
         else:
-            merge_result = attempt_merge(repo_root, worktree_root, upstream_ref, logger, args.rule)
+            merge_result = attempt_merge(
+                repo_root, worktree_root, upstream_ref, logger, args.rule
+            )
     analysis = collect_analysis(repo_root, upstream_ref, args.base_branch, logger)
     analysis["prepared_branch"] = args.create_branch
     analysis["prepared_worktree"] = str(worktree_root)
@@ -1123,9 +1167,13 @@ def cmd_install(args: argparse.Namespace) -> int:
         if targets[name].install_relpaths
     ]
     if not target_names:
-        logger.info("Selected targets do not produce installable binaries; skipping install.")
+        logger.info(
+            "Selected targets do not produce installable binaries; skipping install."
+        )
         return 0
-    kill_processes([targets[name] for name in target_names], storage, args.profile, logger)
+    kill_processes(
+        [targets[name] for name in target_names], storage, args.profile, logger
+    )
     installs: dict[str, dict[str, str | None]] = {}
     for name in target_names:
         artifact_map = find_install_artifacts(storage, targets[name], args.profile)
@@ -1192,18 +1240,28 @@ def cmd_watch(args: argparse.Namespace) -> int:
         if args.max_attempts and attempt >= args.max_attempts:
             logger.info("Maximum watch attempts reached after success; stopping.")
             return 0
-        logger.info(f"Sleeping {args.watch_interval_seconds} seconds before the next cycle.")
+        logger.info(
+            f"Sleeping {args.watch_interval_seconds} seconds before the next cycle."
+        )
         time.sleep(args.watch_interval_seconds)
 
 
 def common_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument("--repo-root", type=Path, help="Repository root (defaults to script parent repo)")
+    parser.add_argument(
+        "--repo-root",
+        type=Path,
+        help="Repository root (defaults to script parent repo)",
+    )
     parser.add_argument("--work-dir", type=Path, default=DEFAULT_WORK_DIR)
     parser.add_argument("--cargo-home", type=Path, default=DEFAULT_CARGO_HOME)
     parser.add_argument("--target-dir", type=Path, default=DEFAULT_TARGET_DIR)
-    parser.add_argument("--fallback-target-dir", type=Path, default=DEFAULT_FALLBACK_TARGET_DIR)
-    parser.add_argument("--fallback-work-dir", type=Path, default=DEFAULT_FALLBACK_WORK_DIR)
+    parser.add_argument(
+        "--fallback-target-dir", type=Path, default=DEFAULT_FALLBACK_TARGET_DIR
+    )
+    parser.add_argument(
+        "--fallback-work-dir", type=Path, default=DEFAULT_FALLBACK_WORK_DIR
+    )
     parser.add_argument("--min-free-gb", type=float, default=DEFAULT_MIN_FREE_GB)
     parser.add_argument("--profile", default=DEFAULT_PROFILE)
     parser.add_argument("--log-file", type=Path)
@@ -1230,12 +1288,18 @@ def common_parser() -> argparse.ArgumentParser:
 
 
 def add_build_flags(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("targets", nargs="*", help="Target names or comma-separated groups")
+    parser.add_argument(
+        "targets", nargs="*", help="Target names or comma-separated groups"
+    )
     parser.add_argument("--jobs", type=int, default=DEFAULT_JOBS)
-    parser.add_argument("--method", choices=["md5", "mtime", "cargo-metadata"], default=DEFAULT_METHOD)
+    parser.add_argument(
+        "--method", choices=["md5", "mtime", "cargo-metadata"], default=DEFAULT_METHOD
+    )
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--changed-only", action="store_true")
-    parser.add_argument("--no-deny-warnings", dest="deny_warnings", action="store_false")
+    parser.add_argument(
+        "--no-deny-warnings", dest="deny_warnings", action="store_false"
+    )
     parser.set_defaults(deny_warnings=True)
 
 
@@ -1261,30 +1325,52 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command", required=True)
     common = common_parser()
 
-    list_parser = subparsers.add_parser("list-targets", parents=[common], help="List supported build targets")
+    list_parser = subparsers.add_parser(
+        "list-targets", parents=[common], help="List supported build targets"
+    )
     list_parser.set_defaults(func=cmd_list_targets)
 
-    analyze_parser = subparsers.add_parser("analyze", parents=[common], help="Generate upstream/custom analysis reports")
+    analyze_parser = subparsers.add_parser(
+        "analyze", parents=[common], help="Generate upstream/custom analysis reports"
+    )
     add_sync_flags(analyze_parser)
     analyze_parser.set_defaults(func=cmd_analyze)
 
-    sync_parser = subparsers.add_parser("sync", parents=[common], help="Fetch refs, prepare branch/worktree, and optionally merge")
+    sync_parser = subparsers.add_parser(
+        "sync",
+        parents=[common],
+        help="Fetch refs, prepare branch/worktree, and optionally merge",
+    )
     add_sync_flags(sync_parser)
     sync_parser.set_defaults(func=cmd_sync)
 
-    build_parser_cmd = subparsers.add_parser("build", parents=[common], help="Run differential builds")
+    build_parser_cmd = subparsers.add_parser(
+        "build", parents=[common], help="Run differential builds"
+    )
     add_build_flags(build_parser_cmd)
     build_parser_cmd.set_defaults(func=cmd_build)
 
-    install_parser = subparsers.add_parser("install", parents=[common], help="Kill running processes and overwrite install built binaries")
-    install_parser.add_argument("targets", nargs="*", help="Target names or comma-separated groups")
+    install_parser = subparsers.add_parser(
+        "install",
+        parents=[common],
+        help="Kill running processes and overwrite install built binaries",
+    )
+    install_parser.add_argument(
+        "targets", nargs="*", help="Target names or comma-separated groups"
+    )
     install_parser.set_defaults(func=cmd_install)
 
-    kill_parser = subparsers.add_parser("kill", parents=[common], help="Stop running target processes")
-    kill_parser.add_argument("targets", nargs="*", help="Target names or comma-separated groups")
+    kill_parser = subparsers.add_parser(
+        "kill", parents=[common], help="Stop running target processes"
+    )
+    kill_parser.add_argument(
+        "targets", nargs="*", help="Target names or comma-separated groups"
+    )
     kill_parser.set_defaults(func=cmd_kill)
 
-    full_parser = subparsers.add_parser("full", parents=[common], help="Run sync, analyze, build, and install")
+    full_parser = subparsers.add_parser(
+        "full", parents=[common], help="Run sync, analyze, build, and install"
+    )
     add_sync_flags(full_parser)
     add_build_flags(full_parser)
     full_parser.add_argument("--install", action="store_true")

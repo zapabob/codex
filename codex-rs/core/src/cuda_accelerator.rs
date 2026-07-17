@@ -44,7 +44,8 @@
 //! }
 //! ```
 
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
+use serde::Serialize;
 
 #[cfg(feature = "cuda")]
 use cudarc::driver::LaunchAsync;
@@ -160,6 +161,7 @@ pub struct CudaGit4DAccelerator {
     /// Vertex transformation kernel
     vertex_kernel: cudarc::driver::CudaFunction,
     /// Time projection kernel
+    #[allow(dead_code)]
     transform_kernel: cudarc::driver::CudaFunction,
     /// Render kernel
     render_kernel: cudarc::driver::CudaFunction,
@@ -189,11 +191,11 @@ impl CudaGit4DAccelerator {
     pub fn new() -> anyhow::Result<Self> {
         // Initialize CUDA device (device 0)
         let device = cudarc::driver::CudaDevice::new(0)
-            .map_err(|e| anyhow::anyhow!("Failed to initialize CUDA device: {}", e))?;
+            .map_err(|e| anyhow::anyhow!("Failed to initialize CUDA device: {e}"))?;
 
         // Compile and load CUDA kernels
         let ptx = cudarc::nvrtc::compile_ptx(GIT4D_KERNELS)
-            .map_err(|e| anyhow::anyhow!("Failed to compile CUDA kernels: {}", e))?;
+            .map_err(|e| anyhow::anyhow!("Failed to compile CUDA kernels: {e}"))?;
 
         device
             .load_ptx(
@@ -201,7 +203,7 @@ impl CudaGit4DAccelerator {
                 "git4d",
                 &["vertex_transform", "time_projection", "render_commits"],
             )
-            .map_err(|e| anyhow::anyhow!("Failed to load PTX module: {}", e))?;
+            .map_err(|e| anyhow::anyhow!("Failed to load PTX module: {e}"))?;
 
         // Retrieve kernel functions
         let vertex_kernel = device
@@ -254,27 +256,27 @@ impl CudaGit4DAccelerator {
         let vertices_device = self
             .device
             .htod_copy(vertices.to_vec())
-            .map_err(|e| anyhow::anyhow!("Failed to copy vertices to device: {}", e))?;
+            .map_err(|e| anyhow::anyhow!("Failed to copy vertices to device: {e}"))?;
 
         let transform_device = self
             .device
             .htod_copy(vec![*transform])
-            .map_err(|e| anyhow::anyhow!("Failed to copy transform matrix: {}", e))?;
+            .map_err(|e| anyhow::anyhow!("Failed to copy transform matrix: {e}"))?;
 
         let params_device = self
             .device
             .htod_copy(vec![*params])
-            .map_err(|e| anyhow::anyhow!("Failed to copy render parameters: {}", e))?;
+            .map_err(|e| anyhow::anyhow!("Failed to copy render parameters: {e}"))?;
 
         // Allocate output buffer
         let mut output_vertices = self
             .device
             .alloc_zeros::<GitCommitVertex>(num_vertices)
-            .map_err(|e| anyhow::anyhow!("Failed to allocate output buffer: {}", e))?;
+            .map_err(|e| anyhow::anyhow!("Failed to allocate output buffer: {e}"))?;
 
         // Calculate grid dimensions
         let threads_per_block = 256u32;
-        let blocks_needed = ((num_vertices as u32) + threads_per_block - 1) / threads_per_block;
+        let blocks_needed = (num_vertices as u32).div_ceil(threads_per_block);
 
         // Launch kernel
         let cfg = cudarc::driver::LaunchConfig {
@@ -296,14 +298,14 @@ impl CudaGit4DAccelerator {
                         num_vertices as u32,
                     ),
                 )
-                .map_err(|e| anyhow::anyhow!("Kernel launch failed: {}", e))?;
+                .map_err(|e| anyhow::anyhow!("Kernel launch failed: {e}"))?;
         }
 
         // Copy results back to host
         let result = self
             .device
             .dtoh_sync_copy(&output_vertices)
-            .map_err(|e| anyhow::anyhow!("Failed to copy results from device: {}", e))?;
+            .map_err(|e| anyhow::anyhow!("Failed to copy results from device: {e}"))?;
 
         Ok(result)
     }
@@ -321,6 +323,7 @@ impl CudaGit4DAccelerator {
     /// # Returns
     ///
     /// Projected 3D positions
+    #[allow(dead_code)]
     pub fn project_4d_to_3d(
         &self,
         vertices: &[GitCommitVertex],
@@ -337,16 +340,16 @@ impl CudaGit4DAccelerator {
         let vertices_device = self
             .device
             .htod_copy(vertices.to_vec())
-            .map_err(|e| anyhow::anyhow!("Failed to copy vertices: {}", e))?;
+            .map_err(|e| anyhow::anyhow!("Failed to copy vertices: {e}"))?;
 
         let mut output_positions = self
             .device
             .alloc_zeros::<f32>(num_vertices * 3)
-            .map_err(|e| anyhow::anyhow!("Failed to allocate output: {}", e))?;
+            .map_err(|e| anyhow::anyhow!("Failed to allocate output: {e}"))?;
 
         // Calculate grid dimensions
         let threads_per_block = 256u32;
-        let blocks_needed = ((num_vertices as u32) + threads_per_block - 1) / threads_per_block;
+        let blocks_needed = (num_vertices as u32).div_ceil(threads_per_block);
 
         let cfg = cudarc::driver::LaunchConfig {
             grid_dim: (blocks_needed, 1, 1),
@@ -367,14 +370,14 @@ impl CudaGit4DAccelerator {
                         num_vertices as u32,
                     ),
                 )
-                .map_err(|e| anyhow::anyhow!("Projection kernel failed: {}", e))?;
+                .map_err(|e| anyhow::anyhow!("Projection kernel failed: {e}"))?;
         }
 
         // Copy results back
         let flat = self
             .device
             .dtoh_sync_copy(&output_positions)
-            .map_err(|e| anyhow::anyhow!("Failed to copy projection results: {}", e))?;
+            .map_err(|e| anyhow::anyhow!("Failed to copy projection results: {e}"))?;
 
         let result = flat
             .chunks_exact(3)
@@ -411,21 +414,21 @@ impl CudaGit4DAccelerator {
         let vertices_device = self
             .device
             .htod_copy(vertices.to_vec())
-            .map_err(|e| anyhow::anyhow!("Failed to copy vertices: {}", e))?;
+            .map_err(|e| anyhow::anyhow!("Failed to copy vertices: {e}"))?;
 
         let params_device = self
             .device
             .htod_copy(vec![*params])
-            .map_err(|e| anyhow::anyhow!("Failed to copy parameters: {}", e))?;
+            .map_err(|e| anyhow::anyhow!("Failed to copy parameters: {e}"))?;
 
         let mut framebuffer_device = self
             .device
             .htod_copy(framebuffer.to_vec())
-            .map_err(|e| anyhow::anyhow!("Failed to copy framebuffer: {}", e))?;
+            .map_err(|e| anyhow::anyhow!("Failed to copy framebuffer: {e}"))?;
 
         // Calculate grid dimensions
         let threads_per_block = 256u32;
-        let blocks_needed = ((num_vertices as u32) + threads_per_block - 1) / threads_per_block;
+        let blocks_needed = (num_vertices as u32).div_ceil(threads_per_block);
 
         let cfg = cudarc::driver::LaunchConfig {
             grid_dim: (blocks_needed, 1, 1),
@@ -447,14 +450,14 @@ impl CudaGit4DAccelerator {
                         params.viewport_height,
                     ),
                 )
-                .map_err(|e| anyhow::anyhow!("Render kernel failed: {}", e))?;
+                .map_err(|e| anyhow::anyhow!("Render kernel failed: {e}"))?;
         }
 
         // Copy framebuffer back
         let result = self
             .device
             .dtoh_sync_copy(&framebuffer_device)
-            .map_err(|e| anyhow::anyhow!("Failed to copy framebuffer: {}", e))?;
+            .map_err(|e| anyhow::anyhow!("Failed to copy framebuffer: {e}"))?;
 
         framebuffer.copy_from_slice(&result);
 
@@ -520,6 +523,7 @@ impl CudaGit4DAccelerator {
     /// Detects ray-vertex collisions for VR interaction.
     ///
     /// Currently returns empty results (placeholder for future implementation).
+    #[allow(dead_code)]
     pub fn detect_collisions(
         &self,
         _vertices: &[GitCommitVertex],

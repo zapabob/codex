@@ -8,7 +8,7 @@
 - **Canonical source**: root `VERSION`
 - **Fork version**: `3.4.0`
 - **Upstream base**: `rust-v0.144.5`
-- **Release date**: 2026-07-16
+- **Release date**: 2026-07-17
 
 ## What changed in v3.4.0
 

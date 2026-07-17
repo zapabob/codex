@@ -3,24 +3,23 @@
 
 import re
 
-file_path = 'codex-rs/tui/src/git_visualizer.rs'
+file_path = "codex-rs/tui/src/git_visualizer.rs"
 
-with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
     content = f.read()
 
 # Remove conflict markers pattern by pattern
 # Pattern 1: <<<<<<< HEAD ... ======= ... >>>>>>> origin/main
-pattern1 = r'<<<<<<< HEAD.*?=======\s*'
-content = re.sub(pattern1, '', content, flags=re.DOTALL)
+pattern1 = r"<<<<<<< HEAD.*?=======\s*"
+content = re.sub(pattern1, "", content, flags=re.DOTALL)
 
 # Pattern 2: Remove >>>>>>> lines
-content = re.sub(r'>>>>>>> origin/main\s*\n', '', content)
+content = re.sub(r">>>>>>> origin/main\s*\n", "", content)
 
 # Pattern 3: Fix encoding issue
-content = content.replace('ﾂｰ', 'deg')
+content = content.replace("ﾂｰ", "deg")
 
-with open(file_path, 'w', encoding='utf-8') as f:
+with open(file_path, "w", encoding="utf-8") as f:
     f.write(content)
 
 print("✅ Conflict markers cleaned successfully")
-

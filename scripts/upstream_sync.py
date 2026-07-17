@@ -25,8 +25,12 @@ import fast_build
 DEFAULT_BASELINE_REF = "rust-v0.121.0"
 DEFAULT_MARKDOWN_REPORT = REPO_ROOT / "_docs" / "upstream-sync-driver-report.md"
 DEFAULT_JSON_REPORT = REPO_ROOT / "_docs" / "upstream-sync-driver-report.json"
-DEFAULT_CREATE_BRANCH = f"codex/upstream-sync-{fast_build.datetime.now().strftime('%Y-%m-%d')}"
-DEFAULT_INSTALL_SOURCE = WORKSPACE_ROOT / "target" / "release" / fast_build.binary_name("codex")
+DEFAULT_CREATE_BRANCH = (
+    f"codex/upstream-sync-{fast_build.datetime.now().strftime('%Y-%m-%d')}"
+)
+DEFAULT_INSTALL_SOURCE = (
+    WORKSPACE_ROOT / "target" / "release" / fast_build.binary_name("codex")
+)
 DEFAULT_INSTALL_TARGET = fast_build.cargo_bin_dir() / fast_build.binary_name("codex")
 DEFAULT_INSTALL_HELPER = REPO_ROOT / "scripts" / "install_with_kill.ps1"
 DEFAULT_CODEXAPP_EXCLUDE_PREFIX = r"C:\Program Files\WindowsApps\OpenAI.Codex_"
@@ -169,11 +173,29 @@ def parse_args() -> argparse.Namespace:
         default=DEFAULT_JSON_REPORT,
         help="Write the JSON report to this path",
     )
-    parser.add_argument("--merge", action="store_true", help="Run git merge --no-commit --no-ff")
-    parser.add_argument("--repair-workspace", action="store_true", help="Restore missing workspace members from upstream refs")
-    parser.add_argument("--validate", action="store_true", help="Run repo validation, cargo metadata, formatting, and cargo test")
-    parser.add_argument("--build-release", action="store_true", help="Build the release codex CLI binary")
-    parser.add_argument("--windows-install", action="store_true", help="Overwrite-install codex.exe while excluding CodexApp")
+    parser.add_argument(
+        "--merge", action="store_true", help="Run git merge --no-commit --no-ff"
+    )
+    parser.add_argument(
+        "--repair-workspace",
+        action="store_true",
+        help="Restore missing workspace members from upstream refs",
+    )
+    parser.add_argument(
+        "--validate",
+        action="store_true",
+        help="Run repo validation, cargo metadata, formatting, and cargo test",
+    )
+    parser.add_argument(
+        "--build-release",
+        action="store_true",
+        help="Build the release codex CLI binary",
+    )
+    parser.add_argument(
+        "--windows-install",
+        action="store_true",
+        help="Overwrite-install codex.exe while excluding CodexApp",
+    )
     parser.add_argument(
         "--cargo-target-dir",
         type=Path,
@@ -203,9 +225,18 @@ def parse_args() -> argparse.Namespace:
         default=[DEFAULT_CODEXAPP_EXCLUDE_PREFIX],
         help="Process path prefix that must be excluded from kill/install handling",
     )
-    parser.add_argument("--include-origin", action="store_true", help="Fetch origin in addition to upstream")
+    parser.add_argument(
+        "--include-origin",
+        action="store_true",
+        help="Fetch origin in addition to upstream",
+    )
     parser.add_argument("--no-fetch", action="store_true", help="Skip git fetch")
-    parser.add_argument("--rule", action="append", default=[], help="Extra resolver rule in glob=strategy form")
+    parser.add_argument(
+        "--rule",
+        action="append",
+        default=[],
+        help="Extra resolver rule in glob=strategy form",
+    )
     parser.add_argument("--log-file", type=Path, help="Append log output to a file")
     return parser.parse_args()
 
@@ -228,8 +259,12 @@ def fetch_refs(args: argparse.Namespace, logger: fast_build.Logger) -> None:
 
 def verify_refs(args: argparse.Namespace, logger: fast_build.Logger) -> None:
     fast_build.run(["git", "rev-parse", "--verify", merge_ref(args)], REPO_ROOT, logger)
-    fast_build.run(["git", "rev-parse", "--verify", args.baseline_ref], REPO_ROOT, logger)
-    fast_build.run(["git", "rev-parse", "--verify", args.base_branch], REPO_ROOT, logger)
+    fast_build.run(
+        ["git", "rev-parse", "--verify", args.baseline_ref], REPO_ROOT, logger
+    )
+    fast_build.run(
+        ["git", "rev-parse", "--verify", args.base_branch], REPO_ROOT, logger
+    )
 
 
 def current_branch(logger: fast_build.Logger) -> str:
@@ -241,7 +276,9 @@ def collect_candidate_paths(
     target_ref: str,
     logger: fast_build.Logger,
 ) -> list[str]:
-    return fast_build.git_lines(["diff", "--name-only", f"{baseline_ref}..{target_ref}"], logger)
+    return fast_build.git_lines(
+        ["diff", "--name-only", f"{baseline_ref}..{target_ref}"], logger
+    )
 
 
 def collect_custom_commits(
@@ -252,7 +289,14 @@ def collect_custom_commits(
     if branch_name == "DETACHED":
         return []
     return fast_build.git_lines(
-        ["log", "--oneline", "--no-merges", f"{upstream_ref}..{branch_name}", "--", *CUSTOM_COMMIT_PATHS],
+        [
+            "log",
+            "--oneline",
+            "--no-merges",
+            f"{upstream_ref}..{branch_name}",
+            "--",
+            *CUSTOM_COMMIT_PATHS,
+        ],
         logger,
     )
 
@@ -266,10 +310,17 @@ def collect_range_diff(
 ) -> str:
     if not enabled:
         return "range-diff skipped; pass --merge to collect it"
-    logger.info(f"Running in .: git range-diff {upstream_ref}...{branch_name} {upstream_ref}...{base_branch}")
+    logger.info(
+        f"Running in .: git range-diff {upstream_ref}...{branch_name} {upstream_ref}...{base_branch}"
+    )
     try:
         completed = subprocess.run(
-            ["git", "range-diff", f"{upstream_ref}...{branch_name}", f"{upstream_ref}...{base_branch}"],
+            [
+                "git",
+                "range-diff",
+                f"{upstream_ref}...{branch_name}",
+                f"{upstream_ref}...{base_branch}",
+            ],
             cwd=REPO_ROOT,
             text=True,
             encoding="utf-8",
@@ -285,7 +336,10 @@ def collect_range_diff(
 
 def write_json(path: Path, payload: dict[str, Any], logger: fast_build.Logger) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2, ensure_ascii=False, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
     logger.info(f"Wrote JSON report: {path}")
 
 
@@ -318,8 +372,12 @@ def read_workspace_members(workspace_manifest: Path = WORKSPACE_MANIFEST) -> lis
     return [str(member) for member in data["workspace"]["members"]]
 
 
-def find_missing_workspace_members(members: list[str], workspace_root: Path = WORKSPACE_ROOT) -> list[str]:
-    return sorted(member for member in members if not (workspace_root / member).exists())
+def find_missing_workspace_members(
+    members: list[str], workspace_root: Path = WORKSPACE_ROOT
+) -> list[str]:
+    return sorted(
+        member for member in members if not (workspace_root / member).exists()
+    )
 
 
 def select_post_tag_overlay_members(members: list[str]) -> list[str]:
@@ -367,14 +425,18 @@ def ref_blob_bytes(ref: str, repo_file: str) -> bytes:
 def cleanup_empty_directories(root: Path) -> None:
     if not root.exists():
         return
-    for path in sorted((item for item in root.rglob("*") if item.is_dir()), reverse=True):
+    for path in sorted(
+        (item for item in root.rglob("*") if item.is_dir()), reverse=True
+    ):
         try:
             path.rmdir()
         except OSError:
             continue
 
 
-def sync_repo_path_from_ref(ref: str, repo_path: str, logger: fast_build.Logger) -> None:
+def sync_repo_path_from_ref(
+    ref: str, repo_path: str, logger: fast_build.Logger
+) -> None:
     files_in_ref = ref_tree_files(ref, repo_path)
     if not files_in_ref:
         raise RuntimeError(f"{repo_path} does not exist in {ref}")
@@ -401,13 +463,17 @@ def sync_repo_path_from_ref(ref: str, repo_path: str, logger: fast_build.Logger)
     cleanup_empty_directories(target_root)
 
 
-def checkout_paths_from_ref(ref: str, repo_paths: list[str], logger: fast_build.Logger) -> None:
+def checkout_paths_from_ref(
+    ref: str, repo_paths: list[str], logger: fast_build.Logger
+) -> None:
     if not repo_paths:
         return
     fast_build.run(["git", "checkout", ref, "--", *repo_paths], REPO_ROOT, logger)
 
 
-def repair_workspace(args: argparse.Namespace, logger: fast_build.Logger) -> WorkspaceRepairOutcome:
+def repair_workspace(
+    args: argparse.Namespace, logger: fast_build.Logger
+) -> WorkspaceRepairOutcome:
     if not args.repair_workspace:
         logger.info("Skipping workspace repair.")
         return WorkspaceRepairOutcome()
@@ -430,7 +496,9 @@ def repair_workspace(args: argparse.Namespace, logger: fast_build.Logger) -> Wor
         restored_members.append(member)
 
     if missing_from_baseline:
-        logger.error(f"Missing from baseline ref {args.baseline_ref}: {', '.join(missing_from_baseline)}")
+        logger.error(
+            f"Missing from baseline ref {args.baseline_ref}: {', '.join(missing_from_baseline)}"
+        )
         return WorkspaceRepairOutcome(
             performed=True,
             success=False,
@@ -464,7 +532,9 @@ def repair_workspace(args: argparse.Namespace, logger: fast_build.Logger) -> Wor
 
 def perform_merge(args: argparse.Namespace, logger: fast_build.Logger) -> MergeOutcome:
     if not args.merge:
-        logger.info("Skipping merge; pass --merge to run git merge --no-commit --no-ff.")
+        logger.info(
+            "Skipping merge; pass --merge to run git merge --no-commit --no-ff."
+        )
         return MergeOutcome()
 
     target_ref = merge_ref(args)
@@ -479,18 +549,30 @@ def perform_merge(args: argparse.Namespace, logger: fast_build.Logger) -> MergeO
 
     conflicts = fast_build.git_lines(["diff", "--name-only", "--diff-filter=U"], logger)
     if conflicts:
-        resolver = [sys.executable, str(REPO_ROOT / "scripts" / "resolve_merge_conflicts.py"), *conflicts]
+        resolver = [
+            sys.executable,
+            str(REPO_ROOT / "scripts" / "resolve_merge_conflicts.py"),
+            *conflicts,
+        ]
         for rule in args.rule:
             resolver.extend(["--rule", rule])
         fast_build.run(resolver, REPO_ROOT, logger)
         fast_build.run(["git", "add", *conflicts], REPO_ROOT, logger)
-        logger.warn("Merge conflict markers were rewritten; review staged changes carefully.")
+        logger.warn(
+            "Merge conflict markers were rewritten; review staged changes carefully."
+        )
 
-    unresolved_conflicts = fast_build.git_lines(["diff", "--name-only", "--diff-filter=U"], logger)
-    return MergeOutcome(performed=True, conflicts=conflicts, unresolved_conflicts=unresolved_conflicts)
+    unresolved_conflicts = fast_build.git_lines(
+        ["diff", "--name-only", "--diff-filter=U"], logger
+    )
+    return MergeOutcome(
+        performed=True, conflicts=conflicts, unresolved_conflicts=unresolved_conflicts
+    )
 
 
-def run_step(name: str, command: list[str], cwd: Path, logger: fast_build.Logger) -> StepOutcome:
+def run_step(
+    name: str, command: list[str], cwd: Path, logger: fast_build.Logger
+) -> StepOutcome:
     logger.info(f"Validation step [{name}] in {cwd}: {' '.join(command)}")
     completed = subprocess.run(
         command,
@@ -504,7 +586,9 @@ def run_step(name: str, command: list[str], cwd: Path, logger: fast_build.Logger
     if completed.returncode == 0:
         logger.info(f"Validation step [{name}] passed")
     else:
-        logger.error(f"Validation step [{name}] failed with exit code {completed.returncode}")
+        logger.error(
+            f"Validation step [{name}] failed with exit code {completed.returncode}"
+        )
     return StepOutcome(
         name=name,
         command=command,
@@ -522,8 +606,12 @@ def detect_validation_environment_blocker(step: StepOutcome) -> tuple[str, str] 
 
     combined = "\n".join(part for part in (step.stdout_tail, step.stderr_tail) if part)
     lowered = combined.lower()
-    has_v8 = "failed to run custom build command for `v8" in lowered or "rusty_v8" in lowered
-    has_symlink = "failed to create symlink" in lowered or "symlink_dir failed" in lowered
+    has_v8 = (
+        "failed to run custom build command for `v8" in lowered or "rusty_v8" in lowered
+    )
+    has_symlink = (
+        "failed to create symlink" in lowered or "symlink_dir failed" in lowered
+    )
     has_privilege = (
         "1314" in lowered
         or "requested privilege is not held" in lowered
@@ -541,13 +629,19 @@ def detect_validation_environment_blocker(step: StepOutcome) -> tuple[str, str] 
     )
 
 
-def validate_repo(args: argparse.Namespace, logger: fast_build.Logger) -> ValidationOutcome:
+def validate_repo(
+    args: argparse.Namespace, logger: fast_build.Logger
+) -> ValidationOutcome:
     if not args.validate:
         logger.info("Skipping validation.")
         return ValidationOutcome()
 
     steps = [
-        ("python-unittest", [sys.executable, "-m", "unittest", "scripts.test.test_upstream_sync"], REPO_ROOT),
+        (
+            "python-unittest",
+            [sys.executable, "-m", "unittest", "scripts.test.test_upstream_sync"],
+            REPO_ROOT,
+        ),
         (
             "python-py-compile",
             [
@@ -561,13 +655,21 @@ def validate_repo(args: argparse.Namespace, logger: fast_build.Logger) -> Valida
             ],
             REPO_ROOT,
         ),
-        ("upstream-sync-help", [sys.executable, "scripts/upstream_sync.py", "--help"], REPO_ROOT),
+        (
+            "upstream-sync-help",
+            [sys.executable, "scripts/upstream_sync.py", "--help"],
+            REPO_ROOT,
+        ),
         (
             "resolve-merge-conflicts-help",
             [sys.executable, "scripts/resolve_merge_conflicts.py", "--help"],
             REPO_ROOT,
         ),
-        ("cargo-metadata", ["cargo", "metadata", "--no-deps", "--format-version", "1"], WORKSPACE_ROOT),
+        (
+            "cargo-metadata",
+            ["cargo", "metadata", "--no-deps", "--format-version", "1"],
+            WORKSPACE_ROOT,
+        ),
         ("cargo-fmt-check", ["cargo", "fmt", "--all", "--check"], WORKSPACE_ROOT),
         ("cargo-test", ["cargo", "test", "--workspace"], WORKSPACE_ROOT),
     ]
@@ -589,7 +691,9 @@ def validate_repo(args: argparse.Namespace, logger: fast_build.Logger) -> Valida
                 failure_kind=failure_kind,
                 failure_summary=failure_summary,
             )
-            logger.warn(f"Validation step [{name}] is blocked on environment prerequisites: {failure_summary}")
+            logger.warn(
+                f"Validation step [{name}] is blocked on environment prerequisites: {failure_summary}"
+            )
         elif outcome.returncode != 0:
             failure_kind = "step_failure"
             failure_summary = f"Validation step {name} failed."
@@ -699,7 +803,9 @@ def resolve_command_source(command_name: str) -> str | None:
     return json.loads(payload)
 
 
-def build_windows_install_command(args: argparse.Namespace, install_source: Path) -> list[str]:
+def build_windows_install_command(
+    args: argparse.Namespace, install_source: Path
+) -> list[str]:
     script = " ".join(
         [
             f"& {powershell_single_quote(str(args.install_helper))}",
@@ -720,7 +826,9 @@ def build_windows_install_command(args: argparse.Namespace, install_source: Path
     ]
 
 
-def install_on_windows(args: argparse.Namespace, logger: fast_build.Logger) -> WindowsInstallOutcome:
+def install_on_windows(
+    args: argparse.Namespace, logger: fast_build.Logger
+) -> WindowsInstallOutcome:
     if not args.windows_install:
         logger.info("Skipping Windows install.")
         return WindowsInstallOutcome()
@@ -857,13 +965,24 @@ def build_markdown_report(payload: dict[str, Any]) -> str:
         "",
     ]
     if payload["workspace_repair"]["restored_members"]:
-        lines.extend([*[f"- `{member}`" for member in payload["workspace_repair"]["restored_members"]], ""])
+        lines.extend(
+            [
+                *[
+                    f"- `{member}`"
+                    for member in payload["workspace_repair"]["restored_members"]
+                ],
+                "",
+            ]
+        )
     if payload["workspace_repair"]["missing_from_baseline"]:
         lines.extend(
             [
                 "### Missing From Baseline",
                 "",
-                *[f"- `{member}`" for member in payload["workspace_repair"]["missing_from_baseline"]],
+                *[
+                    f"- `{member}`"
+                    for member in payload["workspace_repair"]["missing_from_baseline"]
+                ],
                 "",
             ]
         )
@@ -878,7 +997,10 @@ def build_markdown_report(payload: dict[str, Any]) -> str:
             [
                 f"### {title}",
                 "",
-                *[f"- `{path}`" for path in payload["classifications"].get(strategy, [])[:160]],
+                *[
+                    f"- `{path}`"
+                    for path in payload["classifications"].get(strategy, [])[:160]
+                ],
                 "",
             ]
         )
@@ -943,11 +1065,17 @@ def build_markdown_report(payload: dict[str, Any]) -> str:
     if payload["windows_install"]["install_path"]:
         lines.append(f"- Install path: `{payload['windows_install']['install_path']}`")
     if payload["windows_install"]["resolved_command_path"]:
-        lines.append(f"- `Get-Command codex`: `{payload['windows_install']['resolved_command_path']}`")
+        lines.append(
+            f"- `Get-Command codex`: `{payload['windows_install']['resolved_command_path']}`"
+        )
     if payload["windows_install"]["codexapp_before"]:
-        lines.append(f"- CodexApp PIDs preserved: `{payload['windows_install']['surviving_codexapp_pids']}`")
+        lines.append(
+            f"- CodexApp PIDs preserved: `{payload['windows_install']['surviving_codexapp_pids']}`"
+        )
     if payload["windows_install"]["version_output"]:
-        lines.append(f"- `codex --version`: `{payload['windows_install']['version_output']}`")
+        lines.append(
+            f"- `codex --version`: `{payload['windows_install']['version_output']}`"
+        )
     lines.extend(
         [
             "",
@@ -970,7 +1098,14 @@ def build_markdown_report(payload: dict[str, Any]) -> str:
         ]
     )
     if payload["merge"]["conflicts"]:
-        lines.extend(["### Resolved Conflict Paths", "", *[f"- `{path}`" for path in payload["merge"]["conflicts"]], ""])
+        lines.extend(
+            [
+                "### Resolved Conflict Paths",
+                "",
+                *[f"- `{path}`" for path in payload["merge"]["conflicts"]],
+                "",
+            ]
+        )
     if payload["merge"]["unresolved_conflicts"]:
         lines.extend(
             [
@@ -1053,7 +1188,9 @@ def main() -> int:
         target_ref = merge_ref(args)
         candidate_paths = collect_candidate_paths(args.baseline_ref, target_ref, logger)
         custom_commits = collect_custom_commits(target_ref, branch_name, logger)
-        range_diff = collect_range_diff(target_ref, branch_name, args.base_branch, logger, enabled=args.merge)
+        range_diff = collect_range_diff(
+            target_ref, branch_name, args.base_branch, logger, enabled=args.merge
+        )
 
         workspace_repair = repair_workspace(args, logger)
         if workspace_repair.performed and not workspace_repair.success:

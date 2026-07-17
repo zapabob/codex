@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import List, Set
 import json
 
+
 class RepositoryOrganizer:
     def __init__(self, root_dir: str):
         self.root_dir = Path(root_dir)
@@ -23,9 +24,20 @@ class RepositoryOrganizer:
 
         # 主要ディレクトリの確認
         directories = [
-            "codex-rs", "codex-cli", "gui", "extensions", "docs",
-            "_docs", ".archive", "archive", "scripts", "tools",
-            ".codex", ".cursor", ".specstory", ".serena"
+            "codex-rs",
+            "codex-cli",
+            "gui",
+            "extensions",
+            "docs",
+            "_docs",
+            ".archive",
+            "archive",
+            "scripts",
+            "tools",
+            ".codex",
+            ".cursor",
+            ".specstory",
+            ".serena",
         ]
 
         for dir_name in directories:
@@ -36,13 +48,23 @@ class RepositoryOrganizer:
 
         # 不要ファイルのチェック
         unwanted_patterns = [
-            "*.exe", "*.tgz", "*.tar.gz", "*build*", "*temp*", "*cache*",
-            ".DS_Store", "Thumbs.db", "*.log", "*.tmp"
+            "*.exe",
+            "*.tgz",
+            "*.tar.gz",
+            "*build*",
+            "*temp*",
+            "*cache*",
+            ".DS_Store",
+            "Thumbs.db",
+            "*.log",
+            "*.tmp",
         ]
 
         unwanted_files = []
         for pattern in unwanted_patterns:
-            unwanted_files.extend(glob.glob(str(self.root_dir / pattern), recursive=True))
+            unwanted_files.extend(
+                glob.glob(str(self.root_dir / pattern), recursive=True)
+            )
 
         print(f"[CLEANUP] Unwanted file candidates: {len(unwanted_files)} files")
         for file in unwanted_files[:10]:  # 最初の10個のみ表示
@@ -75,7 +97,7 @@ class RepositoryOrganizer:
                 "development": ["CONTRIBUTING.md", "BUILD_INSTRUCTIONS.md"],
                 "api": ["*.md"],
                 "guides": ["*.md"],
-                "examples": []
+                "examples": [],
             }
         }
 
@@ -106,51 +128,45 @@ class RepositoryOrganizer:
             print(f"  [COUNT] tools: {len(tool_files)} Python files")
 
             # Pythonスクリプトのカテゴリ分け
-            categories = {
-                "build": [],
-                "qa": [],
-                "deployment": [],
-                "utilities": []
-            }
+            categories = {"build": [], "qa": [], "deployment": [], "utilities": []}
 
             for file_path in tool_files:
-                content = file_path.read_text(encoding='utf-8')
-                if 'build' in content.lower() or 'install' in content.lower():
+                content = file_path.read_text(encoding="utf-8")
+                if "build" in content.lower() or "install" in content.lower():
                     categories["build"].append(file_path.name)
-                elif 'qa' in content.lower() or 'test' in content.lower():
+                elif "qa" in content.lower() or "test" in content.lower():
                     categories["qa"].append(file_path.name)
-                elif 'deploy' in content.lower() or 'release' in content.lower():
+                elif "deploy" in content.lower() or "release" in content.lower():
                     categories["deployment"].append(file_path.name)
                 else:
                     categories["utilities"].append(file_path.name)
 
             for category, files in categories.items():
                 if files:
-                    print(f"    {category}: {', '.join(files[:3])}{'...' if len(files) > 3 else ''}")
+                    print(
+                        f"    {category}: {', '.join(files[:3])}{'...' if len(files) > 3 else ''}"
+                    )
 
     def _organize_scripts(self):
         """スクリプトを整理"""
         print("[SCRIPTS] Organizing scripts...")
 
         if self.scripts_dir.exists():
-            script_files = list(self.scripts_dir.glob("*.py")) + list(self.scripts_dir.glob("*.ps1"))
+            script_files = list(self.scripts_dir.glob("*.py")) + list(
+                self.scripts_dir.glob("*.ps1")
+            )
             print(f"  [COUNT] scripts: {len(script_files)} script files")
 
             # スクリプトのカテゴリ分け
-            script_categories = {
-                "build": [],
-                "test": [],
-                "ci": [],
-                "utilities": []
-            }
+            script_categories = {"build": [], "test": [], "ci": [], "utilities": []}
 
             for file_path in script_files:
                 name = file_path.name.lower()
-                if 'build' in name or 'install' in name:
+                if "build" in name or "install" in name:
                     script_categories["build"].append(file_path.name)
-                elif 'test' in name or 'qa' in name:
+                elif "test" in name or "qa" in name:
                     script_categories["test"].append(file_path.name)
-                elif 'ci' in name or 'cd' in name:
+                elif "ci" in name or "cd" in name:
                     script_categories["ci"].append(file_path.name)
                 else:
                     script_categories["utilities"].append(file_path.name)
@@ -167,7 +183,9 @@ class RepositoryOrganizer:
         workflows_dir = self.root_dir / ".github" / "workflows"
         if workflows_dir.exists():
             workflow_files = list(workflows_dir.glob("*.yml"))
-            print(f"  [WORKFLOWS] .github/workflows: {len(workflow_files)} workflow files")
+            print(
+                f"  [WORKFLOWS] .github/workflows: {len(workflow_files)} workflow files"
+            )
 
             for wf in workflow_files:
                 print(f"    - {wf.name}")
@@ -178,7 +196,7 @@ class RepositoryOrganizer:
             "[TEST] Test execution on multiple platforms",
             "[BUILD] Build artifact generation",
             "[SECURITY] Security scanning",
-            "[COVERAGE] Code coverage reporting"
+            "[COVERAGE] Code coverage reporting",
         ]
 
         print("  [RECOMMENDATIONS] CI/CD improvement suggestions:")
@@ -194,39 +212,41 @@ class RepositoryOrganizer:
                 "[FMT] Rust formatting (cargo fmt)",
                 "[LINT] Clippy linting",
                 "[LINT] TypeScript/ESLint",
-                "[LINT] Python linting (flake8/black)"
+                "[LINT] Python linting (flake8/black)",
             ],
             "testing": [
                 "[TEST] Unit tests",
                 "[TEST] Integration tests",
                 "[TEST] E2E tests",
-                "[COVERAGE] Test coverage > 80%"
+                "[COVERAGE] Test coverage > 80%",
             ],
             "documentation": [
                 "[DOCS] README with setup instructions",
                 "[DOCS] API documentation",
                 "[DOCS] Architecture diagrams",
-                "[DOCS] Contributing guidelines"
+                "[DOCS] Contributing guidelines",
             ],
             "security": [
                 "[SEC] Dependency vulnerability scanning",
                 "[SEC] License compliance",
                 "[SEC] Security headers",
-                "[SEC] Secret management"
+                "[SEC] Secret management",
             ],
             "ci_cd": [
                 "[CI] Automated testing",
                 "[CI] Multi-platform builds",
                 "[CI] Release automation",
-                "[CI] Performance monitoring"
-            ]
+                "[CI] Performance monitoring",
+            ],
         }
 
         # チェックリストをファイルに保存
         checklist_file = self.root_dir / "DEVELOPMENT_CHECKLIST.md"
-        with open(checklist_file, 'w', encoding='utf-8') as f:
+        with open(checklist_file, "w", encoding="utf-8") as f:
             f.write("# Development Quality Checklist\n\n")
-            f.write("Quality checklist based on tech company hiring manager evaluation criteria\n\n")
+            f.write(
+                "Quality checklist based on tech company hiring manager evaluation criteria\n\n"
+            )
 
             for category, items in checklist.items():
                 f.write(f"## {category.replace('_', ' ').title()}\n\n")
@@ -249,32 +269,33 @@ class RepositoryOrganizer:
                 "[STRENGTH] Multi-language support (Rust, TypeScript, Python)",
                 "[STRENGTH] Comprehensive testing framework",
                 "[STRENGTH] Advanced build system",
-                "[STRENGTH] Security-focused design"
+                "[STRENGTH] Security-focused design",
             ],
             "areas_for_improvement": [
                 "[IMPROVE] Repository structure cleanup needed",
                 "[IMPROVE] Documentation organization",
                 "[IMPROVE] CI/CD pipeline enhancement",
                 "[IMPROVE] Code quality standardization",
-                "[IMPROVE] Dependency management"
+                "[IMPROVE] Dependency management",
             ],
             "recruiter_notes": [
                 "[POSITIVE] Shows deep understanding of modern development practices",
                 "[POSITIVE] Demonstrates full-stack development capabilities",
                 "[POSITIVE] Innovative approach to AI-assisted development",
                 "[POSITIVE] Strong focus on code quality and testing",
-                "[ATTENTION] Repository organization needs attention for production readiness"
-            ]
+                "[ATTENTION] Repository organization needs attention for production readiness",
+            ],
         }
 
         # レポートをJSONで保存
         report_file = self.root_dir / "REPOSITORY_ANALYSIS.json"
-        with open(report_file, 'w', encoding='utf-8') as f:
+        with open(report_file, "w", encoding="utf-8") as f:
             json.dump(report, f, indent=2, ensure_ascii=False)
 
         print(f"  [CREATE] Analysis report created: {report_file}")
 
         return report
+
 
 def main():
     print("[START] Repository Organization Script")
@@ -302,6 +323,7 @@ def main():
     print("\nRecruiter evaluation points:")
     for note in report["recruiter_notes"]:
         print(f"  {note}")
+
 
 if __name__ == "__main__":
     main()

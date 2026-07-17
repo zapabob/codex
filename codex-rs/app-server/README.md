@@ -13,6 +13,7 @@
 - [Events](#events)
 - [Approvals](#approvals)
 - [Skills](#skills)
+- [Git4D visualization (experimental)](#git4d-visualization-experimental)
 - [Apps](#apps)
 - [Auth endpoints](#auth-endpoints)
 - [Experimental API Opt-in](#experimental-api-opt-in)
@@ -221,6 +222,11 @@ Example with notification opt-out:
 - `plugin/skill/read` — read remote plugin skill markdown on demand by `remoteMarketplaceName`, `remotePluginId`, and `skillName`. This lets clients preview uninstalled remote plugin skills without downloading the plugin bundle.
 - `skills/changed` — notification emitted when watched local skill files change.
 - `app/list` — list available apps.
+- `git4d/capabilities/read` — experimental; report whether desktop, VR, or AR visualization is available and describe any desktop fallback.
+- `git4d/session/start` — experimental; start a Git4D visualization session for an optional repository path.
+- `git4d/session/list` — experimental; list Git4D visualization sessions.
+- `git4d/session/watch` — experimental; subscribe the current connection to buffered or live session events.
+- `git4d/session/unwatch` — experimental; remove the current connection's subscription.
 - `remoteControl/enable` — experimental; enable remote control for the current app-server process and return the current remote-control status snapshot. By default, any missing enrollment is completed before the response and the preference is persisted for the current app-server client scope. Pass `ephemeral: true` to enable remote control only for the current process without changing the persisted preference.
 - `remoteControl/disable` — experimental; disable remote control for the current app-server process and return the current remote-control status snapshot. By default, the disabled preference is persisted for the current app-server client scope. Pass `ephemeral: true` to disable only for the current process without changing the persisted preference. This does not revoke already enrolled controller devices.
 - `remoteControl/status/read` — experimental; read the current remote-control status snapshot. `status` is one of `disabled`, `connecting`, `connected`, or `errored`; `serverName` is the local machine name used by this app-server process; `environmentId` is a string when the app-server has a current enrollment and `null` when that enrollment is cleared, invalidated, or remote control is disabled.
@@ -1805,6 +1811,50 @@ To disable a non-managed hook, upsert a state entry at `hooks.state` with `confi
 ```
 
 To re-enable it, upsert the same hook key with `"enabled": true`.
+
+## Git4D visualization (experimental)
+
+Git4D exposes the fork's accelerated repository visualization through the current app-server v2 protocol. Clients must enable the `experimentalApi` initialization capability before calling these methods.
+
+Read mode support before starting a session:
+
+```json
+{
+  "method": "git4d/capabilities/read",
+  "id": 60,
+  "params": { "mode": "vr" }
+}
+```
+
+Start a session with `repositoryPath` omitted or `null` to use the app-server working directory:
+
+```json
+{
+  "method": "git4d/session/start",
+  "id": 61,
+  "params": {
+    "repositoryPath": "C:\\src\\project",
+    "mode": "desktop"
+  }
+}
+```
+
+Use `git4d/session/watch` with `replayMode: "buffered"` to receive retained events before live updates, or `"liveOnly"` for new events only. Notifications are connection-scoped and stop after `git4d/session/unwatch` or when that connection closes.
+
+```json
+{
+  "method": "git4d/session/event",
+  "params": {
+    "sessionId": "git4d_123",
+    "sequence": 7,
+    "event": {
+      "type": "session_status_changed",
+      "status": "active"
+    }
+  }
+}
+```
+
 ## Apps
 
 Use `app/list` to fetch available apps (connectors). Each entry includes metadata like the app `id`, display `name`, `installUrl`, legacy logo URLs, structured light and dark icon assets, `branding`, `appMetadata`, `labels`, whether it is currently accessible, and whether it is enabled in config.
@@ -1845,7 +1895,7 @@ When `threadId` is provided, app feature gating (`Feature::Apps`) is evaluated u
 
 `app/list` returns after both accessible apps and directory apps are loaded. Set `forceRefetch: true` to bypass app caches and fetch fresh data from sources. Cache entries are only replaced when those refetches succeed.
 
-The server also emits `app/list/updated` notifications whenever either source (accessible apps or directory apps) finishes loading. Each notification includes the latest merged app list.
+The server also emits `app/list/updated` notifications when newly loaded accessible or directory apps change the merged app list. Each notification includes the latest merged app list. An initial cached `app/list` still emits one final notification so other initialized clients can refresh their app list, while reading an unchanged cached continuation page does not emit a duplicate notification; `forceRefetch: true` preserves the existing progressive notifications while fresh data loads.
 
 ```json
 {
@@ -1874,6 +1924,44 @@ The server also emits `app/list/updated` notifications whenever either source (a
   }
 }
 ```
+
+Use `app/read` when a client already has app ids and only needs metadata. The request accepts at
+most 100 `appIds`; repeated ids are deduplicated while preserving first-request order. Both `apps`
+and `missingAppIds` follow that order. Unknown or unauthorized ids are returned as partial misses
+instead of failing the whole request.
+
+```json
+{ "method": "app/read", "id": 51, "params": {
+    "appIds": ["demo-app", "missing-app"],
+    "includeTools": true
+} }
+{ "id": 51, "result": {
+    "apps": [
+        {
+            "id": "demo-app",
+            "name": "Demo App",
+            "description": "Example app for documentation.",
+            "iconUrl": "https://files.openai.com/content?id=demo-app",
+            "toolSummaries": [
+                {
+                    "name": "search",
+                    "title": "Search",
+                    "description": "Search the app."
+                }
+            ]
+        }
+    ],
+    "missingAppIds": ["missing-app"]
+} }
+```
+
+`app/read` reads fresh metadata records from a cache partitioned by backend URL and ChatGPT
+account/workspace identity, then makes at most one `POST /ps/apps/batch` for missing or
+expired ids. `includeTools` defaults to false and is forwarded as `include_tools`; a fresh
+metadata-only cache entry is refetched when tool summaries are requested. Backend or transport
+failures return an RPC error without replacing existing cache records. Its metadata shape can
+include display-only public tool summaries and intentionally excludes runtime state, MCP tool
+state, full actions, and model descriptions.
 
 Connected apps may override the thread's approval reviewer in `config.toml`.
 Use `apps._default.approvals_reviewer` to set the reviewer for all apps, and a
@@ -2007,7 +2095,6 @@ Field notes:
    { "method": "account/login/completed", "params": { "loginId": null, "success": true, "error": null } }
    { "method": "account/updated", "params": { "authMode": "apikey", "planType": null } }
    ```
-
 ### 3) Log in with ChatGPT (browser flow)
 
 1. Start:

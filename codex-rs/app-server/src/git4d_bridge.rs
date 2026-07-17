@@ -79,17 +79,9 @@ impl Git4DBridge {
     pub(crate) async fn connection_closed(&self, connection_id: ConnectionId) {
         let cancellations = {
             let mut watchers = self.watchers.lock().await;
-            let keys = watchers
-                .keys()
-                .filter(|(watch_connection_id, _)| *watch_connection_id == connection_id)
-                .cloned()
-                .collect::<Vec<_>>();
-            keys.into_iter()
-                .filter_map(|key| {
-                    watchers
-                        .remove(&key)
-                        .map(|registration| registration.cancellation)
-                })
+            watchers
+                .extract_if(|(watch_connection_id, _), _| *watch_connection_id == connection_id)
+                .map(|(_, registration)| registration.cancellation)
                 .collect::<Vec<_>>()
         };
         for cancellation in cancellations {

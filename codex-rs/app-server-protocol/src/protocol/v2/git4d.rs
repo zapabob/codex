@@ -6,6 +6,8 @@ use ts_rs::TS;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, TS)]
 #[serde(rename_all = "lowercase")]
+#[ts(rename_all = "lowercase")]
+#[ts(export_to = "v2/")]
 pub enum Git4DMode {
     Desktop,
     Vr,
@@ -14,6 +16,8 @@ pub enum Git4DMode {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, TS)]
 #[serde(rename_all = "lowercase")]
+#[ts(rename_all = "lowercase")]
+#[ts(export_to = "v2/")]
 pub enum Git4DSessionStatus {
     Starting,
     Active,
@@ -25,6 +29,8 @@ pub enum Git4DSessionStatus {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
 pub enum Git4DSessionWatchReplayMode {
     Buffered,
     LiveOnly,
@@ -32,12 +38,14 @@ pub enum Git4DSessionWatchReplayMode {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
 pub struct Git4DCapabilitiesReadParams {
     pub mode: Git4DMode,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
 pub struct Git4DCapabilitiesResponse {
     pub requested_mode: Git4DMode,
     pub effective_mode: Git4DMode,
@@ -49,6 +57,7 @@ pub struct Git4DCapabilitiesResponse {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
 pub struct Git4DSessionSummary {
     pub session_id: String,
     pub repository_path: AbsolutePathBuf,
@@ -64,29 +73,35 @@ pub struct Git4DSessionSummary {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
 pub struct Git4DSessionStartParams {
+    #[ts(optional = nullable)]
     pub repository_path: Option<AbsolutePathBuf>,
     pub mode: Git4DMode,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
 pub struct Git4DSessionStartResponse {
     pub session: Git4DSessionSummary,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
 pub struct Git4DSessionListParams {}
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
 pub struct Git4DSessionListResponse {
     pub sessions: Vec<Git4DSessionSummary>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
 pub struct Git4DSessionWatchParams {
     pub session_id: String,
     pub replay_mode: Git4DSessionWatchReplayMode,
@@ -94,6 +109,7 @@ pub struct Git4DSessionWatchParams {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
 pub struct Git4DSessionWatchResponse {
     pub session: Git4DSessionSummary,
     pub replay_mode: Git4DSessionWatchReplayMode,
@@ -101,12 +117,14 @@ pub struct Git4DSessionWatchResponse {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
 pub struct Git4DSessionUnwatchParams {
     pub session_id: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
 pub struct Git4DSessionUnwatchResponse {
     pub session_id: String,
     pub unsubscribed: bool,
@@ -114,6 +132,8 @@ pub struct Git4DSessionUnwatchResponse {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, TS)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[ts(tag = "type", rename_all = "snake_case")]
+#[ts(export_to = "v2/")]
 pub enum Git4DSessionEvent {
     CommitsLoaded {
         commit_count: usize,
@@ -142,6 +162,7 @@ pub enum Git4DSessionEvent {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export_to = "v2/")]
 pub struct Git4DSessionEventNotification {
     pub session_id: String,
     pub sequence: u64,

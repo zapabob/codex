@@ -1,4 +1,4 @@
-﻿import yaml
+import yaml
 
 files = [
     "C:/Users/downl/Desktop/codex-main/.github/workflows/qa-ci.yml",

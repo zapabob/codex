@@ -880,6 +880,28 @@
       },
       "type": "object"
     },
+    "AppToolSummary": {
+      "description": "EXPERIMENTAL - metadata returned by app/read.",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "description",
+        "name"
+      ],
+      "type": "object"
+    },
     "AppToolsConfig": {
       "type": "object"
     },
@@ -1002,6 +1024,52 @@
         "data"
       ],
       "title": "AppsListResponse",
+      "type": "object"
+    },
+    "AppsReadParams": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "description": "EXPERIMENTAL - read metadata for specific apps/connectors.",
+      "properties": {
+        "appIds": {
+          "description": "App ids to read. The server accepts at most 100 ids and deduplicates repeated ids while preserving their first-request order.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "includeTools": {
+          "description": "When true, include display-only public tool summaries in the returned metadata.",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "appIds"
+      ],
+      "title": "AppsReadParams",
+      "type": "object"
+    },
+    "AppsReadResponse": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "description": "EXPERIMENTAL - app/read response.",
+      "properties": {
+        "apps": {
+          "items": {
+            "$ref": "#/definitions/ConnectorMetadata"
+          },
+          "type": "array"
+        },
+        "missingAppIds": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "apps",
+        "missingAppIds"
+      ],
+      "title": "AppsReadResponse",
       "type": "object"
     },
     "AskForApproval": {
@@ -2105,6 +2173,30 @@
             "params"
           ],
           "title": "Plugin/share/deleteRequest",
+          "type": "object"
+        },
+        {
+          "properties": {
+            "id": {
+              "$ref": "#/definitions/RequestId"
+            },
+            "method": {
+              "enum": [
+                "app/read"
+              ],
+              "title": "App/readRequestMethod",
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/definitions/AppsReadParams"
+            }
+          },
+          "required": [
+            "id",
+            "method",
+            "params"
+          ],
+          "title": "App/readRequest",
           "type": "object"
         },
         {
@@ -4901,6 +4993,43 @@
       ],
       "type": "object"
     },
+    "ConnectorMetadata": {
+      "description": "EXPERIMENTAL - metadata returned by app/read.",
+      "properties": {
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "iconUrl": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "toolSummaries": {
+          "items": {
+            "$ref": "#/definitions/AppToolSummary"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "type": "object"
+    },
     "ConsumeAccountRateLimitResetCreditOutcome": {
       "oneOf": [
         {
@@ -6883,6 +7012,285 @@
       ],
       "title": "GetWorkspaceMessagesResponse",
       "type": "object"
+    },
+    "Git4DMode": {
+      "enum": [
+        "desktop",
+        "vr",
+        "ar"
+      ],
+      "type": "string"
+    },
+    "Git4DSessionEvent": {
+      "oneOf": [
+        {
+          "properties": {
+            "commit_count": {
+              "format": "uint",
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "type": {
+              "enum": [
+                "commits_loaded"
+              ],
+              "title": "CommitsLoadedGit4DSessionEventType",
+              "type": "string"
+            }
+          },
+          "required": [
+            "commit_count",
+            "type"
+          ],
+          "title": "CommitsLoadedGit4DSessionEvent",
+          "type": "object"
+        },
+        {
+          "properties": {
+            "branch_count": {
+              "format": "uint",
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "branch_names": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "type": {
+              "enum": [
+                "branches_updated"
+              ],
+              "title": "BranchesUpdatedGit4DSessionEventType",
+              "type": "string"
+            }
+          },
+          "required": [
+            "branch_count",
+            "branch_names",
+            "type"
+          ],
+          "title": "BranchesUpdatedGit4DSessionEvent",
+          "type": "object"
+        },
+        {
+          "properties": {
+            "position": {
+              "items": {
+                "format": "float",
+                "type": "number"
+              },
+              "maxItems": 3,
+              "minItems": 3,
+              "type": "array"
+            },
+            "target": {
+              "items": {
+                "format": "float",
+                "type": "number"
+              },
+              "maxItems": 3,
+              "minItems": 3,
+              "type": "array"
+            },
+            "type": {
+              "enum": [
+                "camera_updated"
+              ],
+              "title": "CameraUpdatedGit4DSessionEventType",
+              "type": "string"
+            }
+          },
+          "required": [
+            "position",
+            "target",
+            "type"
+          ],
+          "title": "CameraUpdatedGit4DSessionEvent",
+          "type": "object"
+        },
+        {
+          "properties": {
+            "pixel_bytes": {
+              "format": "uint",
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "type": {
+              "enum": [
+                "render_complete"
+              ],
+              "title": "RenderCompleteGit4DSessionEventType",
+              "type": "string"
+            }
+          },
+          "required": [
+            "pixel_bytes",
+            "type"
+          ],
+          "title": "RenderCompleteGit4DSessionEvent",
+          "type": "object"
+        },
+        {
+          "properties": {
+            "interaction": {
+              "type": "string"
+            },
+            "type": {
+              "enum": [
+                "interaction_processed"
+              ],
+              "title": "InteractionProcessedGit4DSessionEventType",
+              "type": "string"
+            }
+          },
+          "required": [
+            "interaction",
+            "type"
+          ],
+          "title": "InteractionProcessedGit4DSessionEvent",
+          "type": "object"
+        },
+        {
+          "properties": {
+            "message": {
+              "type": "string"
+            },
+            "type": {
+              "enum": [
+                "error"
+              ],
+              "title": "ErrorGit4DSessionEventType",
+              "type": "string"
+            }
+          },
+          "required": [
+            "message",
+            "type"
+          ],
+          "title": "ErrorGit4DSessionEvent",
+          "type": "object"
+        },
+        {
+          "properties": {
+            "status": {
+              "$ref": "#/definitions/Git4DSessionStatus"
+            },
+            "type": {
+              "enum": [
+                "session_status_changed"
+              ],
+              "title": "SessionStatusChangedGit4DSessionEventType",
+              "type": "string"
+            }
+          },
+          "required": [
+            "status",
+            "type"
+          ],
+          "title": "SessionStatusChangedGit4DSessionEvent",
+          "type": "object"
+        }
+      ]
+    },
+    "Git4DSessionEventNotification": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "properties": {
+        "event": {
+          "$ref": "#/definitions/Git4DSessionEvent"
+        },
+        "sequence": {
+          "format": "uint64",
+          "minimum": 0.0,
+          "type": "integer"
+        },
+        "sessionId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "event",
+        "sequence",
+        "sessionId"
+      ],
+      "title": "Git4DSessionEventNotification",
+      "type": "object"
+    },
+    "Git4DSessionStatus": {
+      "enum": [
+        "starting",
+        "active",
+        "paused",
+        "stopping",
+        "stopped",
+        "error"
+      ],
+      "type": "string"
+    },
+    "Git4DSessionSummary": {
+      "properties": {
+        "deviceName": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "effectiveMode": {
+          "$ref": "#/definitions/Git4DMode"
+        },
+        "fallbackReason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "idleMs": {
+          "format": "uint64",
+          "minimum": 0.0,
+          "type": "integer"
+        },
+        "platform": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "repositoryPath": {
+          "$ref": "#/definitions/AbsolutePathBuf"
+        },
+        "requestedMode": {
+          "$ref": "#/definitions/Git4DMode"
+        },
+        "sessionId": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/Git4DSessionStatus"
+        },
+        "uptimeMs": {
+          "format": "uint64",
+          "minimum": 0.0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "effectiveMode",
+        "idleMs",
+        "repositoryPath",
+        "requestedMode",
+        "sessionId",
+        "status",
+        "uptimeMs"
+      ],
+      "type": "object"
+    },
+    "Git4DSessionWatchReplayMode": {
+      "enum": [
+        "buffered",
+        "liveOnly"
+      ],
+      "type": "string"
     },
     "GitInfo": {
       "properties": {
@@ -14321,6 +14729,26 @@
             "params"
           ],
           "title": "FuzzyFileSearch/sessionCompletedNotification",
+          "type": "object"
+        },
+        {
+          "properties": {
+            "method": {
+              "enum": [
+                "git4d/session/event"
+              ],
+              "title": "Git4d/session/eventNotificationMethod",
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/definitions/Git4DSessionEventNotification"
+            }
+          },
+          "required": [
+            "method",
+            "params"
+          ],
+          "title": "Git4d/session/eventNotification",
           "type": "object"
         },
         {

@@ -1,4 +1,4 @@
-﻿import re
+import re
 
 files = [
     "C:/Users/downl/Desktop/codex-main/.github/workflows/qa-ci.yml",

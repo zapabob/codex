@@ -16,6 +16,7 @@ use crate::extensions::thread_extensions;
 use crate::external_agent_migration::ExternalAgentConfigRequestProcessor;
 use crate::external_agent_migration::ExternalAgentConfigRequestProcessorArgs;
 use crate::fs_watch::FsWatchManager;
+use crate::git4d_bridge::Git4DBridge;
 use crate::outgoing_message::ConnectionId;
 use crate::outgoing_message::ConnectionRequestId;
 use crate::outgoing_message::OutgoingMessageSender;
@@ -113,6 +114,7 @@ pub(crate) struct MessageProcessor {
     external_agent_config_processor: ExternalAgentConfigRequestProcessor,
     feedback_processor: FeedbackRequestProcessor,
     fs_processor: FsRequestProcessor,
+    git4d_bridge: Git4DBridge,
     git_processor: GitRequestProcessor,
     initialize_processor: InitializeRequestProcessor,
     marketplace_processor: MarketplaceRequestProcessor,
@@ -473,6 +475,7 @@ impl MessageProcessor {
             Arc::clone(&environment_manager_for_requests),
             FsWatchManager::new(outgoing.clone()),
         );
+        let git4d_bridge = Git4DBridge::new(outgoing.clone());
         let windows_sandbox_processor = WindowsSandboxRequestProcessor::new(
             outgoing.clone(),
             Arc::clone(&config),
@@ -493,6 +496,7 @@ impl MessageProcessor {
             external_agent_config_processor,
             feedback_processor,
             fs_processor,
+            git4d_bridge,
             git_processor,
             initialize_processor,
             marketplace_processor,
@@ -701,6 +705,7 @@ impl MessageProcessor {
     }
 
     pub(crate) async fn shutdown_threads(&self) {
+        self.git4d_bridge.shutdown().await;
         self.thread_processor.shutdown_threads().await;
     }
 
@@ -730,6 +735,7 @@ impl MessageProcessor {
         self.process_exec_processor
             .connection_closed(connection_id)
             .await;
+        self.git4d_bridge.connection_closed(connection_id).await;
         self.thread_processor.connection_closed(connection_id).await;
     }
 
@@ -1219,8 +1225,39 @@ impl MessageProcessor {
             ClientRequest::PluginShareDelete { params, .. } => {
                 self.plugin_processor.plugin_share_delete(params).await
             }
+            ClientRequest::AppsRead { params, .. } => self.apps_processor.apps_read(params).await,
             ClientRequest::AppsList { params, .. } => {
                 self.apps_processor.apps_list(&request_id, params).await
+            }
+            ClientRequest::Git4DCapabilitiesRead { params, .. } => {
+                self.git4d_bridge
+                    .capabilities_read(request_id.clone(), params)
+                    .await;
+                Ok(None)
+            }
+            ClientRequest::Git4DSessionStart { params, .. } => {
+                self.git4d_bridge
+                    .session_start(request_id.clone(), params)
+                    .await;
+                Ok(None)
+            }
+            ClientRequest::Git4DSessionList { params, .. } => {
+                self.git4d_bridge
+                    .session_list(request_id.clone(), params)
+                    .await;
+                Ok(None)
+            }
+            ClientRequest::Git4DSessionWatch { params, .. } => {
+                self.git4d_bridge
+                    .session_watch(request_id.clone(), params)
+                    .await;
+                Ok(None)
+            }
+            ClientRequest::Git4DSessionUnwatch { params, .. } => {
+                self.git4d_bridge
+                    .session_unwatch(request_id.clone(), params)
+                    .await;
+                Ok(None)
             }
             ClientRequest::SkillsConfigWrite { params, .. } => {
                 self.catalog_processor.skills_config_write(params).await

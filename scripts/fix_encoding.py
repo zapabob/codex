@@ -1,4 +1,4 @@
-﻿files = [
+files = [
     "C:/Users/downl/Desktop/codex-main/.github/workflows/subagent-ci.yml",
     "C:/Users/downl/Desktop/codex-main/.github/workflows/release-subagent.yml",
     "C:/Users/downl/Desktop/codex-main/.github/workflows/qa-ci.yml",

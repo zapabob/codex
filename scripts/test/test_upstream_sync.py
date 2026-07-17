@@ -18,7 +18,9 @@ import upstream_sync
 
 class UpstreamSyncClassificationTests(unittest.TestCase):
     def test_classify_strategy_marks_gui_paths_for_plugin_migration(self) -> None:
-        self.assertEqual(fast_build.classify_strategy("gui/src/app/page.tsx"), "plugin-migrate")
+        self.assertEqual(
+            fast_build.classify_strategy("gui/src/app/page.tsx"), "plugin-migrate"
+        )
         self.assertEqual(
             fast_build.classify_strategy("codex-gui-x/src/main.tsx"),
             "plugin-migrate",
@@ -71,8 +73,18 @@ class UpstreamSyncClassificationTests(unittest.TestCase):
             returncode=0,
             install_path=r"C:\Users\downl\.cargo\bin\codex.exe",
             resolved_command_path=r"C:\Users\downl\.cargo\bin\codex.exe",
-            codexapp_before=[{"Id": 1234, "Path": r"C:\Program Files\WindowsApps\OpenAI.Codex_x\app\Codex.exe"}],
-            codexapp_after=[{"Id": 1234, "Path": r"C:\Program Files\WindowsApps\OpenAI.Codex_x\app\Codex.exe"}],
+            codexapp_before=[
+                {
+                    "Id": 1234,
+                    "Path": r"C:\Program Files\WindowsApps\OpenAI.Codex_x\app\Codex.exe",
+                }
+            ],
+            codexapp_after=[
+                {
+                    "Id": 1234,
+                    "Path": r"C:\Program Files\WindowsApps\OpenAI.Codex_x\app\Codex.exe",
+                }
+            ],
             surviving_codexapp_pids=[1234],
             version_output="codex 3.1.0",
             app_server_help_ok=True,
@@ -141,7 +153,10 @@ class UpstreamSyncWorkspaceRepairTests(unittest.TestCase):
             Path(r"C:\repo\codex-rs\target\release\codex.exe"),
         )
 
-        self.assertEqual(command[:5], ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command"])
+        self.assertEqual(
+            command[:5],
+            ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command"],
+        )
         script = command[5]
         self.assertIn(
             "-ProcessNames @('codex', 'codex-tui', 'codex-gui', 'opencode')",
@@ -156,7 +171,9 @@ class UpstreamSyncWorkspaceRepairTests(unittest.TestCase):
             script,
         )
 
-    def test_detect_validation_environment_blocker_for_windows_v8_symlink_failure(self) -> None:
+    def test_detect_validation_environment_blocker_for_windows_v8_symlink_failure(
+        self,
+    ) -> None:
         original_platform = upstream_sync.sys.platform
         try:
             upstream_sync.sys.platform = "win32"

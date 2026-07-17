@@ -99,7 +99,9 @@ class AsyncAppServerClient:
             response_model=response_model,
         )
 
-    async def thread_start(self, params: V2ThreadStartParams | JsonObject | None = None) -> ThreadStartResponse:
+    async def thread_start(
+        self, params: V2ThreadStartParams | JsonObject | None = None
+    ) -> ThreadStartResponse:
         return await self._call_sync(self._sync.thread_start, params)
 
     async def thread_resume(
@@ -109,7 +111,9 @@ class AsyncAppServerClient:
     ) -> ThreadResumeResponse:
         return await self._call_sync(self._sync.thread_resume, thread_id, params)
 
-    async def thread_list(self, params: V2ThreadListParams | JsonObject | None = None) -> ThreadListResponse:
+    async def thread_list(
+        self, params: V2ThreadListParams | JsonObject | None = None
+    ) -> ThreadListResponse:
         return await self._call_sync(self._sync.thread_list, params)
 
     async def thread_read(self, thread_id: str, include_turns: bool = False) -> ThreadReadResponse:

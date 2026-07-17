@@ -33,6 +33,7 @@ import winreg  # Windows用
 sys.path.append(str(Path(__file__).parent))
 from cowork_productivity_assistant import CoworkProductivityAssistant
 
+
 class AppleStyleGUI:
     """Apple風デザインのCowork GUI"""
 
@@ -46,45 +47,45 @@ class AppleStyleGUI:
 
         # Apple風カラーパレット
         self.colors = {
-            'light': {
-                'bg': '#f5f5f7',
-                'surface': '#ffffff',
-                'primary': '#007aff',
-                'secondary': '#5856d6',
-                'text': '#1d1d1f',
-                'text_secondary': '#86868b',
-                'border': '#d1d1d6',
-                'success': '#34c759',
-                'warning': '#ff9500',
-                'error': '#ff3b30'
+            "light": {
+                "bg": "#f5f5f7",
+                "surface": "#ffffff",
+                "primary": "#007aff",
+                "secondary": "#5856d6",
+                "text": "#1d1d1f",
+                "text_secondary": "#86868b",
+                "border": "#d1d1d6",
+                "success": "#34c759",
+                "warning": "#ff9500",
+                "error": "#ff3b30",
             },
-            'dark': {
-                'bg': '#1d1d1f',
-                'surface': '#2c2c2e',
-                'primary': '#0a84ff',
-                'secondary': '#5e5ce6',
-                'text': '#f2f2f7',
-                'text_secondary': '#98989d',
-                'border': '#48484a',
-                'success': '#30d158',
-                'warning': '#ff9f0a',
-                'error': '#ff453a'
-            }
+            "dark": {
+                "bg": "#1d1d1f",
+                "surface": "#2c2c2e",
+                "primary": "#0a84ff",
+                "secondary": "#5e5ce6",
+                "text": "#f2f2f7",
+                "text_secondary": "#98989d",
+                "border": "#48484a",
+                "success": "#30d158",
+                "warning": "#ff9f0a",
+                "error": "#ff453a",
+            },
         }
 
         # Apple風フォント設定
         self.fonts = {
-            'large_title': ('SF Pro Display', 28, 'bold'),
-            'title1': ('SF Pro Display', 22, 'bold'),
-            'title2': ('SF Pro Text', 17, 'bold'),
-            'title3': ('SF Pro Text', 15, 'bold'),
-            'headline': ('SF Pro Text', 13, 'bold'),
-            'body': ('SF Pro Text', 13, 'normal'),
-            'callout': ('SF Pro Text', 12, 'normal'),
-            'subhead': ('SF Pro Text', 11, 'bold'),
-            'footnote': ('SF Pro Text', 11, 'normal'),
-            'caption1': ('SF Pro Text', 10, 'normal'),
-            'caption2': ('SF Pro Text', 9, 'normal')
+            "large_title": ("SF Pro Display", 28, "bold"),
+            "title1": ("SF Pro Display", 22, "bold"),
+            "title2": ("SF Pro Text", 17, "bold"),
+            "title3": ("SF Pro Text", 15, "bold"),
+            "headline": ("SF Pro Text", 13, "bold"),
+            "body": ("SF Pro Text", 13, "normal"),
+            "callout": ("SF Pro Text", 12, "normal"),
+            "subhead": ("SF Pro Text", 11, "bold"),
+            "footnote": ("SF Pro Text", 11, "normal"),
+            "caption1": ("SF Pro Text", 10, "normal"),
+            "caption2": ("SF Pro Text", 9, "normal"),
         }
 
     def create_main_window(self):
@@ -92,7 +93,7 @@ class AppleStyleGUI:
         self.root = tk.Tk()
         self.root.title("Cowork Assistant")
         self.root.geometry("1200x800")
-        self.root.configure(bg=self.get_color('bg'))
+        self.root.configure(bg=self.get_color("bg"))
 
         # Apple風ウィンドウ設定
         self.root.overrideredirect(False)  # 標準ウィンドウ
@@ -102,7 +103,7 @@ class AppleStyleGUI:
         self.setup_styles()
 
         # メインフレーム
-        main_frame = tk.Frame(self.root, bg=self.get_color('bg'))
+        main_frame = tk.Frame(self.root, bg=self.get_color("bg"))
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
 
         # ヘッダー
@@ -131,111 +132,130 @@ class AppleStyleGUI:
         style = ttk.Style()
 
         # ボタンスタイル
-        style.configure('Primary.TButton',
-                       font=self.fonts['body'],
-                       background=self.get_color('primary'),
-                       foreground='white',
-                       borderwidth=0,
-                       relief='flat',
-                       padding=(16, 8))
+        style.configure(
+            "Primary.TButton",
+            font=self.fonts["body"],
+            background=self.get_color("primary"),
+            foreground="white",
+            borderwidth=0,
+            relief="flat",
+            padding=(16, 8),
+        )
 
-        style.configure('Secondary.TButton',
-                       font=self.fonts['body'],
-                       background=self.get_color('secondary'),
-                       foreground='white',
-                       borderwidth=0,
-                       relief='flat',
-                       padding=(16, 8))
+        style.configure(
+            "Secondary.TButton",
+            font=self.fonts["body"],
+            background=self.get_color("secondary"),
+            foreground="white",
+            borderwidth=0,
+            relief="flat",
+            padding=(16, 8),
+        )
 
         # エントリースタイル
-        style.configure('Search.TEntry',
-                       font=self.fonts['body'],
-                       borderwidth=1,
-                       relief='flat',
-                       padding=(12, 8))
+        style.configure(
+            "Search.TEntry",
+            font=self.fonts["body"],
+            borderwidth=1,
+            relief="flat",
+            padding=(12, 8),
+        )
 
     def create_header(self, parent):
         """Apple風ヘッダー作成"""
-        header_frame = tk.Frame(parent, bg=self.get_color('bg'))
+        header_frame = tk.Frame(parent, bg=self.get_color("bg"))
         header_frame.pack(fill=tk.X, pady=(0, 24))
 
         # タイトル
-        title_label = tk.Label(header_frame,
-                              text="Cowork Assistant",
-                              font=self.fonts['large_title'],
-                              bg=self.get_color('bg'),
-                              fg=self.get_color('text'))
+        title_label = tk.Label(
+            header_frame,
+            text="Cowork Assistant",
+            font=self.fonts["large_title"],
+            bg=self.get_color("bg"),
+            fg=self.get_color("text"),
+        )
         title_label.pack(anchor=tk.W)
 
         # サブタイトル
-        subtitle_label = tk.Label(header_frame,
-                                 text="生産性向上のためのインテリジェントアシスタント",
-                                 font=self.fonts['body'],
-                                 bg=self.get_color('bg'),
-                                 fg=self.get_color('text_secondary'))
+        subtitle_label = tk.Label(
+            header_frame,
+            text="生産性向上のためのインテリジェントアシスタント",
+            font=self.fonts["body"],
+            bg=self.get_color("bg"),
+            fg=self.get_color("text_secondary"),
+        )
         subtitle_label.pack(anchor=tk.W, pady=(4, 0))
 
     def create_search_section(self, parent):
         """検索・実行セクション作成"""
-        search_frame = tk.Frame(parent, bg=self.get_color('surface'),
-                               relief='flat', borderwidth=1)
+        search_frame = tk.Frame(
+            parent, bg=self.get_color("surface"), relief="flat", borderwidth=1
+        )
         search_frame.pack(fill=tk.X, pady=(0, 24))
 
         # 検索ラベル
-        search_label = tk.Label(search_frame,
-                               text="何を自動化しますか？",
-                               font=self.fonts['title2'],
-                               bg=self.get_color('surface'),
-                               fg=self.get_color('text'))
+        search_label = tk.Label(
+            search_frame,
+            text="何を自動化しますか？",
+            font=self.fonts["title2"],
+            bg=self.get_color("surface"),
+            fg=self.get_color("text"),
+        )
         search_label.pack(anchor=tk.W, padx=20, pady=(20, 12))
 
         # 検索入力フレーム
-        input_frame = tk.Frame(search_frame, bg=self.get_color('surface'))
+        input_frame = tk.Frame(search_frame, bg=self.get_color("surface"))
         input_frame.pack(fill=tk.X, padx=20, pady=(0, 20))
 
         # 検索エントリー
         self.search_var = tk.StringVar()
-        search_entry = tk.Entry(input_frame,
-                               textvariable=self.search_var,
-                               font=self.fonts['body'],
-                               bg=self.get_color('bg'),
-                               fg=self.get_color('text'),
-                               insertbackground=self.get_color('primary'),
-                               relief='flat',
-                               borderwidth=1)
+        search_entry = tk.Entry(
+            input_frame,
+            textvariable=self.search_var,
+            font=self.fonts["body"],
+            bg=self.get_color("bg"),
+            fg=self.get_color("text"),
+            insertbackground=self.get_color("primary"),
+            relief="flat",
+            borderwidth=1,
+        )
         search_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=8, ipadx=12)
 
         # 実行ボタン
-        execute_btn = tk.Button(input_frame,
-                               text="実行",
-                               font=self.fonts['body'],
-                               bg=self.get_color('primary'),
-                               fg='white',
-                               relief='flat',
-                               borderwidth=0,
-                               padx=24,
-                               pady=8,
-                               command=self.execute_task)
+        execute_btn = tk.Button(
+            input_frame,
+            text="実行",
+            font=self.fonts["body"],
+            bg=self.get_color("primary"),
+            fg="white",
+            relief="flat",
+            borderwidth=0,
+            padx=24,
+            pady=8,
+            command=self.execute_task,
+        )
         execute_btn.pack(side=tk.RIGHT, padx=(12, 0))
 
         # キーボードショートカット設定
-        self.root.bind('<Return>', lambda e: self.execute_task())
+        self.root.bind("<Return>", lambda e: self.execute_task())
 
     def create_feature_grid(self, parent):
         """機能グリッド作成"""
-        grid_frame = tk.Frame(parent, bg=self.get_color('bg'))
+        grid_frame = tk.Frame(parent, bg=self.get_color("bg"))
         grid_frame.pack(fill=tk.X, pady=(0, 24))
 
         # グリッドタイトル
-        grid_title = tk.Label(grid_frame,
-                             text="利用可能な機能",
-                             font=self.fonts['title2'],
-                             bg=self.get_color('bg'),
-                             fg=self.get_color('text'))
+        grid_title = tk.Label(
+            grid_frame,
+            text="利用可能な機能",
+            font=self.fonts["title2"],
+            bg=self.get_color("bg"),
+            fg=self.get_color("text"),
+        )
         grid_title.pack(anchor=tk.W, pady=(0, 16))
 
         # 機能ボタングリッド
-        features_frame = tk.Frame(grid_frame, bg=self.get_color('bg'))
+        features_frame = tk.Frame(grid_frame, bg=self.get_color("bg"))
         features_frame.pack(fill=tk.X)
 
         # 機能リスト
@@ -247,7 +267,7 @@ class AppleStyleGUI:
             ("🖼️", "画像処理", "OCRと画像分析"),
             ("🔍", "研究支援", "Web検索と情報収集"),
             ("📋", "レポート作成", "データからの自動レポート生成"),
-            ("⚙️", "ワークフロー", "複雑タスクの自動実行")
+            ("⚙️", "ワークフロー", "複雑タスクの自動実行"),
         ]
 
         # 4列グリッド
@@ -256,17 +276,19 @@ class AppleStyleGUI:
             col = i % 4
 
             # 機能ボタン
-            feature_btn = tk.Button(features_frame,
-                                   text=f"{icon}\n{title}",
-                                   font=self.fonts['callout'],
-                                   bg=self.get_color('surface'),
-                                   fg=self.get_color('text'),
-                                   relief='flat',
-                                   borderwidth=1,
-                                   padx=16,
-                                   pady=12,
-                                   command=lambda t=title, d=desc: self.select_feature(t, d))
-            feature_btn.grid(row=row, column=col, padx=8, pady=8, sticky='nsew')
+            feature_btn = tk.Button(
+                features_frame,
+                text=f"{icon}\n{title}",
+                font=self.fonts["callout"],
+                bg=self.get_color("surface"),
+                fg=self.get_color("text"),
+                relief="flat",
+                borderwidth=1,
+                padx=16,
+                pady=12,
+                command=lambda t=title, d=desc: self.select_feature(t, d),
+            )
+            feature_btn.grid(row=row, column=col, padx=8, pady=8, sticky="nsew")
 
             # ツールチップ設定
             self.create_tooltip(feature_btn, desc)
@@ -277,91 +299,116 @@ class AppleStyleGUI:
 
     def create_task_history(self, parent):
         """タスク履歴セクション作成"""
-        history_frame = tk.Frame(parent, bg=self.get_color('surface'),
-                                relief='flat', borderwidth=1)
+        history_frame = tk.Frame(
+            parent, bg=self.get_color("surface"), relief="flat", borderwidth=1
+        )
         history_frame.pack(fill=tk.BOTH, expand=True)
 
         # 履歴タイトル
-        history_title = tk.Label(history_frame,
-                                text="実行履歴",
-                                font=self.fonts['title2'],
-                                bg=self.get_color('surface'),
-                                fg=self.get_color('text'))
+        history_title = tk.Label(
+            history_frame,
+            text="実行履歴",
+            font=self.fonts["title2"],
+            bg=self.get_color("surface"),
+            fg=self.get_color("text"),
+        )
         history_title.pack(anchor=tk.W, padx=20, pady=(20, 12))
 
         # 履歴リストボックス
-        self.history_listbox = tk.Listbox(history_frame,
-                                         font=self.fonts['body'],
-                                         bg=self.get_color('bg'),
-                                         fg=self.get_color('text'),
-                                         selectbackground=self.get_color('primary'),
-                                         selectforeground='white',
-                                         relief='flat',
-                                         borderwidth=0)
+        self.history_listbox = tk.Listbox(
+            history_frame,
+            font=self.fonts["body"],
+            bg=self.get_color("bg"),
+            fg=self.get_color("text"),
+            selectbackground=self.get_color("primary"),
+            selectforeground="white",
+            relief="flat",
+            borderwidth=0,
+        )
         self.history_listbox.pack(fill=tk.BOTH, expand=True, padx=20, pady=(0, 20))
 
         # 履歴操作ボタン
-        btn_frame = tk.Frame(history_frame, bg=self.get_color('surface'))
+        btn_frame = tk.Frame(history_frame, bg=self.get_color("surface"))
         btn_frame.pack(fill=tk.X, padx=20, pady=(0, 20))
 
-        clear_btn = tk.Button(btn_frame,
-                             text="履歴クリア",
-                             font=self.fonts['callout'],
-                             bg=self.get_color('secondary'),
-                             fg='white',
-                             relief='flat',
-                             borderwidth=0,
-                             padx=12,
-                             pady=6,
-                             command=self.clear_history)
+        clear_btn = tk.Button(
+            btn_frame,
+            text="履歴クリア",
+            font=self.fonts["callout"],
+            bg=self.get_color("secondary"),
+            fg="white",
+            relief="flat",
+            borderwidth=0,
+            padx=12,
+            pady=6,
+            command=self.clear_history,
+        )
         clear_btn.pack(side=tk.RIGHT)
 
     def create_status_bar(self):
         """ステータスバー作成"""
-        status_frame = tk.Frame(self.root, bg=self.get_color('surface'),
-                               relief='flat', borderwidth=1, height=30)
+        status_frame = tk.Frame(
+            self.root,
+            bg=self.get_color("surface"),
+            relief="flat",
+            borderwidth=1,
+            height=30,
+        )
         status_frame.pack(fill=tk.X, side=tk.BOTTOM)
 
         # ステータスラベル
         self.status_var = tk.StringVar(value="準備完了")
-        status_label = tk.Label(status_frame,
-                               textvariable=self.status_var,
-                               font=self.fonts['caption1'],
-                               bg=self.get_color('surface'),
-                               fg=self.get_color('text_secondary'))
+        status_label = tk.Label(
+            status_frame,
+            textvariable=self.status_var,
+            font=self.fonts["caption1"],
+            bg=self.get_color("surface"),
+            fg=self.get_color("text_secondary"),
+        )
         status_label.pack(side=tk.LEFT, padx=12, pady=6)
 
         # バージョン情報
-        version_label = tk.Label(status_frame,
-                                text="Cowork Assistant v1.0.0",
-                                font=self.fonts['caption2'],
-                                bg=self.get_color('surface'),
-                                fg=self.get_color('text_secondary'))
+        version_label = tk.Label(
+            status_frame,
+            text="Cowork Assistant v1.0.0",
+            font=self.fonts["caption2"],
+            bg=self.get_color("surface"),
+            fg=self.get_color("text_secondary"),
+        )
         version_label.pack(side=tk.RIGHT, padx=12, pady=6)
 
     def create_tooltip(self, widget, text):
         """ツールチップ作成"""
+
         def show_tooltip(event):
             tooltip = tk.Toplevel()
             tooltip.wm_overrideredirect(True)
-            tooltip.wm_geometry(f"+{event.x_root+10}+{event.y_root+10}")
+            tooltip.wm_geometry(f"+{event.x_root + 10}+{event.y_root + 10}")
 
-            label = tk.Label(tooltip, text=text, font=self.fonts['footnote'],
-                           bg=self.get_color('surface'), fg=self.get_color('text'),
-                           relief='solid', borderwidth=1, padx=8, pady=4)
+            label = tk.Label(
+                tooltip,
+                text=text,
+                font=self.fonts["footnote"],
+                bg=self.get_color("surface"),
+                fg=self.get_color("text"),
+                relief="solid",
+                borderwidth=1,
+                padx=8,
+                pady=4,
+            )
             label.pack()
 
             def hide_tooltip():
                 tooltip.destroy()
 
             widget.tooltip = tooltip
-            widget.bind('<Leave>', lambda e: hide_tooltip())
+            widget.bind("<Leave>", lambda e: hide_tooltip())
 
-        widget.bind('<Enter>', show_tooltip)
+        widget.bind("<Enter>", show_tooltip)
 
     def get_color(self, key):
         """現在のテーマに基づく色取得"""
-        theme = 'dark' if self.is_dark_mode else 'light'
+        theme = "dark" if self.is_dark_mode else "light"
         return self.colors[theme][key]
 
     def execute_task(self):
@@ -376,7 +423,9 @@ class AppleStyleGUI:
         self.search_var.set("")
 
         # 非同期実行
-        threading.Thread(target=self._execute_task_async, args=(task_description,), daemon=True).start()
+        threading.Thread(
+            target=self._execute_task_async, args=(task_description,), daemon=True
+        ).start()
 
     def _execute_task_async(self, task_description):
         """非同期タスク実行"""
@@ -385,7 +434,9 @@ class AppleStyleGUI:
             result = asyncio.run(self.assistant.execute_task(task_description))
 
             # UI更新
-            self.root.after(0, lambda: self.update_task_result(result, task_description))
+            self.root.after(
+                0, lambda: self.update_task_result(result, task_description)
+            )
 
         except Exception as e:
             self.root.after(0, lambda: self.show_error(f"タスク実行エラー: {str(e)}"))
@@ -393,22 +444,24 @@ class AppleStyleGUI:
     def update_task_result(self, result, task_description):
         """タスク結果更新"""
         # ステータス更新
-        if result.get('success'):
+        if result.get("success"):
             self.status_var.set("タスク完了")
-            status_color = self.get_color('success')
+            status_color = self.get_color("success")
         else:
             self.status_var.set("タスク失敗")
-            status_color = self.get_color('error')
+            status_color = self.get_color("error")
 
         # 履歴追加
         timestamp = datetime.now().strftime("%H:%M:%S")
         history_item = f"[{timestamp}] {task_description[:50]}..."
         self.history_listbox.insert(0, history_item)
-        self.task_history.append({
-            'description': task_description,
-            'result': result,
-            'timestamp': datetime.now()
-        })
+        self.task_history.append(
+            {
+                "description": task_description,
+                "result": result,
+                "timestamp": datetime.now(),
+            }
+        )
 
     def select_feature(self, title, description):
         """機能選択（Deepresearch統合拡張）"""
@@ -426,7 +479,7 @@ class AppleStyleGUI:
             "Deep Research": "量子コンピューティングの最新動向を包括的に調査してください",
             "Contradiction Analysis": "COVID-19ワクチンの有効性に関する相反する主張を分析してください",
             "Trend Forecasting": "電気自動車市場の今後5年間のトレンドを予測してください",
-            "Academic Synthesis": "機械学習のバイアス軽減手法に関する学術論文を統合分析してください"
+            "Academic Synthesis": "機械学習のバイアス軽減手法に関する学術論文を統合分析してください",
         }
 
         if title in default_tasks:
@@ -467,7 +520,7 @@ class AppleStyleGUI:
             desktop = winshell.desktop()
             shortcut_path = os.path.join(desktop, "Cowork Assistant.lnk")
 
-            shell = Dispatch('WScript.Shell')
+            shell = Dispatch("WScript.Shell")
             shortcut = shell.CreateShortCut(shortcut_path)
             shortcut.Targetpath = sys.executable
             shortcut.Arguments = f'"{__file__}"'
@@ -484,7 +537,7 @@ class AppleStyleGUI:
         desktop = os.path.join(os.path.expanduser("~"), "Desktop")
         script_path = os.path.join(desktop, "Cowork Assistant.bat")
 
-        with open(script_path, 'w') as f:
+        with open(script_path, "w") as f:
             f.write(f'@echo off\npython "{__file__}"\n')
 
     def _create_macos_shortcut(self):
@@ -493,7 +546,7 @@ class AppleStyleGUI:
         desktop = os.path.join(os.path.expanduser("~"), "Desktop")
         script_path = os.path.join(desktop, "Cowork Assistant.command")
 
-        with open(script_path, 'w') as f:
+        with open(script_path, "w") as f:
             f.write(f'#!/bin/bash\npython3 "{__file__}"\n')
 
         # 実行権限付与
@@ -515,7 +568,7 @@ Terminal=false
 StartupWMClass=CoworkAssistant
 """
 
-        with open(desktop_file, 'w') as f:
+        with open(desktop_file, "w") as f:
             f.write(desktop_content)
 
         # 実行権限付与
@@ -529,18 +582,15 @@ StartupWMClass=CoworkAssistant
 
             # メニューの作成
             menu = (
-                item('Cowork Assistant', lambda: self.show_main_window()),
-                item('機能検索', lambda: self.show_feature_search()),
-                item('設定', lambda: self.show_settings()),
-                item('終了', lambda: self.quit_application())
+                item("Cowork Assistant", lambda: self.show_main_window()),
+                item("機能検索", lambda: self.show_feature_search()),
+                item("設定", lambda: self.show_settings()),
+                item("終了", lambda: self.quit_application()),
             )
 
             # システムトレイアイコン設定
             self.system_tray = pystray.Icon(
-                "cowork_assistant",
-                icon_image,
-                "Cowork Assistant",
-                menu
+                "cowork_assistant", icon_image, "Cowork Assistant", menu
             )
 
             # 別スレッドで実行
@@ -553,7 +603,7 @@ StartupWMClass=CoworkAssistant
     def _create_tray_icon(self):
         """トレイアイコン作成"""
         # シンプルなアイコン生成
-        icon = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
+        icon = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
         draw = ImageDraw.Draw(icon)
 
         # Apple風デザインのアイコン
@@ -578,25 +628,34 @@ StartupWMClass=CoworkAssistant
         search_window = tk.Toplevel(self.root)
         search_window.title("機能検索")
         search_window.geometry("600x400")
-        search_window.configure(bg=self.get_color('bg'))
+        search_window.configure(bg=self.get_color("bg"))
 
         # 検索機能の実装
         # （Coworkの全機能を検索・実行可能にする）
         features = [
-            "ファイル整理", "データ分析", "Webスクレイピング", "文書処理",
-            "画像OCR", "レポート生成", "ワークフロー自動化", "研究支援",
-            "メール処理", "スケジュール管理", "タスク整理", "ノート整理"
+            "ファイル整理",
+            "データ分析",
+            "Webスクレイピング",
+            "文書処理",
+            "画像OCR",
+            "レポート生成",
+            "ワークフロー自動化",
+            "研究支援",
+            "メール処理",
+            "スケジュール管理",
+            "タスク整理",
+            "ノート整理",
         ]
 
         # 検索エントリー
         search_var = tk.StringVar()
-        search_entry = tk.Entry(search_window,
-                               textvariable=search_var,
-                               font=self.fonts['body'])
+        search_entry = tk.Entry(
+            search_window, textvariable=search_var, font=self.fonts["body"]
+        )
         search_entry.pack(fill=tk.X, padx=20, pady=20)
 
         # 結果リスト
-        result_listbox = tk.Listbox(search_window, font=self.fonts['body'])
+        result_listbox = tk.Listbox(search_window, font=self.fonts["body"])
         result_listbox.pack(fill=tk.BOTH, expand=True, padx=20, pady=(0, 20))
 
         # 検索結果表示
@@ -604,11 +663,13 @@ StartupWMClass=CoworkAssistant
             result_listbox.insert(tk.END, feature)
 
         # 実行ボタン
-        execute_btn = tk.Button(search_window,
-                               text="実行",
-                               command=lambda: self._execute_selected_feature(
-                                   result_listbox.get(result_listbox.curselection())
-                               ))
+        execute_btn = tk.Button(
+            search_window,
+            text="実行",
+            command=lambda: self._execute_selected_feature(
+                result_listbox.get(result_listbox.curselection())
+            ),
+        )
         execute_btn.pack(pady=(0, 20))
 
     def _execute_selected_feature(self, feature):
@@ -623,7 +684,7 @@ StartupWMClass=CoworkAssistant
                 "画像OCR": "画像から文字を読み取ってください",
                 "レポート生成": "データをまとめてレポートを作成してください",
                 "ワークフロー自動化": "日常業務を自動化してください",
-                "研究支援": "情報を調査してまとめを作成してください"
+                "研究支援": "情報を調査してまとめを作成してください",
             }
 
             if feature in feature_tasks:
@@ -635,144 +696,182 @@ StartupWMClass=CoworkAssistant
         settings_window = tk.Toplevel(self.root)
         settings_window.title("設定")
         settings_window.geometry("400x300")
-        settings_window.configure(bg=self.get_color('bg'))
+        settings_window.configure(bg=self.get_color("bg"))
 
         # 設定項目（簡易版）
-        tk.Label(settings_window, text="設定ウィンドウ", font=self.fonts['title2']).pack(pady=20)
+        tk.Label(
+            settings_window, text="設定ウィンドウ", font=self.fonts["title2"]
+        ).pack(pady=20)
 
     def show_deep_research_interface(self, feature_title):
         """Deepresearch専用インターフェース表示"""
         research_window = tk.Toplevel(self.root)
         research_window.title(f"{feature_title} - Enhanced Research")
         research_window.geometry("900x700")
-        research_window.configure(bg=self.get_color('bg'))
+        research_window.configure(bg=self.get_color("bg"))
 
         # Apple風ヘッダー
-        header_frame = tk.Frame(research_window, bg=self.get_color('bg'))
+        header_frame = tk.Frame(research_window, bg=self.get_color("bg"))
         header_frame.pack(fill=tk.X, pady=(20, 0))
 
-        title_label = tk.Label(header_frame,
-                              text=f"{feature_title}",
-                              font=self.fonts['large_title'],
-                              bg=self.get_color('bg'),
-                              fg=self.get_color('text'))
+        title_label = tk.Label(
+            header_frame,
+            text=f"{feature_title}",
+            font=self.fonts["large_title"],
+            bg=self.get_color("bg"),
+            fg=self.get_color("text"),
+        )
         title_label.pack(anchor=tk.W)
 
-        subtitle_label = tk.Label(header_frame,
-                                 text="ClaudeCowork統合版Deepresearch - 高度な調査・分析機能",
-                                 font=self.fonts['body'],
-                                 bg=self.get_color('bg'),
-                                 fg=self.get_color('text_secondary'))
+        subtitle_label = tk.Label(
+            header_frame,
+            text="ClaudeCowork統合版Deepresearch - 高度な調査・分析機能",
+            font=self.fonts["body"],
+            bg=self.get_color("bg"),
+            fg=self.get_color("text_secondary"),
+        )
         subtitle_label.pack(anchor=tk.W, pady=(4, 20))
 
         # 研究設定パネル
-        settings_frame = tk.Frame(research_window, bg=self.get_color('surface'),
-                                 relief='flat', borderwidth=1)
+        settings_frame = tk.Frame(
+            research_window, bg=self.get_color("surface"), relief="flat", borderwidth=1
+        )
         settings_frame.pack(fill=tk.X, padx=20, pady=(0, 20))
 
         # 設定ラベル
-        settings_title = tk.Label(settings_frame,
-                                 text="研究設定",
-                                 font=self.fonts['title2'],
-                                 bg=self.get_color('surface'),
-                                 fg=self.get_color('text'))
+        settings_title = tk.Label(
+            settings_frame,
+            text="研究設定",
+            font=self.fonts["title2"],
+            bg=self.get_color("surface"),
+            fg=self.get_color("text"),
+        )
         settings_title.pack(anchor=tk.W, padx=20, pady=(20, 12))
 
         # 設定オプション
-        options_frame = tk.Frame(settings_frame, bg=self.get_color('surface'))
+        options_frame = tk.Frame(settings_frame, bg=self.get_color("surface"))
         options_frame.pack(fill=tk.X, padx=20, pady=(0, 20))
 
         # 深度設定
-        depth_label = tk.Label(options_frame, text="調査深度:",
-                              font=self.fonts['body'],
-                              bg=self.get_color('surface'),
-                              fg=self.get_color('text'))
+        depth_label = tk.Label(
+            options_frame,
+            text="調査深度:",
+            font=self.fonts["body"],
+            bg=self.get_color("surface"),
+            fg=self.get_color("text"),
+        )
         depth_label.grid(row=0, column=0, sticky=tk.W, pady=5)
 
         depth_var = tk.StringVar(value="comprehensive")
-        depth_combo = ttk.Combobox(options_frame, textvariable=depth_var,
-                                  values=["basic", "comprehensive"],
-                                  state="readonly", width=15)
+        depth_combo = ttk.Combobox(
+            options_frame,
+            textvariable=depth_var,
+            values=["basic", "comprehensive"],
+            state="readonly",
+            width=15,
+        )
         depth_combo.grid(row=0, column=1, padx=(10, 20), pady=5)
 
         # ソース設定
-        sources_label = tk.Label(options_frame, text="検索ソース:",
-                                font=self.fonts['body'],
-                                bg=self.get_color('surface'),
-                                fg=self.get_color('text'))
+        sources_label = tk.Label(
+            options_frame,
+            text="検索ソース:",
+            font=self.fonts["body"],
+            bg=self.get_color("surface"),
+            fg=self.get_color("text"),
+        )
         sources_label.grid(row=1, column=0, sticky=tk.W, pady=5)
 
         sources_var = tk.StringVar(value="google,bing,scholar")
-        sources_entry = tk.Entry(options_frame, textvariable=sources_var,
-                                font=self.fonts['body'], width=20)
+        sources_entry = tk.Entry(
+            options_frame, textvariable=sources_var, font=self.fonts["body"], width=20
+        )
         sources_entry.grid(row=1, column=1, padx=(10, 20), pady=5)
 
         # 品質閾値
-        quality_label = tk.Label(options_frame, text="品質閾値:",
-                                font=self.fonts['body'],
-                                bg=self.get_color('surface'),
-                                fg=self.get_color('text'))
+        quality_label = tk.Label(
+            options_frame,
+            text="品質閾値:",
+            font=self.fonts["body"],
+            bg=self.get_color("surface"),
+            fg=self.get_color("text"),
+        )
         quality_label.grid(row=2, column=0, sticky=tk.W, pady=5)
 
         quality_var = tk.StringVar(value="0.8")
-        quality_entry = tk.Entry(options_frame, textvariable=quality_var,
-                                font=self.fonts['body'], width=10)
+        quality_entry = tk.Entry(
+            options_frame, textvariable=quality_var, font=self.fonts["body"], width=10
+        )
         quality_entry.grid(row=2, column=1, padx=(10, 20), pady=5)
 
         # 高度設定（折りたたみ）
-        advanced_frame = tk.Frame(settings_frame, bg=self.get_color('surface'))
+        advanced_frame = tk.Frame(settings_frame, bg=self.get_color("surface"))
         advanced_frame.pack(fill=tk.X, padx=20, pady=(0, 20))
 
         # 実行ボタン
-        execute_btn = tk.Button(settings_frame,
-                               text="高度な研究を実行",
-                               font=self.fonts['body'],
-                               bg=self.get_color('primary'),
-                               fg='white',
-                               relief='flat',
-                               borderwidth=0,
-                               padx=24,
-                               pady=12,
-                               command=lambda: self.execute_deep_research(
-                                   self.search_var.get(),
-                                   depth_var.get(),
-                                   sources_var.get(),
-                                   quality_var.get(),
-                                   research_window
-                               ))
+        execute_btn = tk.Button(
+            settings_frame,
+            text="高度な研究を実行",
+            font=self.fonts["body"],
+            bg=self.get_color("primary"),
+            fg="white",
+            relief="flat",
+            borderwidth=0,
+            padx=24,
+            pady=12,
+            command=lambda: self.execute_deep_research(
+                self.search_var.get(),
+                depth_var.get(),
+                sources_var.get(),
+                quality_var.get(),
+                research_window,
+            ),
+        )
         execute_btn.pack(pady=(0, 20))
 
         # 結果表示エリア
-        result_frame = tk.Frame(research_window, bg=self.get_color('surface'),
-                               relief='flat', borderwidth=1)
+        result_frame = tk.Frame(
+            research_window, bg=self.get_color("surface"), relief="flat", borderwidth=1
+        )
         result_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=(0, 20))
 
-        result_title = tk.Label(result_frame,
-                               text="研究結果",
-                               font=self.fonts['title2'],
-                               bg=self.get_color('surface'),
-                               fg=self.get_color('text'))
+        result_title = tk.Label(
+            result_frame,
+            text="研究結果",
+            font=self.fonts["title2"],
+            bg=self.get_color("surface"),
+            fg=self.get_color("text"),
+        )
         result_title.pack(anchor=tk.W, padx=20, pady=(20, 12))
 
         # 結果テキストエリア
-        result_text = scrolledtext.ScrolledText(result_frame,
-                                               font=self.fonts['body'],
-                                               bg=self.get_color('bg'),
-                                               fg=self.get_color('text'),
-                                               wrap=tk.WORD)
+        result_text = scrolledtext.ScrolledText(
+            result_frame,
+            font=self.fonts["body"],
+            bg=self.get_color("bg"),
+            fg=self.get_color("text"),
+            wrap=tk.WORD,
+        )
         result_text.pack(fill=tk.BOTH, expand=True, padx=20, pady=(0, 20))
 
         # ステータスバー
-        status_frame = tk.Frame(research_window, bg=self.get_color('surface'),
-                               relief='flat', borderwidth=1, height=30)
+        status_frame = tk.Frame(
+            research_window,
+            bg=self.get_color("surface"),
+            relief="flat",
+            borderwidth=1,
+            height=30,
+        )
         status_frame.pack(fill=tk.X, side=tk.BOTTOM)
 
         status_var = tk.StringVar(value="準備完了 - 研究パラメータを設定してください")
-        status_label = tk.Label(status_frame,
-                               textvariable=status_var,
-                               font=self.fonts['caption1'],
-                               bg=self.get_color('surface'),
-                               fg=self.get_color('text_secondary'))
+        status_label = tk.Label(
+            status_frame,
+            textvariable=status_var,
+            font=self.fonts["caption1"],
+            bg=self.get_color("surface"),
+            fg=self.get_color("text_secondary"),
+        )
         status_label.pack(side=tk.LEFT, padx=12, pady=6)
 
         # ウィンドウ設定
@@ -796,6 +895,7 @@ StartupWMClass=CoworkAssistant
 
         # 非同期実行
         import threading
+
         def run_research():
             try:
                 # Enhanced Research Agentで実行
@@ -807,12 +907,15 @@ StartupWMClass=CoworkAssistant
                     await agent.initialize()
 
                     # 研究タスク実行
-                    result = await agent.execute_enhanced_task(query, {
-                        "depth": depth,
-                        "sources": sources.split(','),
-                        "quality_threshold": float(quality_threshold),
-                        "research_type": "deep_enhanced"
-                    })
+                    result = await agent.execute_enhanced_task(
+                        query,
+                        {
+                            "depth": depth,
+                            "sources": sources.split(","),
+                            "quality_threshold": float(quality_threshold),
+                            "research_type": "deep_enhanced",
+                        },
+                    )
 
                     await agent.shutdown()
                     return result
@@ -871,7 +974,9 @@ StartupWMClass=CoworkAssistant
         """研究エラー表示"""
         window.status_var.set("研究エラー")
         window.result_text.delete(1.0, tk.END)
-        window.result_text.insert(tk.END, f"❌ 研究実行中にエラーが発生しました:\n\n{error}")
+        window.result_text.insert(
+            tk.END, f"❌ 研究実行中にエラーが発生しました:\n\n{error}"
+        )
 
     def quit_application(self):
         """アプリケーション終了"""
@@ -896,6 +1001,7 @@ def main():
     # 高DPI対応
     try:
         from ctypes import windll
+
         windll.shcore.SetProcessDpiAwareness(1)
     except:
         pass

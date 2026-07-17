@@ -4,12 +4,17 @@ use std::sync::Arc;
 use std::time::Instant;
 use tokio::sync::broadcast;
 
-use crate::vr_ar_integration::systems::{
-    AnchorSystem, GestureRecognizer, HandTrackingSystem, XRSystem,
-};
-use crate::vr_ar_integration::types::{
-    Anchor, AnchorType, HandGesture, HandType, VREvent, VRInteraction, XRPlatform,
-};
+use crate::vr_ar_integration::systems::AnchorSystem;
+use crate::vr_ar_integration::systems::GestureRecognizer;
+use crate::vr_ar_integration::systems::HandTrackingSystem;
+use crate::vr_ar_integration::systems::XRSystem;
+use crate::vr_ar_integration::types::Anchor;
+use crate::vr_ar_integration::types::AnchorType;
+use crate::vr_ar_integration::types::HandGesture;
+use crate::vr_ar_integration::types::HandType;
+use crate::vr_ar_integration::types::VREvent;
+use crate::vr_ar_integration::types::VRInteraction;
+use crate::vr_ar_integration::types::XRPlatform;
 
 /// VR/AR integration for Git4D visualization
 pub struct VRARIntegration {
@@ -25,10 +30,7 @@ impl VRARIntegration {
         let (event_sender, _) = broadcast::channel(100);
 
         Ok(Self {
-            xr_system: Arc::new(
-                XRSystem::new()
-                    .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?,
-            ),
+            xr_system: Arc::new(XRSystem::new().map_err(|e| std::io::Error::other(e.to_string()))?),
             hand_tracking: HandTrackingSystem::new(),
             anchor_system: AnchorSystem::new(),
             gesture_recognizer: GestureRecognizer::new(),
@@ -83,7 +85,7 @@ impl VRARIntegration {
             .xr_system
             .update_controllers()
             .await
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?
+            .map_err(|e| std::io::Error::other(e.to_string()))?
         {
             events.push(VREvent::ControllerUpdate(controller_update));
         }
@@ -93,7 +95,7 @@ impl VRARIntegration {
             .hand_tracking
             .update()
             .await
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?
+            .map_err(|e| std::io::Error::other(e.to_string()))?
         {
             events.push(VREvent::HandPoseUpdate(hand_pose.clone()));
 
@@ -108,7 +110,7 @@ impl VRARIntegration {
             .anchor_system
             .update()
             .await
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?
+            .map_err(|e| std::io::Error::other(e.to_string()))?
         {
             events.push(anchor_event);
         }
@@ -132,7 +134,7 @@ impl VRARIntegration {
         rotation: [f32; 4],
     ) -> Result<String> {
         let anchor = Anchor {
-            id: format!("commit_{}", commit_id),
+            id: format!("commit_{commit_id}"),
             position,
             rotation,
             scale: [1.0, 1.0, 1.0],
@@ -147,10 +149,10 @@ impl VRARIntegration {
         self.anchor_system
             .add_anchor(anchor.clone())
             .await
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
+            .map_err(|e| std::io::Error::other(e.to_string()))?;
         let _ = self.event_sender.send(VREvent::AnchorCreated(anchor));
 
-        Ok(format!("commit_{}", commit_id))
+        Ok(format!("commit_{commit_id}"))
     }
 
     /// Handle VR gesture for Git4D interaction
@@ -167,7 +169,7 @@ impl VRARIntegration {
                     .anchor_system
                     .find_nearest_anchor(position, /*max_distance*/ 1.0)
                     .await
-                    .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?
+                    .map_err(|e| std::io::Error::other(e.to_string()))?
                 {
                     return Ok(Some(VRInteraction::SelectAnchor(anchor.id)));
                 }
@@ -215,7 +217,7 @@ impl VRARIntegration {
         self.anchor_system
             .add_anchor(anchor.clone())
             .await
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
+            .map_err(|e| std::io::Error::other(e.to_string()))?;
         let _ = self.event_sender.send(VREvent::AnchorCreated(anchor));
 
         Ok(anchor_id)

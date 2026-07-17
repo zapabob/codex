@@ -15,5 +15,5 @@ __all__ = [
     "AsanaConnector",
     "NotionConnector",
     "PaymentConnector",
-    "CanvaConnector"
+    "CanvaConnector",
 ]

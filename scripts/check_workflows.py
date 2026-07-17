@@ -1,4 +1,4 @@
-﻿import yaml
+import yaml
 
 files = [
     "C:/Users/downl/Desktop/codex-main/.github/workflows/subagent-ci.yml",
@@ -13,7 +13,14 @@ for fname in files:
         data = yaml.safe_load(content)
         short = fname.split("/")[-1]
         issues = []
-        bad_refs = ["@v6", "@v7", "codex-runners", "macos-15-xlarge", "windows-x64", "windows-arm64"]
+        bad_refs = [
+            "@v6",
+            "@v7",
+            "codex-runners",
+            "macos-15-xlarge",
+            "windows-x64",
+            "windows-arm64",
+        ]
         for ref in bad_refs:
             if ref in content:
                 issues.append(ref)

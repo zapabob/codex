@@ -1,4 +1,5 @@
-use crate::vr_ar_integration::types::{Anchor, VREvent};
+use crate::vr_ar_integration::types::Anchor;
+use crate::vr_ar_integration::types::VREvent;
 use anyhow::Result;
 use std::collections::HashMap;
 use std::sync::Mutex;
@@ -6,6 +7,12 @@ use std::sync::Mutex;
 /// Anchor management system
 pub struct AnchorSystem {
     anchors: Mutex<HashMap<String, Anchor>>,
+}
+
+impl Default for AnchorSystem {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl AnchorSystem {
@@ -19,7 +26,7 @@ impl AnchorSystem {
         let mut anchors = self
             .anchors
             .lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock anchors: {}", e))?;
+            .map_err(|e| anyhow::anyhow!("Failed to lock anchors: {e}"))?;
         anchors.insert(anchor.id.clone(), anchor);
         Ok(())
     }
@@ -32,7 +39,7 @@ impl AnchorSystem {
         let anchors = self
             .anchors
             .lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock anchors: {}", e))?;
+            .map_err(|e| anyhow::anyhow!("Failed to lock anchors: {e}"))?;
 
         let mut nearest: Option<(&String, &Anchor, f32)> = None;
 

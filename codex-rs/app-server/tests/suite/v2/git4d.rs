@@ -2,7 +2,7 @@ use std::process::Command;
 use std::time::Duration;
 
 use anyhow::Result;
-use app_test_support::McpProcess;
+use app_test_support::TestAppServer;
 use app_test_support::to_response;
 use codex_app_server_protocol::Git4DCapabilitiesReadParams;
 use codex_app_server_protocol::Git4DCapabilitiesResponse;
@@ -24,6 +24,7 @@ use codex_app_server_protocol::JSONRPCResponse;
 use codex_app_server_protocol::RequestId;
 use codex_utils_absolute_path::AbsolutePathBuf;
 use pretty_assertions::assert_eq;
+use serde::Serialize;
 use tempfile::TempDir;
 use tokio::time::timeout;
 
@@ -47,19 +48,36 @@ fn session_env_overrides(home: &str) -> [(&str, Option<&str>); 4] {
     ]
 }
 
+async fn send_git4d_request<T: Serialize>(
+    app_server: &mut TestAppServer,
+    method: &str,
+    params: T,
+) -> Result<i64> {
+    app_server
+        .send_raw_request(method, Some(serde_json::to_value(params)?))
+        .await
+}
+
 #[tokio::test]
 async fn git4d_capabilities_read_prefers_desktop_fallback_without_runtime() -> Result<()> {
     let codex_home = TempDir::new()?;
     let home = codex_home.path().to_string_lossy().into_owned();
-    let mut mcp =
-        McpProcess::new_with_env(codex_home.path(), &session_env_overrides(&home)).await?;
+    let mut mcp = TestAppServer::builder()
+        .with_codex_home(codex_home.path())
+        .without_auto_env()
+        .with_env_overrides(&session_env_overrides(&home))
+        .build()
+        .await?;
     timeout(DEFAULT_TIMEOUT, mcp.initialize()).await??;
 
-    let request_id = mcp
-        .send_git4d_capabilities_read_request(Git4DCapabilitiesReadParams {
+    let request_id = send_git4d_request(
+        &mut mcp,
+        "git4d/capabilities/read",
+        Git4DCapabilitiesReadParams {
             mode: Git4DMode::Ar,
-        })
-        .await?;
+        },
+    )
+    .await?;
     let response: JSONRPCResponse = timeout(
         DEFAULT_TIMEOUT,
         mcp.read_stream_until_response_message(RequestId::Integer(request_id)),
@@ -80,16 +98,23 @@ async fn git4d_session_start_and_list_round_trip() -> Result<()> {
     let repo = TempDir::new()?;
     init_git_repo(repo.path());
     let home = codex_home.path().to_string_lossy().into_owned();
-    let mut mcp =
-        McpProcess::new_with_env(codex_home.path(), &session_env_overrides(&home)).await?;
+    let mut mcp = TestAppServer::builder()
+        .with_codex_home(codex_home.path())
+        .without_auto_env()
+        .with_env_overrides(&session_env_overrides(&home))
+        .build()
+        .await?;
     timeout(DEFAULT_TIMEOUT, mcp.initialize()).await??;
 
-    let request_id = mcp
-        .send_git4d_session_start_request(Git4DSessionStartParams {
+    let request_id = send_git4d_request(
+        &mut mcp,
+        "git4d/session/start",
+        Git4DSessionStartParams {
             repository_path: Some(AbsolutePathBuf::try_from(repo.path())?),
             mode: Git4DMode::Desktop,
-        })
-        .await?;
+        },
+    )
+    .await?;
     let response: JSONRPCResponse = timeout(
         DEFAULT_TIMEOUT,
         mcp.read_stream_until_response_message(RequestId::Integer(request_id)),
@@ -102,9 +127,12 @@ async fn git4d_session_start_and_list_round_trip() -> Result<()> {
     assert_eq!(started_session.effective_mode, Git4DMode::Desktop);
     assert_eq!(started_session.status, Git4DSessionStatus::Starting);
 
-    let request_id = mcp
-        .send_git4d_session_list_request(Git4DSessionListParams::default())
-        .await?;
+    let request_id = send_git4d_request(
+        &mut mcp,
+        "git4d/session/list",
+        Git4DSessionListParams::default(),
+    )
+    .await?;
     let response: JSONRPCResponse = timeout(
         DEFAULT_TIMEOUT,
         mcp.read_stream_until_response_message(RequestId::Integer(request_id)),
@@ -129,16 +157,23 @@ async fn git4d_session_watch_buffered_replays_status_and_then_observes_follow_up
     let repo = TempDir::new()?;
     init_git_repo(repo.path());
     let home = codex_home.path().to_string_lossy().into_owned();
-    let mut mcp =
-        McpProcess::new_with_env(codex_home.path(), &session_env_overrides(&home)).await?;
+    let mut mcp = TestAppServer::builder()
+        .with_codex_home(codex_home.path())
+        .without_auto_env()
+        .with_env_overrides(&session_env_overrides(&home))
+        .build()
+        .await?;
     timeout(DEFAULT_TIMEOUT, mcp.initialize()).await??;
 
-    let request_id = mcp
-        .send_git4d_session_start_request(Git4DSessionStartParams {
+    let request_id = send_git4d_request(
+        &mut mcp,
+        "git4d/session/start",
+        Git4DSessionStartParams {
             repository_path: Some(AbsolutePathBuf::try_from(repo.path())?),
             mode: Git4DMode::Desktop,
-        })
-        .await?;
+        },
+    )
+    .await?;
     let response: JSONRPCResponse = timeout(
         DEFAULT_TIMEOUT,
         mcp.read_stream_until_response_message(RequestId::Integer(request_id)),
@@ -146,12 +181,15 @@ async fn git4d_session_watch_buffered_replays_status_and_then_observes_follow_up
     .await??;
     let response: Git4DSessionStartResponse = to_response(response)?;
 
-    let request_id = mcp
-        .send_git4d_session_watch_request(Git4DSessionWatchParams {
+    let request_id = send_git4d_request(
+        &mut mcp,
+        "git4d/session/watch",
+        Git4DSessionWatchParams {
             session_id: response.session.session_id.clone(),
             replay_mode: Git4DSessionWatchReplayMode::Buffered,
-        })
-        .await?;
+        },
+    )
+    .await?;
     let watch_response: JSONRPCResponse = timeout(
         DEFAULT_TIMEOUT,
         mcp.read_stream_until_response_message(RequestId::Integer(request_id)),
@@ -195,16 +233,23 @@ async fn git4d_session_unwatch_stops_future_notifications() -> Result<()> {
     let repo = TempDir::new()?;
     init_git_repo(repo.path());
     let home = codex_home.path().to_string_lossy().into_owned();
-    let mut mcp =
-        McpProcess::new_with_env(codex_home.path(), &session_env_overrides(&home)).await?;
+    let mut mcp = TestAppServer::builder()
+        .with_codex_home(codex_home.path())
+        .without_auto_env()
+        .with_env_overrides(&session_env_overrides(&home))
+        .build()
+        .await?;
     timeout(DEFAULT_TIMEOUT, mcp.initialize()).await??;
 
-    let request_id = mcp
-        .send_git4d_session_start_request(Git4DSessionStartParams {
+    let request_id = send_git4d_request(
+        &mut mcp,
+        "git4d/session/start",
+        Git4DSessionStartParams {
             repository_path: Some(AbsolutePathBuf::try_from(repo.path())?),
             mode: Git4DMode::Desktop,
-        })
-        .await?;
+        },
+    )
+    .await?;
     let response: JSONRPCResponse = timeout(
         DEFAULT_TIMEOUT,
         mcp.read_stream_until_response_message(RequestId::Integer(request_id)),
@@ -212,12 +257,15 @@ async fn git4d_session_unwatch_stops_future_notifications() -> Result<()> {
     .await??;
     let response: Git4DSessionStartResponse = to_response(response)?;
 
-    let request_id = mcp
-        .send_git4d_session_watch_request(Git4DSessionWatchParams {
+    let request_id = send_git4d_request(
+        &mut mcp,
+        "git4d/session/watch",
+        Git4DSessionWatchParams {
             session_id: response.session.session_id.clone(),
             replay_mode: Git4DSessionWatchReplayMode::LiveOnly,
-        })
-        .await?;
+        },
+    )
+    .await?;
     let watch_response: JSONRPCResponse = timeout(
         DEFAULT_TIMEOUT,
         mcp.read_stream_until_response_message(RequestId::Integer(request_id)),
@@ -225,11 +273,14 @@ async fn git4d_session_unwatch_stops_future_notifications() -> Result<()> {
     .await??;
     let _: Git4DSessionWatchResponse = to_response(watch_response)?;
 
-    let request_id = mcp
-        .send_git4d_session_unwatch_request(Git4DSessionUnwatchParams {
+    let request_id = send_git4d_request(
+        &mut mcp,
+        "git4d/session/unwatch",
+        Git4DSessionUnwatchParams {
             session_id: response.session.session_id.clone(),
-        })
-        .await?;
+        },
+    )
+    .await?;
     let unwatch_response: JSONRPCResponse = timeout(
         DEFAULT_TIMEOUT,
         mcp.read_stream_until_response_message(RequestId::Integer(request_id)),

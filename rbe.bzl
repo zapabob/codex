@@ -11,25 +11,25 @@ def _rbe_platform_repo_impl(rctx):
     else:
         fail("Unsupported host arch for rbe platform: {}".format(arch))
 
-    rctx.file("BUILD.bazel", """\
-platform(
-    name = "rbe_platform",
-    constraint_values = [
-        "@platforms//cpu:{cpu}",
-        "@platforms//os:linux",
-        "@bazel_tools//tools/cpp:clang",
-        "@llvm//constraints/libc:gnu.2.28",
-    ],
-    exec_properties = {{
-        # Ubuntu-based image that includes git, python3, dotslash, and other
-        # tools that various integration tests need.
-        # Verify at https://hub.docker.com/layers/mbolin491/codex-bazel/latest/images/sha256:{image_sha}
-        "container-image": "docker://docker.io/mbolin491/codex-bazel@sha256:{image_sha}",
-        "Arch": "{arch}",
-        "OSFamily": "Linux",
-    }},
-    visibility = ["//visibility:public"],
-)
+    rctx.file("BUILD.bazel", """\\\r
+platform(\r
+    name = "rbe_platform",\r
+    constraint_values = [\r
+        "@platforms//cpu:{cpu}",\r
+        "@platforms//os:linux",\r
+        "@bazel_tools//tools/cpp:clang",\r
+        "@llvm//constraints/libc:gnu.2.28",\r
+    ],\r
+    exec_properties = {{\r
+        # Ubuntu-based image that includes git, python3, dotslash, and other\r
+        # tools that various integration tests need.\r
+        # Verify at https://hub.docker.com/layers/mbolin491/codex-bazel/latest/images/sha256:{image_sha}\r
+        "container-image": "docker://docker.io/mbolin491/codex-bazel@sha256:{image_sha}",\r
+        "Arch": "{arch}",\r
+        "OSFamily": "Linux",\r
+    }},\r
+    visibility = ["//visibility:public"],\r
+)\r
 """.format(
         cpu = cpu,
         arch = exec_arch,

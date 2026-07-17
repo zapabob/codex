@@ -1,6 +1,7 @@
 mod account;
 mod analytics;
 mod app_list;
+mod app_read;
 mod attestation;
 mod auto_env;
 mod client_metadata;
@@ -25,6 +26,7 @@ mod experimental_api;
 mod experimental_feature_list;
 mod external_agent_config;
 mod fs;
+mod git4d;
 mod hooks_list;
 mod host_skills;
 mod imagegen_extension;

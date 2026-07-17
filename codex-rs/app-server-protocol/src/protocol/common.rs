@@ -735,10 +735,45 @@ client_request_definitions! {
         serialization: global("config"),
         response: v2::PluginShareDeleteResponse,
     },
+    AppsRead => "app/read" {
+        params: v2::AppsReadParams,
+        serialization: None,
+        response: v2::AppsReadResponse,
+    },
     AppsList => "app/list" {
         params: v2::AppsListParams,
         serialization: None,
         response: v2::AppsListResponse,
+    },
+    #[experimental("git4d/capabilities/read")]
+    Git4DCapabilitiesRead => "git4d/capabilities/read" {
+        params: v2::Git4DCapabilitiesReadParams,
+        serialization: global_shared_read("git4d"),
+        response: v2::Git4DCapabilitiesResponse,
+    },
+    #[experimental("git4d/session/start")]
+    Git4DSessionStart => "git4d/session/start" {
+        params: v2::Git4DSessionStartParams,
+        serialization: global("git4d"),
+        response: v2::Git4DSessionStartResponse,
+    },
+    #[experimental("git4d/session/list")]
+    Git4DSessionList => "git4d/session/list" {
+        params: v2::Git4DSessionListParams,
+        serialization: global_shared_read("git4d"),
+        response: v2::Git4DSessionListResponse,
+    },
+    #[experimental("git4d/session/watch")]
+    Git4DSessionWatch => "git4d/session/watch" {
+        params: v2::Git4DSessionWatchParams,
+        serialization: global("git4d"),
+        response: v2::Git4DSessionWatchResponse,
+    },
+    #[experimental("git4d/session/unwatch")]
+    Git4DSessionUnwatch => "git4d/session/unwatch" {
+        params: v2::Git4DSessionUnwatchParams,
+        serialization: global("git4d"),
+        response: v2::Git4DSessionUnwatchResponse,
     },
     // File system requests are intentionally concurrent. Desktop already treats local
     // file system operations as concurrent, and app-server remote fs mirrors that model.
@@ -1694,6 +1729,8 @@ server_notification_definitions! {
     ConfigWarning => "configWarning" (v2::ConfigWarningNotification),
     FuzzyFileSearchSessionUpdated => "fuzzyFileSearch/sessionUpdated" (FuzzyFileSearchSessionUpdatedNotification),
     FuzzyFileSearchSessionCompleted => "fuzzyFileSearch/sessionCompleted" (FuzzyFileSearchSessionCompletedNotification),
+    #[experimental("git4d/session/event")]
+    Git4DSessionEvent => "git4d/session/event" (v2::Git4DSessionEventNotification),
     #[experimental("thread/realtime/started")]
     ThreadRealtimeStarted => "thread/realtime/started" (v2::ThreadRealtimeStartedNotification),
     #[experimental("thread/realtime/itemAdded")]
@@ -3104,6 +3141,52 @@ mod tests {
     }
 
     #[test]
+    fn serialize_read_apps() -> Result<()> {
+        let request = ClientRequest::AppsRead {
+            request_id: RequestId::Integer(9),
+            params: v2::AppsReadParams {
+                app_ids: vec!["app-a".to_string(), "app-b".to_string()],
+                include_tools: true,
+            },
+        };
+        assert_eq!(
+            json!({
+                "method": "app/read",
+                "id": 9,
+                "params": { "appIds": ["app-a", "app-b"], "includeTools": true }
+            }),
+            serde_json::to_value(&request)?,
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn git4d_requests_use_expected_serialization_scopes() {
+        let capabilities = ClientRequest::Git4DCapabilitiesRead {
+            request_id: RequestId::Integer(1),
+            params: v2::Git4DCapabilitiesReadParams {
+                mode: v2::Git4DMode::Desktop,
+            },
+        };
+        let start = ClientRequest::Git4DSessionStart {
+            request_id: RequestId::Integer(2),
+            params: v2::Git4DSessionStartParams {
+                repository_path: None,
+                mode: v2::Git4DMode::Desktop,
+            },
+        };
+
+        assert_eq!(
+            capabilities.serialization_scope(),
+            Some(ClientRequestSerializationScope::GlobalSharedRead("git4d"))
+        );
+        assert_eq!(
+            start.serialization_scope(),
+            Some(ClientRequestSerializationScope::Global("git4d"))
+        );
+    }
+
+    #[test]
     fn serialize_environment_add() -> Result<()> {
         let request = ClientRequest::EnvironmentAdd {
             request_id: RequestId::Integer(9),
@@ -3574,6 +3657,35 @@ mod tests {
         };
         let reason = crate::experimental_api::ExperimentalApi::experimental_reason(&request);
         assert_eq!(reason, Some("mock/experimentalMethod"));
+    }
+
+    #[test]
+    fn git4d_session_start_is_marked_experimental() {
+        let request = ClientRequest::Git4DSessionStart {
+            request_id: RequestId::Integer(1),
+            params: v2::Git4DSessionStartParams {
+                repository_path: None,
+                mode: v2::Git4DMode::Desktop,
+            },
+        };
+
+        let reason = crate::experimental_api::ExperimentalApi::experimental_reason(&request);
+        assert_eq!(reason, Some("git4d/session/start"));
+    }
+
+    #[test]
+    fn git4d_session_event_notification_is_marked_experimental() {
+        let notification =
+            ServerNotification::Git4DSessionEvent(v2::Git4DSessionEventNotification {
+                session_id: "git4d_123".to_string(),
+                sequence: 1,
+                event: v2::Git4DSessionEvent::SessionStatusChanged {
+                    status: v2::Git4DSessionStatus::Active,
+                },
+            });
+
+        let reason = crate::experimental_api::ExperimentalApi::experimental_reason(&notification);
+        assert_eq!(reason, Some("git4d/session/event"));
     }
 
     #[test]

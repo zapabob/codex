@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """ごみ箱の詳細分析"""
+
 import os
 
-recycle_bin_path = r'C:\$Recycle.Bin'
+recycle_bin_path = r"C:\$Recycle.Bin"
 
 if not os.path.exists(recycle_bin_path):
     print("ごみ箱が見つかりません")
@@ -32,9 +33,9 @@ try:
                             pass
             except (OSError, PermissionError):
                 pass
-            
+
             if size > 0:
-                size_gb = size / (1024 ** 3)
+                size_gb = size / (1024**3)
                 user_sizes.append((item, size, size_gb, file_count))
                 total_size += size
 except (OSError, PermissionError) as e:
@@ -50,4 +51,4 @@ for user_id, size_bytes, size_gb, file_count in user_sizes:
     print()
 
 print("-" * 60)
-print(f"合計サイズ: {total_size / (1024 ** 3):.2f} GB")
+print(f"合計サイズ: {total_size / (1024**3):.2f} GB")

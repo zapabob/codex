@@ -9,6 +9,7 @@ import time
 import subprocess
 from pathlib import Path
 
+
 def wait_for_build_completion():
     """ビルド完了を待機"""
     binary_path = Path("codex-rs/target/x86_64-pc-windows-msvc/release/codex.exe")
@@ -25,6 +26,7 @@ def wait_for_build_completion():
 
     return binary_path
 
+
 def run_installation(binary_path):
     """インストールを実行"""
     print("\n[TOOL] プロセスキル＆インストールを実行...")
@@ -33,10 +35,16 @@ def run_installation(binary_path):
     ps_script = Path("scripts/install_with_kill.ps1")
     if ps_script.exists():
         cmd = [
-            "powershell", "-ExecutionPolicy", "Bypass", "-File", str(ps_script),
-            "-SourcePath", str(binary_path),
-            "-TargetPath", "C:\\bin\\codex.exe",
-            "-Force"
+            "powershell",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(ps_script),
+            "-SourcePath",
+            str(binary_path),
+            "-TargetPath",
+            "C:\\bin\\codex.exe",
+            "-Force",
         ]
         result = subprocess.run(cmd, cwd=Path.cwd())
         if result.returncode == 0:
@@ -50,12 +58,15 @@ def run_installation(binary_path):
 
     return True
 
+
 def verify_installation():
     """インストールを検証"""
     print("\n[SEARCH] インストール確認...")
 
     try:
-        result = subprocess.run(["codex", "--version"], capture_output=True, text=True, timeout=10)
+        result = subprocess.run(
+            ["codex", "--version"], capture_output=True, text=True, timeout=10
+        )
         if result.returncode == 0:
             print("[OK] インストール成功!")
             print(f"[INFO] バージョン: {result.stdout.strip()}")
@@ -65,11 +76,14 @@ def verify_installation():
             print(f"エラー: {result.stderr}")
             return False
     except FileNotFoundError:
-        print("[ERROR] codexコマンドが見つかりません。PATHにC:\\binが含まれているか確認してください。")
+        print(
+            "[ERROR] codexコマンドが見つかりません。PATHにC:\\binが含まれているか確認してください。"
+        )
         return False
     except Exception as e:
         print(f"[ERROR] 確認エラー: {e}")
         return False
+
 
 def main():
     print("[START] Codex リリースビルド完了確認＆自動インストールシステム")
@@ -87,6 +101,7 @@ def main():
     else:
         print("\n[CRASH] インストールに失敗しました")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

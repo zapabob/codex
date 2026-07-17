@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Add license.workspace = true to all crate Cargo.toml files missing a license."""
+
 from pathlib import Path
 import re
 
@@ -20,7 +21,7 @@ def add_license_to_cargo_toml(path: Path) -> bool:
     if "version = { workspace = true }" in content:
         new_content = content.replace(
             "version = { workspace = true }",
-            'version = { workspace = true }\nlicense = { workspace = true }',
+            "version = { workspace = true }\nlicense = { workspace = true }",
             1,
         )
     elif "[package]" in content:
@@ -43,12 +44,14 @@ def add_license_to_cargo_toml(path: Path) -> bool:
                 # Add after name or version line in package section
                 if re.match(r"^(name|version|edition)\s*=", line):
                     # Check if next line is also a field
-                    if i + 1 < len(lines) and not re.match(r"^(name|version|edition)\s*=", lines[i + 1]):
-                        new_lines.append('license = { workspace = true }\n')
+                    if i + 1 < len(lines) and not re.match(
+                        r"^(name|version|edition)\s*=", lines[i + 1]
+                    ):
+                        new_lines.append("license = { workspace = true }\n")
                         license_added = True
                 elif line.strip().startswith("[") and line.strip() != "[package]":
                     # Reached next section without adding
-                    new_lines.insert(-1, 'license = { workspace = true }\n')
+                    new_lines.insert(-1, "license = { workspace = true }\n")
                     license_added = True
                     in_package = False
         new_content = "".join(new_lines)
@@ -63,8 +66,7 @@ def add_license_to_cargo_toml(path: Path) -> bool:
 
 def main():
     cargo_tomls = [
-        f for f in RS.rglob("Cargo.toml")
-        if "target" not in str(f) and f.parent != RS
+        f for f in RS.rglob("Cargo.toml") if "target" not in str(f) and f.parent != RS
     ]
 
     updated = []

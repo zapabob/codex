@@ -8,52 +8,55 @@ import yaml
 from pathlib import Path
 from typing import Dict, Any
 
+
 def load_yaml_agent(agent_path: Path) -> Dict[str, Any]:
     """Load existing YAML agent configuration"""
-    with open(agent_path, 'r', encoding='utf-8') as f:
+    with open(agent_path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
+
 
 def convert_tools_to_markdown(tools: Dict[str, Any]) -> str:
     """Convert tools configuration to markdown format"""
     sections = []
 
-    if 'mcp' in tools:
-        mcp_tools = tools['mcp']
+    if "mcp" in tools:
+        mcp_tools = tools["mcp"]
         if mcp_tools:
             sections.append("### MCP Tools")
             for tool in mcp_tools:
                 sections.append(f"- `{tool}`")
 
-    if 'fs' in tools:
-        fs_config = tools['fs']
+    if "fs" in tools:
+        fs_config = tools["fs"]
         sections.append("### File System Access")
-        if fs_config.get('read'):
+        if fs_config.get("read"):
             sections.append("- **Read**: Full codebase access")
-        if 'write' in fs_config:
-            write_paths = fs_config['write']
+        if "write" in fs_config:
+            write_paths = fs_config["write"]
             sections.append(f"- **Write**: Limited to {', '.join(write_paths)}")
 
-    if 'net' in tools:
-        net_config = tools['net']
-        if 'allow' in net_config:
+    if "net" in tools:
+        net_config = tools["net"]
+        if "allow" in net_config:
             sections.append("### Network Access")
-            for url in net_config['allow']:
+            for url in net_config["allow"]:
                 sections.append(f"- {url}")
 
-    if 'shell' in tools:
-        shell_config = tools['shell']
-        if 'exec' in shell_config:
+    if "shell" in tools:
+        shell_config = tools["shell"]
+        if "exec" in shell_config:
             sections.append("### Shell Commands")
-            for cmd in shell_config['exec']:
+            for cmd in shell_config["exec"]:
                 sections.append(f"- `{cmd}`")
 
-    return '\n'.join(sections)
+    return "\n".join(sections)
+
 
 def create_skill_md(agent_name: str, agent_config: Dict[str, Any]) -> str:
     """Create SKILL.md content from agent configuration"""
 
-    goal = agent_config.get('goal', f'Perform {agent_name} tasks')
-    tools_md = convert_tools_to_markdown(agent_config.get('tools', {}))
+    goal = agent_config.get("goal", f"Perform {agent_name} tasks")
+    tools_md = convert_tools_to_markdown(agent_config.get("tools", {}))
 
     skill_md = f"""# {agent_name.title()} Agent Skill
 
@@ -99,13 +102,14 @@ The {agent_name} agent provides:
 
     return skill_md
 
+
 def migrate_agent(agent_name: str):
     """Migrate a single agent to SKILL.md format"""
 
     # Paths
-    yaml_path = Path('.codex/agents') / f'{agent_name}.yaml'
-    skill_dir = Path('.codex/skills') / agent_name
-    skill_md_path = skill_dir / 'SKILL.md'
+    yaml_path = Path(".codex/agents") / f"{agent_name}.yaml"
+    skill_dir = Path(".codex/skills") / agent_name
+    skill_md_path = skill_dir / "SKILL.md"
 
     if not yaml_path.exists():
         print(f"[ERROR] YAML file not found: {yaml_path}")
@@ -120,16 +124,16 @@ def migrate_agent(agent_name: str):
 
         # Create SKILL.md
         skill_md_content = create_skill_md(agent_name, agent_config)
-        with open(skill_md_path, 'w', encoding='utf-8') as f:
+        with open(skill_md_path, "w", encoding="utf-8") as f:
             f.write(skill_md_content)
 
         # Create scripts directory structure
-        scripts_dir = skill_dir / 'scripts'
+        scripts_dir = skill_dir / "scripts"
         scripts_dir.mkdir(exist_ok=True)
 
         # Create basic run script
-        run_script = scripts_dir / f'run_{agent_name}.py'
-        with open(run_script, 'w', encoding='utf-8') as f:
+        run_script = scripts_dir / f"run_{agent_name}.py"
+        with open(run_script, "w", encoding="utf-8") as f:
             f.write(f'''#!/usr/bin/env python3
 """
 {agent_name.title()} Agent - Specialized analysis and recommendations
@@ -160,17 +164,18 @@ if __name__ == "__main__":
         print(f"[ERROR] Failed to migrate {agent_name}: {e}")
         return False
 
+
 def main():
     """Main migration function"""
 
-    agents_dir = Path('.codex/agents')
+    agents_dir = Path(".codex/agents")
 
     if not agents_dir.exists():
         print("[ERROR] .codex/agents directory not found")
         return
 
     # Get all YAML files
-    yaml_files = list(agents_dir.glob('*.yaml'))
+    yaml_files = list(agents_dir.glob("*.yaml"))
 
     if not yaml_files:
         print("[ERROR] No YAML agent files found")
@@ -185,14 +190,17 @@ def main():
         if migrate_agent(agent_name):
             success_count += 1
 
-    print(f"\n[OK] Migration completed: {success_count}/{len(yaml_files)} agents migrated")
+    print(
+        f"\n[OK] Migration completed: {success_count}/{len(yaml_files)} agents migrated"
+    )
 
     if success_count > 0:
         print("\n[INFO] Next steps:")
         print("1. Review and customize the generated SKILL.md files")
         print("2. Implement the actual logic in scripts/run_*.py files")
         print("3. Add references and assets as needed")
-        print("4. Test with: codex $agent_name \"task description\"")
+        print('4. Test with: codex $agent_name "task description"')
+
 
 if __name__ == "__main__":
     main()

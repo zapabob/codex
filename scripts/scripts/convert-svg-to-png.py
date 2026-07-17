@@ -18,10 +18,11 @@ import subprocess
 import argparse
 
 # Force UTF-8 output on Windows
-if sys.platform == 'win32':
+if sys.platform == "win32":
     import io
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
 
 
 def install_package(package_name: str) -> bool:
@@ -31,7 +32,7 @@ def install_package(package_name: str) -> bool:
         subprocess.run(
             [sys.executable, "-m", "pip", "install", package_name],
             check=True,
-            capture_output=True
+            capture_output=True,
         )
         print(f"✅ {package_name} installed successfully")
         return True
@@ -40,21 +41,23 @@ def install_package(package_name: str) -> bool:
         return False
 
 
-def convert_via_cairosvg(svg_path: Path, png_path: Path, width: int = None, height: int = None) -> bool:
+def convert_via_cairosvg(
+    svg_path: Path, png_path: Path, width: int = None, height: int = None
+) -> bool:
     """
     Convert SVG to PNG using cairosvg (best quality).
-    
+
     Args:
         svg_path: Path to input SVG file
         png_path: Path to output PNG file
         width: Output width in pixels (optional)
         height: Output height in pixels (optional)
-    
+
     Returns:
         True if successful, False otherwise
     """
     print("🖼️  Using cairosvg for SVG to PNG conversion...")
-    
+
     try:
         import cairosvg
     except ImportError:
@@ -66,52 +69,52 @@ def convert_via_cairosvg(svg_path: Path, png_path: Path, width: int = None, heig
         except ImportError:
             print("❌ Failed to import cairosvg after installation")
             return False
-    
+
     try:
         # Read SVG content
-        svg_content = svg_path.read_text(encoding='utf-8')
-        
+        svg_content = svg_path.read_text(encoding="utf-8")
+
         # Convert with specified dimensions
         kwargs = {}
         if width:
-            kwargs['output_width'] = width
+            kwargs["output_width"] = width
         if height:
-            kwargs['output_height'] = height
-        
+            kwargs["output_height"] = height
+
         print(f"🔧 Converting SVG to PNG...")
         if kwargs:
             print(f"   Dimensions: {width or 'auto'}x{height or 'auto'} pixels")
-        
+
         cairosvg.svg2png(
-            bytestring=svg_content.encode('utf-8'),
-            write_to=str(png_path),
-            **kwargs
+            bytestring=svg_content.encode("utf-8"), write_to=str(png_path), **kwargs
         )
-        
+
         print(f"✅ PNG saved to: {png_path}")
         print(f"📊 File size: {png_path.stat().st_size / 1024:.2f} KB")
         return True
-    
+
     except Exception as e:
         print(f"❌ cairosvg conversion failed: {e}")
         return False
 
 
-def convert_via_pillow(svg_path: Path, png_path: Path, width: int = None, height: int = None) -> bool:
+def convert_via_pillow(
+    svg_path: Path, png_path: Path, width: int = None, height: int = None
+) -> bool:
     """
     Convert SVG to PNG using Pillow + svglib (fallback).
-    
+
     Args:
         svg_path: Path to input SVG file
         png_path: Path to output PNG file
         width: Output width in pixels (optional)
         height: Output height in pixels (optional)
-    
+
     Returns:
         True if successful, False otherwise
     """
     print("🖼️  Using Pillow + svglib for SVG to PNG conversion...")
-    
+
     try:
         from svglib.svglib import svg2rlg
         from reportlab.graphics import renderPM
@@ -125,16 +128,16 @@ def convert_via_pillow(svg_path: Path, png_path: Path, width: int = None, height
         except ImportError:
             print("❌ Failed to import svglib/reportlab after installation")
             return False
-    
+
     try:
         # Convert SVG to ReportLab drawing
         print(f"🔧 Converting SVG to PNG...")
         drawing = svg2rlg(str(svg_path))
-        
+
         if drawing is None:
             print("❌ Failed to parse SVG file")
             return False
-        
+
         # Scale if dimensions specified
         if width and height:
             scale_x = width / drawing.width
@@ -144,14 +147,14 @@ def convert_via_pillow(svg_path: Path, png_path: Path, width: int = None, height
             drawing.height *= scale
             drawing.scale(scale, scale)
             print(f"   Dimensions: {int(drawing.width)}x{int(drawing.height)} pixels")
-        
+
         # Render to PNG
-        renderPM.drawToFile(drawing, str(png_path), fmt='PNG')
-        
+        renderPM.drawToFile(drawing, str(png_path), fmt="PNG")
+
         print(f"✅ PNG saved to: {png_path}")
         print(f"📊 File size: {png_path.stat().st_size / 1024:.2f} KB")
         return True
-    
+
     except Exception as e:
         print(f"❌ Pillow conversion failed: {e}")
         return False
@@ -163,43 +166,39 @@ def main():
         description="Convert Codex architecture SVG to PNG"
     )
     parser.add_argument(
-        "--width",
-        type=int,
-        help="Output width in pixels (default: auto)"
+        "--width", type=int, help="Output width in pixels (default: auto)"
     )
     parser.add_argument(
-        "--height",
-        type=int,
-        help="Output height in pixels (default: auto)"
+        "--height", type=int, help="Output height in pixels (default: auto)"
     )
     parser.add_argument(
         "--method",
         choices=["cairosvg", "pillow", "auto"],
         default="auto",
-        help="Conversion method (default: auto)"
+        help="Conversion method (default: auto)",
     )
     args = parser.parse_args()
-    
+
     print("🎨 Codex v0.48.0 Architecture SVG → PNG Converter")
     print("=" * 60)
-    
+
     # Paths
     repo_root = Path(__file__).parent.parent.parent
     svg_path = repo_root / "zapabob" / "docs" / "codex-v0.48.0-architecture.svg"
     png_path = repo_root / "zapabob" / "docs" / "codex-v0.48.0-architecture.png"
-    
+
     # Check input file
     if not svg_path.exists():
         print(f"❌ Input file not found: {svg_path}")
         return 1
-    
+
     print(f"📄 Input:  {svg_path}")
     print(f"💾 Output: {png_path}")
     print()
-    
+
     # Try conversion
     success = False
-    
+
     if args.method == "cairosvg":
         success = convert_via_cairosvg(svg_path, png_path, args.width, args.height)
     elif args.method == "pillow":
@@ -209,7 +208,7 @@ def main():
         if not success:
             print("\n🔄 Falling back to Pillow method...")
             success = convert_via_pillow(svg_path, png_path, args.width, args.height)
-    
+
     if success:
         print()
         print("=" * 60)
@@ -240,4 +239,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-

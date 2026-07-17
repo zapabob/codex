@@ -599,14 +599,12 @@ impl Session {
         let model_info = models_manager
             .get_model_info(model.as_str(), &config.to_models_manager_config())
             .await;
-        let multi_agent_version =
-            resolve_multi_agent_version(&conversation_history, inherited_multi_agent_version);
+        let multi_agent_version = config.multi_agent_version_override().or_else(|| {
+            resolve_multi_agent_version(&conversation_history, inherited_multi_agent_version)
+        });
         let history_mode = conversation_history.get_history_mode(
             requested_history_mode.unwrap_or_else(|| thread_store.default_history_mode()),
         );
-        config
-            .validate_multi_agent_v2_config()
-            .map_err(|err| CodexErr::InvalidRequest(err.to_string()))?;
         let base_instructions = config
             .base_instructions
             .clone()
@@ -2432,8 +2430,7 @@ impl Session {
         let turn_environment = match args.environment_id.as_deref() {
             Some(environment_id) => turn_context
                 .environments
-                .turn_environments
-                .iter()
+                .turn_environments()
                 .find(|environment| environment.environment_id == environment_id),
             None => turn_context.environments.primary(),
         };
@@ -2852,22 +2849,12 @@ impl Session {
         self: &Arc<Self>,
         turn_context: Arc<TurnContext>,
     ) -> Arc<StepContext> {
-        let deferred_executor_enabled = turn_context
-            .config
-            .features
-            .enabled(Feature::DeferredExecutor);
-        // Keep the old turn-frozen environment view unless deferred executors are enabled.
-        let environments = if deferred_executor_enabled {
-            self.services.turn_environments.snapshot().await
-        } else {
-            turn_context.environments.clone()
-        };
-        if deferred_executor_enabled {
-            self.services
-                .agents_md_manager
-                .refresh(&turn_context.config, &environments)
-                .await;
-        }
+        // Keep selections fixed for the turn while allowing their startup work to finish.
+        let environments = turn_context.environments.refresh_readiness();
+        self.services
+            .agents_md_manager
+            .refresh(&turn_context.config, &environments)
+            .await;
         let loaded_agents_md = self.services.agents_md_manager.get_loaded().await;
         let selected_capability_roots = self
             .resolve_selected_capability_roots_for_step(&environments)
@@ -3074,12 +3061,10 @@ impl Session {
         config: &Config,
     ) -> MultiAgentVersion {
         if let Some(multi_agent_version) = self.multi_agent_version() {
-            return multi_agent_version;
+            return config.multi_agent_version_for_model(Some(multi_agent_version));
         }
 
-        let selected = model_info
-            .multi_agent_version
-            .unwrap_or_else(|| config.multi_agent_version_from_features());
+        let selected = config.multi_agent_version_for_model(model_info.multi_agent_version);
 
         self.set_multi_agent_version_if_unset(selected)
     }

@@ -3,6 +3,7 @@
 Create a new forward commit that removes long-named files from the git tree.
 Does NOT rewrite history (no force push needed).
 """
+
 import subprocess
 import sys
 
@@ -140,9 +141,14 @@ def main():
     )
 
     rc, stdout, stderr = run_git(
-        ["commit-tree", new_root_sha.decode(),
-         "-p", head_sha.decode(),
-         "-m", commit_msg],
+        [
+            "commit-tree",
+            new_root_sha.decode(),
+            "-p",
+            head_sha.decode(),
+            "-m",
+            commit_msg,
+        ],
     )
 
     if rc != 0:

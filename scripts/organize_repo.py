@@ -43,13 +43,17 @@ def organize(dry_run: bool = False):
 
     # Build logs
     build_log_patterns = [
-        "build_*.txt", "build_*.log",
-        "gui_build*.txt", "gui_build*.log",
-        "check_*.log", "check_*.txt",
+        "build_*.txt",
+        "build_*.log",
+        "gui_build*.txt",
+        "gui_build*.log",
+        "check_*.log",
+        "check_*.txt",
         "workspace_check.txt",
         "nextest_results.txt",
         "test_results.txt",
-        "supervisor_errors.txt", "supervisor2.txt",
+        "supervisor_errors.txt",
+        "supervisor2.txt",
     ]
     print("[DIR] Moving build logs to logs/build/...")
     for pattern in build_log_patterns:

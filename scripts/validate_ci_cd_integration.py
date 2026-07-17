@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 from typing import Dict, List, Any, Tuple
 
+
 class CICDEvaluator:
     """CI/CD設定評価クラス"""
 
@@ -38,16 +39,12 @@ class CICDEvaluator:
             "issues": self.issues,
             "warnings": self.warnings,
             "recommendations": self.recommendations,
-            "score": self._calculate_score()
+            "score": self._calculate_score(),
         }
 
     def _check_workflow_files(self):
         """ワークフローファイルの検証"""
-        required_workflows = [
-            "ci.yml",
-            "rust-ci.yml",
-            "rust-release.yml"
-        ]
+        required_workflows = ["ci.yml", "rust-ci.yml", "rust-release.yml"]
 
         for workflow in required_workflows:
             workflow_path = self.github_workflows / workflow
@@ -60,19 +57,24 @@ class CICDEvaluator:
         """ワークフロー構文検証"""
         try:
             import yaml
-            with open(workflow_path, 'r', encoding='utf-8') as f:
+
+            with open(workflow_path, "r", encoding="utf-8") as f:
                 workflow_data = yaml.safe_load(f)
 
             # 基本構造チェック
-            if 'jobs' not in workflow_data:
-                self.issues.append(f"Invalid workflow {workflow_path.name}: missing 'jobs' section")
+            if "jobs" not in workflow_data:
+                self.issues.append(
+                    f"Invalid workflow {workflow_path.name}: missing 'jobs' section"
+                )
 
             # タイムアウト設定チェック
-            for job_name, job_config in workflow_data.get('jobs', {}).items():
+            for job_name, job_config in workflow_data.get("jobs", {}).items():
                 if isinstance(job_config, dict):
-                    timeout = job_config.get('timeout-minutes', 0)
+                    timeout = job_config.get("timeout-minutes", 0)
                     if timeout > 60:
-                        self.warnings.append(f"Job '{job_name}' has long timeout: {timeout} minutes")
+                        self.warnings.append(
+                            f"Job '{job_name}' has long timeout: {timeout} minutes"
+                        )
 
         except Exception as e:
             self.issues.append(f"Failed to parse workflow {workflow_path.name}: {e}")
@@ -84,16 +86,17 @@ class CICDEvaluator:
             # ツールチェーン設定チェック
             try:
                 import yaml
-                with open(rust_ci, 'r', encoding='utf-8') as f:
+
+                with open(rust_ci, "r", encoding="utf-8") as f:
                     workflow_data = yaml.safe_load(f)
 
                 # dtolnay/rust-toolchain使用チェック
                 found_toolchain = False
-                for job in workflow_data.get('jobs', {}).values():
-                    if isinstance(job, dict) and 'steps' in job:
-                        for step in job['steps']:
-                            if isinstance(step, dict) and 'uses' in step:
-                                if 'dtolnay/rust-toolchain' in step['uses']:
+                for job in workflow_data.get("jobs", {}).values():
+                    if isinstance(job, dict) and "steps" in job:
+                        for step in job["steps"]:
+                            if isinstance(step, dict) and "uses" in step:
+                                if "dtolnay/rust-toolchain" in step["uses"]:
                                     found_toolchain = True
                                     break
 
@@ -109,16 +112,19 @@ class CICDEvaluator:
         if cargo_toml.exists():
             try:
                 import toml
-                with open(cargo_toml, 'r', encoding='utf-8') as f:
+
+                with open(cargo_toml, "r", encoding="utf-8") as f:
                     cargo_data = toml.load(f)
 
-                profiles = cargo_data.get('profile', {})
+                profiles = cargo_data.get("profile", {})
 
                 # CI最適化プロファイルチェック
-                if 'ci-release' not in profiles:
-                    self.recommendations.append("Add ci-release profile for optimized CI builds")
+                if "ci-release" not in profiles:
+                    self.recommendations.append(
+                        "Add ci-release profile for optimized CI builds"
+                    )
 
-                if 'ci-test' not in profiles:
+                if "ci-test" not in profiles:
                     self.warnings.append("Missing ci-test profile for CI testing")
 
             except Exception as e:
@@ -130,14 +136,17 @@ class CICDEvaluator:
         if cargo_toml.exists():
             try:
                 import toml
-                with open(cargo_toml, 'r', encoding='utf-8') as f:
+
+                with open(cargo_toml, "r", encoding="utf-8") as f:
                     cargo_data = toml.load(f)
 
-                workspace = cargo_data.get('workspace', {})
-                members = workspace.get('members', [])
+                workspace = cargo_data.get("workspace", {})
+                members = workspace.get("members", [])
 
                 if len(members) < 5:
-                    self.warnings.append("Workspace has few members - consider consolidating")
+                    self.warnings.append(
+                        "Workspace has few members - consider consolidating"
+                    )
 
                 # 重複メンバーチェック
                 if len(members) != len(set(members)):
@@ -152,16 +161,17 @@ class CICDEvaluator:
         if rust_ci.exists():
             try:
                 import yaml
-                with open(rust_ci, 'r', encoding='utf-8') as f:
+
+                with open(rust_ci, "r", encoding="utf-8") as f:
                     workflow_data = yaml.safe_load(f)
 
                 # キャッシュアクション使用チェック
                 cache_found = False
-                for job in workflow_data.get('jobs', {}).values():
-                    if isinstance(job, dict) and 'steps' in job:
-                        for step in job['steps']:
-                            if isinstance(step, dict) and 'uses' in step:
-                                if 'actions/cache' in step['uses']:
+                for job in workflow_data.get("jobs", {}).values():
+                    if isinstance(job, dict) and "steps" in job:
+                        for step in job["steps"]:
+                            if isinstance(step, dict) and "uses" in step:
+                                if "actions/cache" in step["uses"]:
                                     cache_found = True
                                     break
 
@@ -179,18 +189,21 @@ class CICDEvaluator:
 
         try:
             import yaml
+
             for workflow in workflows:
-                with open(workflow, 'r', encoding='utf-8') as f:
+                with open(workflow, "r", encoding="utf-8") as f:
                     data = yaml.safe_load(f)
 
-                for job in data.get('jobs', {}).values():
+                for job in data.get("jobs", {}).values():
                     if isinstance(job, dict):
-                        runs_on = job.get('runs-on', '')
-                        if 'ubuntu' in str(runs_on):
+                        runs_on = job.get("runs-on", "")
+                        if "ubuntu" in str(runs_on):
                             ubuntu_versions.add(str(runs_on))
 
             if len(ubuntu_versions) > 1:
-                self.recommendations.append(f"Consider standardizing Ubuntu versions: {ubuntu_versions}")
+                self.recommendations.append(
+                    f"Consider standardizing Ubuntu versions: {ubuntu_versions}"
+                )
 
         except Exception as e:
             self.warnings.append(f"Failed to check runner compatibility: {e}")
@@ -201,15 +214,18 @@ class CICDEvaluator:
 
         try:
             import yaml
+
             for workflow in workflows:
-                with open(workflow, 'r', encoding='utf-8') as f:
+                with open(workflow, "r", encoding="utf-8") as f:
                     data = yaml.safe_load(f)
 
-                for job_name, job in data.get('jobs', {}).items():
+                for job_name, job in data.get("jobs", {}).items():
                     if isinstance(job, dict):
-                        timeout = job.get('timeout-minutes', 0)
+                        timeout = job.get("timeout-minutes", 0)
                         if timeout > 45:
-                            self.warnings.append(f"Job '{job_name}' in {workflow.name} has long timeout: {timeout}min")
+                            self.warnings.append(
+                                f"Job '{job_name}' in {workflow.name} has long timeout: {timeout}min"
+                            )
 
         except Exception as e:
             self.warnings.append(f"Failed to check timeout settings: {e}")
@@ -227,6 +243,7 @@ class CICDEvaluator:
 
         return max(0.0, min(100.0, base_score))
 
+
 def main():
     """メイン関数"""
     project_root = Path(__file__).parent.parent
@@ -234,29 +251,29 @@ def main():
     evaluator = CICDEvaluator(project_root)
     results = evaluator.evaluate_all()
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("CI/CD Integration Validation Results")
-    print("="*60)
+    print("=" * 60)
 
     print(f"\nOverall Score: {results['score']:.1f}/100")
 
-    if results['issues']:
+    if results["issues"]:
         print(f"\nIssues ({len(results['issues'])} found):")
-        for issue in results['issues']:
+        for issue in results["issues"]:
             print(f"  - {issue}")
 
-    if results['warnings']:
+    if results["warnings"]:
         print(f"\nWarnings ({len(results['warnings'])} found):")
-        for warning in results['warnings']:
+        for warning in results["warnings"]:
             print(f"  - {warning}")
 
-    if results['recommendations']:
+    if results["recommendations"]:
         print(f"\nRecommendations ({len(results['recommendations'])} found):")
-        for rec in results['recommendations']:
+        for rec in results["recommendations"]:
             print(f"  - {rec}")
 
     # 評価基準
-    score = results['score']
+    score = results["score"]
     if score >= 90:
         print("\nExcellent CI/CD configuration!")
         return 0
@@ -269,6 +286,7 @@ def main():
     else:
         print("\nCI/CD configuration needs review.")
         return 2
+
 
 if __name__ == "__main__":
     sys.exit(main())

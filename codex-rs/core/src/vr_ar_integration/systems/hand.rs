@@ -8,6 +8,12 @@ pub struct HandTrackingSystem {
     current_pose: Mutex<Option<HandPose>>,
 }
 
+impl Default for HandTrackingSystem {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl HandTrackingSystem {
     pub fn new() -> Self {
         Self {

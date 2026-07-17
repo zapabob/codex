@@ -88,7 +88,9 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def run_git(args: list[str], *, check: bool = True, input_bytes: bytes | None = None) -> subprocess.CompletedProcess:
+def run_git(
+    args: list[str], *, check: bool = True, input_bytes: bytes | None = None
+) -> subprocess.CompletedProcess:
     return subprocess.run(
         ["git", *args],
         cwd=REPO_ROOT,
@@ -124,7 +126,9 @@ def local_changed_paths(baseline_ref: str) -> set[str]:
 
 def changed_paths(baseline_ref: str, upstream_ref: str) -> list[tuple[str, str]]:
     rows: list[tuple[str, str]] = []
-    for line in git_lines(["diff", "--name-status", "--find-renames", f"{baseline_ref}..{upstream_ref}"]):
+    for line in git_lines(
+        ["diff", "--name-status", "--find-renames", f"{baseline_ref}..{upstream_ref}"]
+    ):
         parts = line.split("\t")
         status = parts[0]
         if status.startswith(("R", "C")) and len(parts) >= 3:
@@ -158,21 +162,80 @@ def plan_path(
     strategy = strategy_for(path)
 
     if strategy in SKIP_STRATEGIES:
-        return PathPlan(path, status, strategy, "skip", "fork strategy keeps this path", ours_changed, baseline_exists, upstream_exists)
+        return PathPlan(
+            path,
+            status,
+            strategy,
+            "skip",
+            "fork strategy keeps this path",
+            ours_changed,
+            baseline_exists,
+            upstream_exists,
+        )
     if status == "D" and ours_changed:
-        return PathPlan(path, status, strategy, "skip", "upstream deleted but fork changed it", ours_changed, baseline_exists, upstream_exists)
+        return PathPlan(
+            path,
+            status,
+            strategy,
+            "skip",
+            "upstream deleted but fork changed it",
+            ours_changed,
+            baseline_exists,
+            upstream_exists,
+        )
     if status == "D":
-        return PathPlan(path, status, strategy, "delete", "upstream deleted unchanged path", ours_changed, baseline_exists, upstream_exists)
+        return PathPlan(
+            path,
+            status,
+            strategy,
+            "delete",
+            "upstream deleted unchanged path",
+            ours_changed,
+            baseline_exists,
+            upstream_exists,
+        )
     if not ours_changed:
-        return PathPlan(path, status, strategy, "checkout-upstream", "fork did not change this path", ours_changed, baseline_exists, upstream_exists)
+        return PathPlan(
+            path,
+            status,
+            strategy,
+            "checkout-upstream",
+            "fork did not change this path",
+            ours_changed,
+            baseline_exists,
+            upstream_exists,
+        )
     if not baseline_exists or not upstream_exists:
-        return PathPlan(path, status, strategy, "checkout-upstream", "added path has no three-way base", ours_changed, baseline_exists, upstream_exists)
-    return PathPlan(path, status, strategy, "merge-file", "fork and upstream both changed this path", ours_changed, baseline_exists, upstream_exists)
+        return PathPlan(
+            path,
+            status,
+            strategy,
+            "checkout-upstream",
+            "added path has no three-way base",
+            ours_changed,
+            baseline_exists,
+            upstream_exists,
+        )
+    return PathPlan(
+        path,
+        status,
+        strategy,
+        "merge-file",
+        "fork and upstream both changed this path",
+        ours_changed,
+        baseline_exists,
+        upstream_exists,
+    )
 
 
 def checkout_upstream(upstream_ref: str, path: str) -> PathOutcome:
     completed = run_git(["checkout", upstream_ref, "--", path], check=False)
-    return PathOutcome(path, "checkout-upstream", completed.returncode, note=completed.stderr.decode("utf-8", errors="replace").strip())
+    return PathOutcome(
+        path,
+        "checkout-upstream",
+        completed.returncode,
+        note=completed.stderr.decode("utf-8", errors="replace").strip(),
+    )
 
 
 def delete_path(path: str) -> PathOutcome:
@@ -200,7 +263,14 @@ def merge_file(baseline_ref: str, upstream_ref: str, path: str) -> PathOutcome:
         base_file.write_bytes(base)
         theirs_file.write_bytes(theirs)
         completed = subprocess.run(
-            ["git", "merge-file", "-p", str(ours_file), str(base_file), str(theirs_file)],
+            [
+                "git",
+                "merge-file",
+                "-p",
+                str(ours_file),
+                str(base_file),
+                str(theirs_file),
+            ],
             cwd=REPO_ROOT,
             capture_output=True,
             check=False,
@@ -220,7 +290,9 @@ def apply_plan(args: argparse.Namespace, plans: list[PathPlan]) -> list[PathOutc
     outcomes: list[PathOutcome] = []
     checkout_paths = [plan.path for plan in plans if plan.action == "checkout-upstream"]
     for path_batch in batches(checkout_paths, 120):
-        completed = run_git(["checkout", args.upstream_ref, "--", *path_batch], check=False)
+        completed = run_git(
+            ["checkout", args.upstream_ref, "--", *path_batch], check=False
+        )
         note = completed.stderr.decode("utf-8", errors="replace").strip()
         outcomes.extend(
             PathOutcome(path, "checkout-upstream", completed.returncode, note=note)
@@ -237,13 +309,13 @@ def apply_plan(args: argparse.Namespace, plans: list[PathPlan]) -> list[PathOutc
         elif plan.action == "merge-file":
             outcomes.append(merge_file(args.baseline_ref, args.upstream_ref, plan.path))
         elif plan.action not in {"checkout-upstream", "delete"}:
-            outcomes.append(PathOutcome(plan.path, plan.action, returncode=1, note="unknown action"))
+            outcomes.append(
+                PathOutcome(plan.path, plan.action, returncode=1, note="unknown action")
+            )
     conflicts = [outcome.path for outcome in outcomes if outcome.conflicted]
     if conflicts:
         reinject_rules = [
-            "--rule"
-            for path in sorted(REINJECT_PATHS)
-            if path in conflicts
+            "--rule" for path in sorted(REINJECT_PATHS) if path in conflicts
         ]
         reinject_rule_values = [
             f"{path}=upstream-reinject"
@@ -261,7 +333,14 @@ def apply_plan(args: argparse.Namespace, plans: list[PathPlan]) -> list[PathOutc
             *conflicts,
         ]
         completed = subprocess.run(resolver, cwd=REPO_ROOT, check=False)
-        outcomes.append(PathOutcome("scripts/resolve_merge_conflicts.py", "resolve-conflicts", completed.returncode, note=f"{len(conflicts)} conflicted paths"))
+        outcomes.append(
+            PathOutcome(
+                "scripts/resolve_merge_conflicts.py",
+                "resolve-conflicts",
+                completed.returncode,
+                note=f"{len(conflicts)} conflicted paths",
+            )
+        )
     return outcomes
 
 
@@ -269,7 +348,9 @@ def batches(items: list[str], size: int) -> list[list[str]]:
     return [items[index : index + size] for index in range(0, len(items), size)]
 
 
-def write_reports(args: argparse.Namespace, plans: list[PathPlan], outcomes: list[PathOutcome]) -> None:
+def write_reports(
+    args: argparse.Namespace, plans: list[PathPlan], outcomes: list[PathOutcome]
+) -> None:
     payload = {
         "baseline_ref": args.baseline_ref,
         "upstream_ref": args.upstream_ref,
@@ -279,12 +360,19 @@ def write_reports(args: argparse.Namespace, plans: list[PathPlan], outcomes: lis
         "summary": {
             "planned_paths": len(plans),
             "actions": action_counts(plans),
-            "conflicted_paths": [outcome.path for outcome in outcomes if outcome.conflicted],
-            "failed_paths": [outcome.path for outcome in outcomes if outcome.returncode not in {0, 1}],
+            "conflicted_paths": [
+                outcome.path for outcome in outcomes if outcome.conflicted
+            ],
+            "failed_paths": [
+                outcome.path for outcome in outcomes if outcome.returncode not in {0, 1}
+            ],
         },
     }
     args.report_json.parent.mkdir(parents=True, exist_ok=True)
-    args.report_json.write_text(json.dumps(payload, indent=2, ensure_ascii=False, sort_keys=True) + "\n", encoding="utf-8")
+    args.report_json.write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
 
     lines = [
         "# Upstream Overlay Merge Report",
@@ -320,7 +408,9 @@ def ensure_clean_worktree(allow_dirty: bool) -> None:
         return
     status = git_text(["status", "--porcelain"])
     if status.strip():
-        raise SystemExit("Working tree is not clean. Commit, stash, or pass --allow-dirty.")
+        raise SystemExit(
+            "Working tree is not clean. Commit, stash, or pass --allow-dirty."
+        )
 
 
 def main() -> int:

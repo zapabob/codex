@@ -58,7 +58,7 @@ CONFIG = {
     "data_dir": Path.home() / ".cowork_agent",
     "log_file": Path.home() / ".cowork_agent" / "agent.log",
     "task_queue_file": Path.home() / ".cowork_agent" / "task_queue.json",
-    "settings_file": Path.home() / ".cowork_agent" / "settings.json"
+    "settings_file": Path.home() / ".cowork_agent" / "settings.json",
 }
 
 
@@ -100,17 +100,19 @@ class ResidentAgent:
         """ロギング設定"""
         logging.basicConfig(
             level=getattr(logging, self.config["log_level"]),
-            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
             handlers=[
                 logging.FileHandler(self.config["log_file"]),
-                logging.StreamHandler(sys.stdout)
-            ]
+                logging.StreamHandler(sys.stdout),
+            ],
         )
         self.logger = logging.getLogger("CoworkResidentAgent")
 
     async def start(self):
         """エージェント起動"""
-        self.logger.info(f"{self.config['agent_name']} v{self.config['version']} 起動開始")
+        self.logger.info(
+            f"{self.config['agent_name']} v{self.config['version']} 起動開始"
+        )
 
         # 既存タスクの復元
         await self._restore_persisted_state()
@@ -162,7 +164,7 @@ class ResidentAgent:
             self._monitor_system_resources(),
             self._handle_notifications(),
             self._perform_maintenance(),
-            self._check_scheduled_tasks()
+            self._check_scheduled_tasks(),
         ]
 
         try:
@@ -177,10 +179,7 @@ class ResidentAgent:
         while self.is_running:
             try:
                 # タスク取得（タイムアウト付き）
-                task_data = await asyncio.wait_for(
-                    self.task_queue.get(),
-                    timeout=1.0
-                )
+                task_data = await asyncio.wait_for(self.task_queue.get(), timeout=1.0)
 
                 # タスク処理
                 asyncio.create_task(self._process_task(task_data))
@@ -238,7 +237,7 @@ class ResidentAgent:
             "success": True,
             "result": result,
             "interpreted_task": interpreted_task,
-            "safety_check": safety_check
+            "safety_check": safety_check,
         }
 
     async def _handle_task_result(self, task_id: str, result: Dict[str, Any]):
@@ -250,16 +249,21 @@ class ResidentAgent:
             "id": task_id,
             "timestamp": datetime.now().isoformat(),
             "result": result,
-            "status": "completed"
+            "status": "completed",
         }
         self.completed_tasks.append(completed_task)
 
         # 通知
-        await self._send_notification("task_completed", {
-            "task_id": task_id,
-            "description": result.get("interpreted_task", {}).get("description", ""),
-            "success": result.get("success", False)
-        })
+        await self._send_notification(
+            "task_completed",
+            {
+                "task_id": task_id,
+                "description": result.get("interpreted_task", {}).get(
+                    "description", ""
+                ),
+                "success": result.get("success", False),
+            },
+        )
 
         # GUI更新
         await self.gui_bridge.notify_task_completion(completed_task)
@@ -273,15 +277,14 @@ class ResidentAgent:
             "id": task_id,
             "timestamp": datetime.now().isoformat(),
             "error": str(error),
-            "status": "failed"
+            "status": "failed",
         }
         self.completed_tasks.append(error_task)
 
         # 通知
-        await self._send_notification("task_failed", {
-            "task_id": task_id,
-            "error": str(error)
-        })
+        await self._send_notification(
+            "task_failed", {"task_id": task_id, "error": str(error)}
+        )
 
         # GUI更新
         await self.gui_bridge.notify_task_error(error_task)
@@ -295,7 +298,7 @@ class ResidentAgent:
             "description": task_description,
             "priority": priority,
             "submitted_at": datetime.now().isoformat(),
-            "status": "queued"
+            "status": "queued",
         }
 
         await self.task_queue.put(task_data)
@@ -339,7 +342,7 @@ class ResidentAgent:
             return {
                 "id": task_id,
                 "status": "running",
-                "data": self.active_tasks[task_id]
+                "data": self.active_tasks[task_id],
             }
 
         # 完了タスク
@@ -359,10 +362,7 @@ class ResidentAgent:
 
         # システムトレイ初期化
         self.system_tray = pystray.Icon(
-            "cowork_agent",
-            icon,
-            self.config["agent_name"],
-            menu
+            "cowork_agent", icon, self.config["agent_name"], menu
         )
 
         # 別スレッドで起動
@@ -373,15 +373,15 @@ class ResidentAgent:
     def _create_tray_icon(self) -> Image.Image:
         """トレイアイコン作成"""
         # シンプルなアイコン生成
-        icon = Image.new('RGB', (64, 64), color='green')
+        icon = Image.new("RGB", (64, 64), color="green")
         draw = ImageDraw.Draw(icon)
 
         # 円を描画
-        draw.ellipse([8, 8, 56, 56], fill='white', outline='black', width=2)
+        draw.ellipse([8, 8, 56, 56], fill="white", outline="black", width=2)
 
         # チェックマークを描画
-        draw.line([20, 32, 28, 40], fill='green', width=3)
-        draw.line([28, 40, 44, 24], fill='green', width=3)
+        draw.line([20, 32, 28, 40], fill="green", width=3)
+        draw.line([28, 40, 44, 24], fill="green", width=3)
 
         return icon
 
@@ -392,18 +392,18 @@ class ResidentAgent:
             pystray.MenuItem("実行中タスク", self._show_active_tasks),
             pystray.MenuItem("設定", self._show_settings),
             pystray.Menu.SEPARATOR,
-            pystray.MenuItem("終了", self._shutdown_agent)
+            pystray.MenuItem("終了", self._shutdown_agent),
         )
 
     def _show_task_dialog(self):
         """タスク入力ダイアログ表示"""
+
         def submit_task():
             description = dialog.get()
             if description:
                 # 非同期でタスク送信
                 asyncio.run_coroutine_threadsafe(
-                    self.submit_task(description),
-                    asyncio.get_event_loop()
+                    self.submit_task(description), asyncio.get_event_loop()
                 )
             root.destroy()
 
@@ -449,10 +449,12 @@ class ResidentAgent:
                 resources = await self.resource_monitor.check_resources()
 
                 # リソース使用量ログ
-                self.logger.debug(f"システムリソース: CPU={resources['cpu']}%, MEM={resources['memory']}%")
+                self.logger.debug(
+                    f"システムリソース: CPU={resources['cpu']}%, MEM={resources['memory']}%"
+                )
 
                 # 高負荷時の処理調整
-                if resources['cpu'] > 80 or resources['memory'] > 90:
+                if resources["cpu"] > 80 or resources["memory"] > 90:
                     await self._throttle_processing()
 
                 await asyncio.sleep(self.config["resource_check_interval"])
@@ -499,6 +501,7 @@ class ResidentAgent:
             if sys.platform == "win32":
                 # Windows通知
                 import win10toast
+
                 toaster = win10toast.ToastNotifier()
                 toaster.show_toast(title, message, duration=5)
             else:
@@ -512,7 +515,7 @@ class ResidentAgent:
         notification = {
             "type": notification_type,
             "timestamp": datetime.now().isoformat(),
-            "data": data
+            "data": data,
         }
 
         # 通知キューに追加
@@ -544,7 +547,8 @@ class ResidentAgent:
 
         # 完了タスクのフィルタリング
         self.completed_tasks = [
-            task for task in self.completed_tasks
+            task
+            for task in self.completed_tasks
             if datetime.fromisoformat(task["timestamp"]) > cutoff_date
         ]
 
@@ -553,8 +557,10 @@ class ResidentAgent:
         stats = {
             "total_tasks_processed": len(self.completed_tasks),
             "active_tasks": len(self.active_tasks),
-            "uptime": time.time() - self.start_time if hasattr(self, 'start_time') else 0,
-            "average_task_duration": await self._calculate_average_task_duration()
+            "uptime": time.time() - self.start_time
+            if hasattr(self, "start_time")
+            else 0,
+            "average_task_duration": await self._calculate_average_task_duration(),
         }
 
         await self.persistence_manager.save_performance_stats(stats)
@@ -614,7 +620,7 @@ class ResidentAgent:
             state = {
                 "completed_tasks": self.completed_tasks[-100:],  # 最新100件のみ
                 "active_tasks": list(self.active_tasks.keys()),
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat(),
             }
             await self.persistence_manager.save_agent_state(state)
         except Exception as e:
@@ -648,11 +654,13 @@ class ResidentAgent:
                 winreg.HKEY_CURRENT_USER,
                 r"Software\Microsoft\Windows\CurrentVersion\Run",
                 0,
-                winreg.KEY_SET_VALUE
+                winreg.KEY_SET_VALUE,
             )
 
             script_path = str(Path(__file__).resolve())
-            winreg.SetValueEx(key, "CoworkResidentAgent", 0, winreg.REG_SZ, f'python "{script_path}"')
+            winreg.SetValueEx(
+                key, "CoworkResidentAgent", 0, winreg.REG_SZ, f'python "{script_path}"'
+            )
 
             winreg.CloseKey(key)
             self.logger.info("Windows自動起動を設定しました")
@@ -687,7 +695,7 @@ class TaskInterpreter:
             "task_type": self._classify_task_type(description),
             "entities": self._extract_entities(description),
             "confidence": 0.8,
-            "estimated_duration": self._estimate_duration(description)
+            "estimated_duration": self._estimate_duration(description),
         }
 
         self.logger.info(f"タスク解釈: {description} -> {interpreted['task_type']}")
@@ -701,7 +709,9 @@ class TaskInterpreter:
             return "file_organization"
         elif any(word in desc_lower for word in ["分析", "analyze", "report", "chart"]):
             return "data_analysis"
-        elif any(word in desc_lower for word in ["スクレイプ", "scrape", "web", "browser"]):
+        elif any(
+            word in desc_lower for word in ["スクレイプ", "scrape", "web", "browser"]
+        ):
             return "web_scraping"
         else:
             return "generic"
@@ -777,7 +787,10 @@ class ExecutionEngine:
             self.logger.info(f"タスク {task_id} のキャンセル要求を実行しました。")
             # 必要に応じてキャンセル後の状態管理や永続化処理を実装
         else:
-            self.logger.warning(f"キャンセル対象タスク {task_id} が見つからない、または既に終了しています。")
+            self.logger.warning(
+                f"キャンセル対象タスク {task_id} が見つからない、または既に終了しています。"
+            )
+
 
 class SafetyController:
     """安全制御クラス"""
@@ -785,14 +798,12 @@ class SafetyController:
     def __init__(self):
         self.logger = logging.getLogger("SafetyController")
 
-    async def check_task_safety(self, interpreted_task: Dict[str, Any]) -> Dict[str, Any]:
+    async def check_task_safety(
+        self, interpreted_task: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """タスク安全チェック"""
         # 安全チェックロジック
-        return {
-            "approved": True,
-            "reason": "安全チェック通過",
-            "risk_level": "low"
-        }
+        return {"approved": True, "reason": "安全チェック通過", "risk_level": "low"}
 
 
 class PersistenceManager:
@@ -807,7 +818,9 @@ class PersistenceManager:
         self.state_file = self.config.get("agent_state_path", "agent_state.json")
         self.task_queue_file = self.config.get("task_queue_path", "task_queue.json")
         self.settings_file = self.config.get("settings_path", "settings.json")
-        self.performance_file = self.config.get("performance_stats_path", "performance.json")
+        self.performance_file = self.config.get(
+            "performance_stats_path", "performance.json"
+        )
         # CLI/TUI/GUITUICLI経由の外部永続化IF（必要時Noneでローカルファイル保存）
         # bridge(GUIBridge等)は.save/load_xx()を提供する想定
         self.bridge = bridge
@@ -824,9 +837,12 @@ class PersistenceManager:
                 await task_queue.put(task)
             if self.bridge and hasattr(self.bridge, "save_task_queue"):
                 await self.bridge.save_task_queue(tasks)
-                self.logger.info("タスクキュー保存完了（CLI/TUI/GUITUICLIブリッジ経由）")
+                self.logger.info(
+                    "タスクキュー保存完了（CLI/TUI/GUITUICLIブリッジ経由）"
+                )
             else:
                 import json
+
                 with open(self.task_queue_file, "w", encoding="utf-8") as f:
                     json.dump(tasks, f, ensure_ascii=False, indent=2)
                 self.logger.info("タスクキュー保存完了（ローカルファイル）")
@@ -839,11 +855,14 @@ class PersistenceManager:
             if self.bridge and hasattr(self.bridge, "load_task_queue"):
                 tasks = await self.bridge.load_task_queue()
                 if tasks is None:
-                    self.logger.info("タスクキューは空です（CLI/TUI/GUITUICLIブリッジ）。")
+                    self.logger.info(
+                        "タスクキューは空です（CLI/TUI/GUITUICLIブリッジ）。"
+                    )
                     return
             else:
                 import os
                 import json
+
                 if not os.path.exists(self.task_queue_file):
                     self.logger.info("タスクキュー永続化ファイルがありません。")
                     return
@@ -864,12 +883,17 @@ class PersistenceManager:
             if self.bridge and hasattr(self.bridge, "load_agent_state"):
                 state = await self.bridge.load_agent_state()
                 if state is not None:
-                    self.logger.info("エージェント状態読み込み成功（CLI/TUI/GUITUICLIブリッジ）")
+                    self.logger.info(
+                        "エージェント状態読み込み成功（CLI/TUI/GUITUICLIブリッジ）"
+                    )
                     return state
             import os
             import json
+
             if not os.path.exists(self.state_file):
-                self.logger.warning("エージェント状態ファイルが存在しません。新規で開始します。")
+                self.logger.warning(
+                    "エージェント状態ファイルが存在しません。新規で開始します。"
+                )
                 return None
             with open(self.state_file, "r", encoding="utf-8") as f:
                 state = json.load(f)
@@ -884,9 +908,12 @@ class PersistenceManager:
         try:
             if self.bridge and hasattr(self.bridge, "save_agent_state"):
                 await self.bridge.save_agent_state(state)
-                self.logger.info("エージェント状態保存完了（CLI/TUI/GUITUICLIブリッジ）")
+                self.logger.info(
+                    "エージェント状態保存完了（CLI/TUI/GUITUICLIブリッジ）"
+                )
             else:
                 import json
+
                 with open(self.state_file, "w", encoding="utf-8") as f:
                     json.dump(state, f, ensure_ascii=False, indent=2)
                 self.logger.info("エージェント状態保存完了（ローカルファイル）")
@@ -903,8 +930,11 @@ class PersistenceManager:
                     return settings
             import os
             import json
+
             if not os.path.exists(self.settings_file):
-                self.logger.info("設定ファイルが存在しません。デフォルト設定で開始します。")
+                self.logger.info(
+                    "設定ファイルが存在しません。デフォルト設定で開始します。"
+                )
                 return None
             with open(self.settings_file, "r", encoding="utf-8") as f:
                 settings = json.load(f)
@@ -922,6 +952,7 @@ class PersistenceManager:
                 self.logger.info("設定保存完了（CLI/TUI/GUITUICLIブリッジ）")
             else:
                 import json
+
                 with open(self.settings_file, "w", encoding="utf-8") as f:
                     json.dump(settings, f, ensure_ascii=False, indent=2)
                 self.logger.info("設定保存完了（ローカルファイル）")
@@ -933,9 +964,12 @@ class PersistenceManager:
         try:
             if self.bridge and hasattr(self.bridge, "save_performance_stats"):
                 await self.bridge.save_performance_stats(stats)
-                self.logger.info("パフォーマンス統計保存完了（CLI/TUI/GUITUICLIブリッジ）")
+                self.logger.info(
+                    "パフォーマンス統計保存完了（CLI/TUI/GUITUICLIブリッジ）"
+                )
             else:
                 import json
+
                 with open(self.performance_file, "w", encoding="utf-8") as f:
                     json.dump(stats, f, ensure_ascii=False, indent=2)
                 self.logger.info("パフォーマンス統計保存完了（ローカルファイル）")
@@ -948,10 +982,13 @@ class PersistenceManager:
             if self.bridge and hasattr(self.bridge, "load_performance_stats"):
                 stats = await self.bridge.load_performance_stats()
                 if stats is not None:
-                    self.logger.info("パフォーマンス統計読み込み成功（CLI/TUI/GUITUICLIブリッジ）")
+                    self.logger.info(
+                        "パフォーマンス統計読み込み成功（CLI/TUI/GUITUICLIブリッジ）"
+                    )
                     return stats
             import os
             import json
+
             if not os.path.exists(self.performance_file):
                 self.logger.info("パフォーマンス統計ファイルがありません。")
                 return None
@@ -980,7 +1017,7 @@ class ResourceMonitor:
             return {
                 "cpu": cpu_percent,
                 "memory": memory_percent,
-                "disk": psutil.disk_usage('/').percent
+                "disk": psutil.disk_usage("/").percent,
             }
         except Exception as e:
             self.logger.error(f"リソースチェックエラー: {e}")
@@ -1010,9 +1047,11 @@ class AppleStyleGUIBridge:
 
             gui_script = Path(__file__).parent.parent / "cowork_apple_gui.py"
             if gui_script.exists():
-                self.gui_process = subprocess.Popen([
-                    sys.executable, str(gui_script)
-                ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                self.gui_process = subprocess.Popen(
+                    [sys.executable, str(gui_script)],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                )
 
                 self.logger.info("Apple風GUIプロセス起動成功")
             else:
@@ -1043,33 +1082,25 @@ class AppleStyleGUIBridge:
 
     async def notify_task_completion(self, task: Dict[str, Any]):
         """タスク完了通知（Apple風デザイン）"""
-        await self._send_notification({
-            "type": "task_completion",
-            "task": task,
-            "style": "apple_success"
-        })
+        await self._send_notification(
+            {"type": "task_completion", "task": task, "style": "apple_success"}
+        )
 
     async def notify_task_error(self, task: Dict[str, Any]):
         """タスクエラー通知（Apple風デザイン）"""
-        await self._send_notification({
-            "type": "task_error",
-            "task": task,
-            "style": "apple_error"
-        })
+        await self._send_notification(
+            {"type": "task_error", "task": task, "style": "apple_error"}
+        )
 
     async def show_feature_search(self):
         """機能検索ウィンドウ表示"""
-        await self._send_notification({
-            "type": "show_feature_search",
-            "style": "apple_modal"
-        })
+        await self._send_notification(
+            {"type": "show_feature_search", "style": "apple_modal"}
+        )
 
     async def show_settings(self):
         """設定ウィンドウ表示"""
-        await self._send_notification({
-            "type": "show_settings",
-            "style": "apple_sheet"
-        })
+        await self._send_notification({"type": "show_settings", "style": "apple_sheet"})
 
     async def _send_notification(self, notification: Dict[str, Any]):
         """通知送信"""
@@ -1114,6 +1145,7 @@ class AppleStyleGUIBridge:
         # macOSスタイルの通知（Windowsでは代替）
         try:
             import platform
+
             if platform.system() == "Darwin":
                 await self._show_macos_notification(task, "success")
             else:
@@ -1125,6 +1157,7 @@ class AppleStyleGUIBridge:
         """Apple風エラー通知"""
         try:
             import platform
+
             if platform.system() == "Darwin":
                 await self._show_macos_notification(task, "error")
             else:
@@ -1132,7 +1165,9 @@ class AppleStyleGUIBridge:
         except Exception as e:
             self.logger.error(f"エラー通知エラー: {e}")
 
-    async def _show_macos_notification(self, task: Dict[str, Any], notification_type: str):
+    async def _show_macos_notification(
+        self, task: Dict[str, Any], notification_type: str
+    ):
         """macOS通知"""
         import subprocess
 
@@ -1143,14 +1178,20 @@ class AppleStyleGUIBridge:
             message = f"❌ タスク失敗: {task.get('description', '')[:50]}..."
 
         try:
-            subprocess.run([
-                "osascript", "-e",
-                f'display notification "{message}" with title "{title}"'
-            ], check=True)
+            subprocess.run(
+                [
+                    "osascript",
+                    "-e",
+                    f'display notification "{message}" with title "{title}"',
+                ],
+                check=True,
+            )
         except Exception as e:
             self.logger.error(f"macOS通知エラー: {e}")
 
-    async def _show_windows_notification(self, task: Dict[str, Any], notification_type: str):
+    async def _show_windows_notification(
+        self, task: Dict[str, Any], notification_type: str
+    ):
         """Windows通知"""
         try:
             from win10toast import ToastNotifier
@@ -1187,6 +1228,7 @@ class AppleStyleGUIBridge:
 # 旧GUIBridgeクラスとの互換性維持
 class GUIBridge(AppleStyleGUIBridge):
     """後方互換性のためのGUIBridgeクラス"""
+
     pass
 
 

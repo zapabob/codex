@@ -20,10 +20,11 @@ import argparse
 import asyncio
 
 # Force UTF-8 output on Windows
-if sys.platform == 'win32':
+if sys.platform == "win32":
     import io
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
 
 
 def install_package(package_name: str) -> bool:
@@ -33,7 +34,7 @@ def install_package(package_name: str) -> bool:
         subprocess.run(
             [sys.executable, "-m", "pip", "install", package_name],
             check=True,
-            capture_output=True
+            capture_output=True,
         )
         print(f"✅ {package_name} installed successfully")
         return True
@@ -47,8 +48,7 @@ def install_playwright_browsers() -> bool:
     print("📦 Installing Playwright Chromium browser...")
     try:
         subprocess.run(
-            [sys.executable, "-m", "playwright", "install", "chromium"],
-            check=True
+            [sys.executable, "-m", "playwright", "install", "chromium"], check=True
         )
         print("✅ Chromium browser installed successfully")
         return True
@@ -58,46 +58,43 @@ def install_playwright_browsers() -> bool:
 
 
 async def convert_svg_to_png_async(
-    svg_path: Path,
-    png_path: Path,
-    width: int = 2400,
-    height: int = 1600
+    svg_path: Path, png_path: Path, width: int = 2400, height: int = 1600
 ) -> bool:
     """
     Convert SVG to PNG using Playwright browser rendering.
-    
+
     Args:
         svg_path: Path to input SVG file
         png_path: Path to output PNG file
         width: Viewport width in pixels
         height: Viewport height in pixels
-    
+
     Returns:
         True if successful, False otherwise
     """
     print("🌐 Using Playwright (Chromium) for SVG to PNG conversion...")
-    
+
     try:
         from playwright.async_api import async_playwright
     except ImportError:
         print("❌ Playwright not found. Installing...")
         if not install_package("playwright"):
             return False
-        
+
         # Install browsers
         if not install_playwright_browsers():
             return False
-        
+
         try:
             from playwright.async_api import async_playwright
         except ImportError:
             print("❌ Failed to import Playwright after installation")
             return False
-    
+
     try:
         # Read SVG content
-        svg_content = svg_path.read_text(encoding='utf-8')
-        
+        svg_content = svg_path.read_text(encoding="utf-8")
+
         # Create HTML wrapper for SVG
         html_content = f"""
 <!DOCTYPE html>
@@ -125,38 +122,35 @@ async def convert_svg_to_png_async(
 </body>
 </html>
 """
-        
+
         print(f"🔧 Rendering SVG with browser...")
         print(f"   Viewport: {width}x{height} pixels")
-        
+
         async with async_playwright() as p:
             # Launch headless browser
             browser = await p.chromium.launch(headless=True)
             page = await browser.new_page(viewport={"width": width, "height": height})
-            
+
             # Set HTML content
             await page.set_content(html_content)
-            
+
             # Wait for SVG to render
             await page.wait_for_load_state("networkidle")
             await asyncio.sleep(1)  # Extra time for SVG rendering
-            
+
             # Take screenshot
-            await page.screenshot(
-                path=str(png_path),
-                full_page=True,
-                type="png"
-            )
-            
+            await page.screenshot(path=str(png_path), full_page=True, type="png")
+
             await browser.close()
-        
+
         print(f"✅ PNG saved to: {png_path}")
         print(f"📊 File size: {png_path.stat().st_size / 1024:.2f} KB")
         return True
-    
+
     except Exception as e:
         print(f"❌ Playwright conversion failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -170,38 +164,38 @@ def main():
         "--width",
         type=int,
         default=2400,
-        help="Viewport width in pixels (default: 2400)"
+        help="Viewport width in pixels (default: 2400)",
     )
     parser.add_argument(
         "--height",
         type=int,
         default=1600,
-        help="Viewport height in pixels (default: 1600)"
+        help="Viewport height in pixels (default: 1600)",
     )
     args = parser.parse_args()
-    
+
     print("🎨 Codex v0.48.0 Architecture SVG → PNG Converter (Browser)")
     print("=" * 60)
-    
+
     # Paths
     repo_root = Path(__file__).parent.parent.parent
     svg_path = repo_root / "zapabob" / "docs" / "codex-v0.48.0-architecture.svg"
     png_path = repo_root / "zapabob" / "docs" / "codex-v0.48.0-architecture.png"
-    
+
     # Check input file
     if not svg_path.exists():
         print(f"❌ Input file not found: {svg_path}")
         return 1
-    
+
     print(f"📄 Input:  {svg_path}")
     print(f"💾 Output: {png_path}")
     print()
-    
+
     # Run async conversion
     success = asyncio.run(
         convert_svg_to_png_async(svg_path, png_path, args.width, args.height)
     )
-    
+
     if success:
         print()
         print("=" * 60)
@@ -215,7 +209,9 @@ def main():
         print("  - Documentation: Add to wikis/docs")
         print()
         print("💡 For different sizes, use:")
-        print("   py -3 convert-svg-to-png-browser.py --width 1920 --height 1080  # Full HD")
+        print(
+            "   py -3 convert-svg-to-png-browser.py --width 1920 --height 1080  # Full HD"
+        )
         print("   py -3 convert-svg-to-png-browser.py --width 2560 --height 1440  # 2K")
         print("   py -3 convert-svg-to-png-browser.py --width 3840 --height 2160  # 4K")
         return 0
@@ -231,4 +227,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-

@@ -90,7 +90,9 @@ TARGETS: dict[str, Target] = {
             WORKSPACE_ROOT / "utils",
         ),
         install_map={
-            WORKSPACE_ROOT / "target" / "release" / binary_name("codex"): binary_name("codex")
+            WORKSPACE_ROOT / "target" / "release" / binary_name("codex"): binary_name(
+                "codex"
+            )
         },
         process_names=("codex",),
         package="codex-cli",
@@ -109,7 +111,10 @@ TARGETS: dict[str, Target] = {
             WORKSPACE_ROOT / "utils",
         ),
         install_map={
-            WORKSPACE_ROOT / "target" / "release" / binary_name("codex-tui"): binary_name("codex-tui")
+            WORKSPACE_ROOT
+            / "target"
+            / "release"
+            / binary_name("codex-tui"): binary_name("codex-tui")
         },
         process_names=("codex-tui",),
         package="codex-tui",
@@ -133,7 +138,11 @@ TARGETS: dict[str, Target] = {
             WORKSPACE_ROOT / "state",
         ),
         install_map={
-            WORKSPACE_ROOT / "gui" / "target" / "release" / binary_name("codex-gui"): binary_name("codex-gui")
+            WORKSPACE_ROOT
+            / "gui"
+            / "target"
+            / "release"
+            / binary_name("codex-gui"): binary_name("codex-gui")
         },
         process_names=("codex-gui",),
         description="Legacy custom Rust GUI binary pending plugin migration",
@@ -193,8 +202,17 @@ FEATURE_RULES = (
     ),
     FeatureRule(
         name="GUI To Plugin",
-        custom_patterns=("gui/**", "codex-gui-x/**", "codex-rs/gui/**", "codex-rs/tauri-gui/**"),
-        upstream_patterns=("codex-rs/app-server/**", "codex-rs/app-server-protocol/**", "codex-rs/core/src/plugins/**"),
+        custom_patterns=(
+            "gui/**",
+            "codex-gui-x/**",
+            "codex-rs/gui/**",
+            "codex-rs/tauri-gui/**",
+        ),
+        upstream_patterns=(
+            "codex-rs/app-server/**",
+            "codex-rs/app-server-protocol/**",
+            "codex-rs/core/src/plugins/**",
+        ),
         recommendation="migrate legacy GUI surfaces onto the official app-server and plugin seams; retire GUI-only launch paths after parity",
     ),
 )
@@ -308,12 +326,25 @@ def git_output(args: Sequence[str], logger: Logger, cwd: Path = REPO_ROOT) -> st
 
 
 def git_lines(args: Sequence[str], logger: Logger, cwd: Path = REPO_ROOT) -> list[str]:
-    return [line.strip() for line in git_output(args, logger, cwd).splitlines() if line.strip()]
+    return [
+        line.strip()
+        for line in git_output(args, logger, cwd).splitlines()
+        if line.strip()
+    ]
 
 
 def iter_files(paths: Iterable[Path]) -> list[Path]:
     files: set[Path] = set()
-    ignored_dirs = {"target", "node_modules", ".git", "dist", "build", ".next", ".turbo", ".cache"}
+    ignored_dirs = {
+        "target",
+        "node_modules",
+        ".git",
+        "dist",
+        "build",
+        ".next",
+        ".turbo",
+        ".cache",
+    }
     ignored_suffixes = {".pyc", ".pyo", ".pkl", ".log", ".tmp", ".swp"}
     for path in paths:
         if not path.exists():
@@ -339,7 +370,9 @@ def cargo_metadata_digest() -> str:
             text=True,
             check=True,
         )
-        _CARGO_METADATA_DIGEST = hashlib.md5(completed.stdout.encode("utf-8")).hexdigest()
+        _CARGO_METADATA_DIGEST = hashlib.md5(
+            completed.stdout.encode("utf-8")
+        ).hexdigest()
     return _CARGO_METADATA_DIGEST
 
 
@@ -353,7 +386,9 @@ def fingerprint(target: Target, files: list[Path], method: str) -> str:
             digest.update(f"{stat.st_mtime_ns}:{stat.st_size}".encode("utf-8"))
             continue
         if method == "cargo-metadata":
-            digest.update(f"{stat.st_mtime_ns}:{stat.st_size}:{path.parent.name}".encode("utf-8"))
+            digest.update(
+                f"{stat.st_mtime_ns}:{stat.st_size}:{path.parent.name}".encode("utf-8")
+            )
             continue
         digest.update(path.read_bytes())
     if method == "cargo-metadata" and target.kind == "rust":
@@ -387,12 +422,16 @@ def resolve_targets(requested: list[str] | None) -> list[str]:
                 resolved.extend(TARGETS)
                 continue
             if part not in TARGETS:
-                raise SystemExit(f"Unknown target '{part}'. Choose from: {', '.join(sorted(TARGETS))}")
+                raise SystemExit(
+                    f"Unknown target '{part}'. Choose from: {', '.join(sorted(TARGETS))}"
+                )
             resolved.append(part)
     return list(dict.fromkeys(resolved))
 
 
-def detect_changed(target_names: list[str], method: str, logger: Logger) -> tuple[list[str], dict]:
+def detect_changed(
+    target_names: list[str], method: str, logger: Logger
+) -> tuple[list[str], dict]:
     cache = load_cache()
     cache.setdefault("targets", {})
     changed: list[str] = []
@@ -462,10 +501,14 @@ def install_targets(target_names: list[str], logger: Logger) -> None:
     for target in chosen:
         for source, dest_name in target.install_map.items():
             if not source.exists():
-                raise FileNotFoundError(f"Missing build artifact for {target.name}: {source}")
+                raise FileNotFoundError(
+                    f"Missing build artifact for {target.name}: {source}"
+                )
             destination = install_dir / dest_name
             shutil.copy2(source, destination)
-            logger.info(f"Installed {target.name}: {source.relative_to(REPO_ROOT)} -> {destination}")
+            logger.info(
+                f"Installed {target.name}: {source.relative_to(REPO_ROOT)} -> {destination}"
+            )
 
 
 def classify_strategy(path: str) -> str:
@@ -485,7 +528,9 @@ def classify_paths(paths: Iterable[str]) -> dict[str, list[str]]:
 
 def version_check(binary: str, logger: Logger) -> str | None:
     try:
-        completed = run([binary, "--version"], REPO_ROOT, logger, capture_output=True, check=False)
+        completed = run(
+            [binary, "--version"], REPO_ROOT, logger, capture_output=True, check=False
+        )
     except FileNotFoundError:
         logger.warn(f"{binary} is not on PATH yet.")
         return None
@@ -508,7 +553,9 @@ def ensure_branch_ref(branch: str, start_point: str, logger: Logger) -> None:
 
 def feature_equivalent(rule: FeatureRule, upstream_ref: str, logger: Logger) -> bool:
     for pattern in rule.upstream_patterns:
-        matches = git_lines(["ls-tree", "-r", "--name-only", upstream_ref, "--", pattern], logger)
+        matches = git_lines(
+            ["ls-tree", "-r", "--name-only", upstream_ref, "--", pattern], logger
+        )
         if matches:
             return True
     return False
@@ -547,7 +594,11 @@ def render_markdown_report(
     ]
     for rule in FEATURE_RULES:
         equivalent = feature_equivalent(rule, upstream_ref, logger)
-        strategy = rule.recommendation if equivalent else "keep custom implementation; upstream has no equivalent surface"
+        strategy = (
+            rule.recommendation
+            if equivalent
+            else "keep custom implementation; upstream has no equivalent surface"
+        )
         lines.extend(
             [
                 f"### {rule.name}",
@@ -595,11 +646,15 @@ def write_report(path: Path, content: str, logger: Logger) -> None:
     logger.info(f"Wrote report: {path}")
 
 
-def collect_sync_inputs(args: argparse.Namespace, logger: Logger) -> tuple[str, str, str, list[str], list[str], str]:
+def collect_sync_inputs(
+    args: argparse.Namespace, logger: Logger
+) -> tuple[str, str, str, list[str], list[str], str]:
     upstream_ref = f"{args.remote}/{args.branch}"
     base_branch = args.base_branch
     current_branch = git_output(["branch", "--show-current"], logger) or "DETACHED"
-    candidate_paths = git_lines(["diff", "--name-only", f"{upstream_ref}...main"], logger)
+    candidate_paths = git_lines(
+        ["diff", "--name-only", f"{upstream_ref}...main"], logger
+    )
     custom_commits = git_lines(
         [
             "log",
@@ -620,7 +675,12 @@ def collect_sync_inputs(args: argparse.Namespace, logger: Logger) -> tuple[str, 
     )
     try:
         range_diff_completed = subprocess.run(
-            ["git", "range-diff", f"{upstream_ref}...main", f"{upstream_ref}...{base_branch}"],
+            [
+                "git",
+                "range-diff",
+                f"{upstream_ref}...main",
+                f"{upstream_ref}...{base_branch}",
+            ],
             cwd=REPO_ROOT,
             text=True,
             encoding="utf-8",
@@ -629,10 +689,19 @@ def collect_sync_inputs(args: argparse.Namespace, logger: Logger) -> tuple[str, 
             check=False,
             timeout=20,
         )
-        range_diff = (range_diff_completed.stdout or range_diff_completed.stderr).strip()
+        range_diff = (
+            range_diff_completed.stdout or range_diff_completed.stderr
+        ).strip()
     except subprocess.TimeoutExpired:
         range_diff = "range-diff timed out after 20s; rerun manually for the full diff"
-    return current_branch, base_branch, upstream_ref, candidate_paths, custom_commits, range_diff
+    return (
+        current_branch,
+        base_branch,
+        upstream_ref,
+        candidate_paths,
+        custom_commits,
+        range_diff,
+    )
 
 
 def cmd_list(_: argparse.Namespace) -> int:
@@ -658,16 +727,25 @@ def cmd_build(args: argparse.Namespace) -> int:
     if args.deny_warnings:
         env["RUSTFLAGS"] = "-D warnings"
     for name in selected:
-        run(add_common_flags(TARGETS[name].build_cmd, args), TARGETS[name].cwd, logger, env)
+        run(
+            add_common_flags(TARGETS[name].build_cmd, args),
+            TARGETS[name].cwd,
+            logger,
+            env,
+        )
     save_cache(cache)
     return 0
 
 
 def cmd_install(args: argparse.Namespace) -> int:
     logger = Logger(args.log_file)
-    installable = [name for name in resolve_targets(args.targets) if TARGETS[name].install_map]
+    installable = [
+        name for name in resolve_targets(args.targets) if TARGETS[name].install_map
+    ]
     if not installable:
-        logger.info("Selected targets do not produce installable binaries; skipping install.")
+        logger.info(
+            "Selected targets do not produce installable binaries; skipping install."
+        )
         return 0
     install_targets(installable, logger)
     if args.verify:
@@ -683,7 +761,14 @@ def cmd_kill(args: argparse.Namespace) -> int:
 
 def cmd_analyze(args: argparse.Namespace) -> int:
     logger = Logger(args.log_file)
-    current_branch, base_branch, upstream_ref, candidate_paths, custom_commits, range_diff = collect_sync_inputs(args, logger)
+    (
+        current_branch,
+        base_branch,
+        upstream_ref,
+        candidate_paths,
+        custom_commits,
+        range_diff,
+    ) = collect_sync_inputs(args, logger)
     report = render_markdown_report(
         base_branch=base_branch,
         upstream_ref=upstream_ref,
@@ -703,7 +788,11 @@ def cmd_sync(args: argparse.Namespace) -> int:
     if not args.no_fetch:
         for remote in remotes:
             run(["git", "fetch", "--prune", remote], REPO_ROOT, logger)
-    run(["git", "rev-parse", "--verify", f"{args.remote}/{args.branch}"], REPO_ROOT, logger)
+    run(
+        ["git", "rev-parse", "--verify", f"{args.remote}/{args.branch}"],
+        REPO_ROOT,
+        logger,
+    )
     run(["git", "rev-parse", "--verify", args.base_branch], REPO_ROOT, logger)
     if args.create_branch:
         ensure_branch_ref(args.create_branch, args.base_branch, logger)
@@ -719,12 +808,18 @@ def cmd_sync(args: argparse.Namespace) -> int:
             raise subprocess.CalledProcessError(merge.returncode, merge.args)
         conflicts = git_lines(["diff", "--name-only", "--diff-filter=U"], logger)
         if conflicts:
-            resolver = [sys.executable, str(REPO_ROOT / "scripts" / "resolve_merge_conflicts.py"), *conflicts]
+            resolver = [
+                sys.executable,
+                str(REPO_ROOT / "scripts" / "resolve_merge_conflicts.py"),
+                *conflicts,
+            ]
             for rule in args.rule:
                 resolver.extend(["--rule", rule])
             run(resolver, REPO_ROOT, logger)
             run(["git", "add", *conflicts], REPO_ROOT, logger)
-            logger.warn("Merge conflict markers were rewritten; review staged changes carefully.")
+            logger.warn(
+                "Merge conflict markers were rewritten; review staged changes carefully."
+            )
     if args.report:
         analyze_args = argparse.Namespace(
             remote=args.remote,
@@ -774,21 +869,46 @@ def cmd_full(args: argparse.Namespace) -> int:
     )
     cmd_build(build_args)
     if args.install:
-        install_args = argparse.Namespace(targets=args.targets, verify=True, log_file=args.log_file)
+        install_args = argparse.Namespace(
+            targets=args.targets, verify=True, log_file=args.log_file
+        )
         cmd_install(install_args)
     else:
-        logger.info("Skipping install phase; pass --install to copy artifacts into ~/.cargo/bin.")
+        logger.info(
+            "Skipping install phase; pass --install to copy artifacts into ~/.cargo/bin."
+        )
     return 0
 
 
 def add_build_flags(subparser: argparse.ArgumentParser) -> None:
-    subparser.add_argument("targets", nargs="*", help="Target names or comma-separated groups")
-    subparser.add_argument("--jobs", type=int, default=DEFAULT_JOBS, help="Parallel build jobs (default: 12)")
-    subparser.add_argument("--method", choices=["md5", "mtime", "cargo-metadata"], default=DEFAULT_METHOD)
-    subparser.add_argument("--profile", default=DEFAULT_PROFILE, help="Cargo profile name")
-    subparser.add_argument("--force", action="store_true", help="Build all selected targets regardless of cache")
-    subparser.add_argument("--changed-only", action="store_true", help="Only build targets whose inputs changed")
-    subparser.add_argument("--no-deny-warnings", dest="deny_warnings", action="store_false")
+    subparser.add_argument(
+        "targets", nargs="*", help="Target names or comma-separated groups"
+    )
+    subparser.add_argument(
+        "--jobs",
+        type=int,
+        default=DEFAULT_JOBS,
+        help="Parallel build jobs (default: 12)",
+    )
+    subparser.add_argument(
+        "--method", choices=["md5", "mtime", "cargo-metadata"], default=DEFAULT_METHOD
+    )
+    subparser.add_argument(
+        "--profile", default=DEFAULT_PROFILE, help="Cargo profile name"
+    )
+    subparser.add_argument(
+        "--force",
+        action="store_true",
+        help="Build all selected targets regardless of cache",
+    )
+    subparser.add_argument(
+        "--changed-only",
+        action="store_true",
+        help="Only build targets whose inputs changed",
+    )
+    subparser.add_argument(
+        "--no-deny-warnings", dest="deny_warnings", action="store_false"
+    )
     subparser.add_argument("--log-file", type=Path, help="Append log output to a file")
     subparser.set_defaults(deny_warnings=True)
 
@@ -796,19 +916,43 @@ def add_build_flags(subparser: argparse.ArgumentParser) -> None:
 def add_sync_flags(subparser: argparse.ArgumentParser) -> None:
     subparser.add_argument("--remote", default="upstream", help="Upstream remote name")
     subparser.add_argument("--branch", default="main", help="Upstream branch name")
-    subparser.add_argument("--base-branch", default=DEFAULT_SYNC_BRANCH, help="Integration base branch")
+    subparser.add_argument(
+        "--base-branch", default=DEFAULT_SYNC_BRANCH, help="Integration base branch"
+    )
     subparser.add_argument(
         "--create-branch",
         default=f"codex/upstream-sync-automation-{datetime.now().strftime('%Y-%m-%d')}",
         help="Create a non-checked-out branch ref from the base branch",
     )
-    subparser.add_argument("--include-origin", action="store_true", help="Fetch origin as well as the upstream remote")
-    subparser.add_argument("--no-fetch", action="store_true", help="Skip git fetch before analysis")
-    subparser.add_argument("--merge", action="store_true", help="Attempt a no-commit merge before reporting")
-    subparser.add_argument("--rule", action="append", default=[], help="Extra resolver rule in glob=strategy form")
-    subparser.add_argument("--report", type=Path, default=DEFAULT_REPORT_PATH, help="Markdown report output path")
+    subparser.add_argument(
+        "--include-origin",
+        action="store_true",
+        help="Fetch origin as well as the upstream remote",
+    )
+    subparser.add_argument(
+        "--no-fetch", action="store_true", help="Skip git fetch before analysis"
+    )
+    subparser.add_argument(
+        "--merge",
+        action="store_true",
+        help="Attempt a no-commit merge before reporting",
+    )
+    subparser.add_argument(
+        "--rule",
+        action="append",
+        default=[],
+        help="Extra resolver rule in glob=strategy form",
+    )
+    subparser.add_argument(
+        "--report",
+        type=Path,
+        default=DEFAULT_REPORT_PATH,
+        help="Markdown report output path",
+    )
     if "--log-file" not in subparser._option_string_actions:
-        subparser.add_argument("--log-file", type=Path, help="Append log output to a file")
+        subparser.add_argument(
+            "--log-file", type=Path, help="Append log output to a file"
+        )
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -817,7 +961,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    list_parser = subparsers.add_parser("list-targets", help="List supported build targets")
+    list_parser = subparsers.add_parser(
+        "list-targets", help="List supported build targets"
+    )
     list_parser.set_defaults(func=cmd_list)
 
     build_parser_cmd = subparsers.add_parser(
@@ -833,22 +979,47 @@ def build_parser() -> argparse.ArgumentParser:
         aliases=["fast-build-install"],
         help="Install built artifacts into ~/.cargo/bin",
     )
-    install_parser.add_argument("targets", nargs="*", help="Target names or comma-separated groups")
-    install_parser.add_argument("--verify", action="store_true", help="Run `codex --version` after install")
-    install_parser.add_argument("--log-file", type=Path, help="Append log output to a file")
+    install_parser.add_argument(
+        "targets", nargs="*", help="Target names or comma-separated groups"
+    )
+    install_parser.add_argument(
+        "--verify", action="store_true", help="Run `codex --version` after install"
+    )
+    install_parser.add_argument(
+        "--log-file", type=Path, help="Append log output to a file"
+    )
     install_parser.set_defaults(func=cmd_install)
 
-    kill_parser = subparsers.add_parser("kill", help="Stop running processes for selected targets")
-    kill_parser.add_argument("targets", nargs="*", help="Target names or comma-separated groups")
-    kill_parser.add_argument("--log-file", type=Path, help="Append log output to a file")
+    kill_parser = subparsers.add_parser(
+        "kill", help="Stop running processes for selected targets"
+    )
+    kill_parser.add_argument(
+        "targets", nargs="*", help="Target names or comma-separated groups"
+    )
+    kill_parser.add_argument(
+        "--log-file", type=Path, help="Append log output to a file"
+    )
     kill_parser.set_defaults(func=cmd_kill)
 
-    analyze_parser = subparsers.add_parser("analyze", help="Generate an upstream/custom merge report")
-    analyze_parser.add_argument("--remote", default="upstream", help="Upstream remote name")
+    analyze_parser = subparsers.add_parser(
+        "analyze", help="Generate an upstream/custom merge report"
+    )
+    analyze_parser.add_argument(
+        "--remote", default="upstream", help="Upstream remote name"
+    )
     analyze_parser.add_argument("--branch", default="main", help="Upstream branch name")
-    analyze_parser.add_argument("--base-branch", default=DEFAULT_SYNC_BRANCH, help="Integration base branch")
-    analyze_parser.add_argument("--output", type=Path, default=DEFAULT_REPORT_PATH, help="Markdown report output path")
-    analyze_parser.add_argument("--log-file", type=Path, help="Append log output to a file")
+    analyze_parser.add_argument(
+        "--base-branch", default=DEFAULT_SYNC_BRANCH, help="Integration base branch"
+    )
+    analyze_parser.add_argument(
+        "--output",
+        type=Path,
+        default=DEFAULT_REPORT_PATH,
+        help="Markdown report output path",
+    )
+    analyze_parser.add_argument(
+        "--log-file", type=Path, help="Append log output to a file"
+    )
     analyze_parser.set_defaults(func=cmd_analyze)
 
     sync_parser = subparsers.add_parser(
@@ -859,12 +1030,18 @@ def build_parser() -> argparse.ArgumentParser:
     add_sync_flags(sync_parser)
     sync_parser.set_defaults(func=cmd_sync)
 
-    full_parser = subparsers.add_parser("full", help="Run sync, analyze, build, and optional install")
+    full_parser = subparsers.add_parser(
+        "full", help="Run sync, analyze, build, and optional install"
+    )
     add_build_flags(full_parser)
     add_sync_flags(full_parser)
-    full_parser.add_argument("--install", action="store_true", help="Install binaries after build")
+    full_parser.add_argument(
+        "--install", action="store_true", help="Install binaries after build"
+    )
     full_parser.add_argument("--skip-sync", action="store_true", help="Skip sync phase")
-    full_parser.add_argument("--skip-analyze", action="store_true", help="Skip analyze phase")
+    full_parser.add_argument(
+        "--skip-analyze", action="store_true", help="Skip analyze phase"
+    )
     full_parser.set_defaults(func=cmd_full)
 
     return parser

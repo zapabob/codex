@@ -23,14 +23,14 @@ from nltk.corpus import stopwords
 
 # NLTKリソースのダウンロード（初回のみ）
 try:
-    nltk.data.find('tokenizers/punkt')
+    nltk.data.find("tokenizers/punkt")
 except LookupError:
-    nltk.download('punkt', quiet=True)
+    nltk.download("punkt", quiet=True)
 
 try:
-    nltk.data.find('corpora/stopwords')
+    nltk.data.find("corpora/stopwords")
 except LookupError:
-    nltk.download('stopwords', quiet=True)
+    nltk.download("stopwords", quiet=True)
 
 
 class CoworkFeatureSearch:
@@ -42,7 +42,11 @@ class CoworkFeatureSearch:
     def __init__(self):
         self.features = self._load_feature_database()
         self.search_cache = {}
-        self.stop_words = set(stopwords.words('english') + stopwords.words('japanese') if 'japanese' in stopwords.fileids() else [])
+        self.stop_words = set(
+            stopwords.words("english") + stopwords.words("japanese")
+            if "japanese" in stopwords.fileids()
+            else []
+        )
 
     def _load_feature_database(self) -> List[Dict[str, Any]]:
         """機能データベース読み込み"""
@@ -53,14 +57,21 @@ class CoworkFeatureSearch:
                 "name": "ダウンロードフォルダ整理",
                 "description": "ダウンロードフォルダ内のファイルを自動整理・分類",
                 "category": "file_management",
-                "tags": ["整理", "organize", "download", "folder", "ファイル", "フォルダ"],
+                "tags": [
+                    "整理",
+                    "organize",
+                    "download",
+                    "folder",
+                    "ファイル",
+                    "フォルダ",
+                ],
                 "parameters": {
                     "target_folder": "~/Downloads",
                     "rules": ["sort_by_type", "remove_duplicates", "clean_names"],
-                    "recursive": True
+                    "recursive": True,
                 },
                 "complexity": "low",
-                "execution_time": "fast"
+                "execution_time": "fast",
             },
             {
                 "id": "file_organize_documents",
@@ -71,10 +82,10 @@ class CoworkFeatureSearch:
                 "parameters": {
                     "target_folder": "~/Documents",
                     "rules": ["sort_by_date", "sort_by_type", "create_year_folders"],
-                    "recursive": False
+                    "recursive": False,
                 },
                 "complexity": "low",
-                "execution_time": "fast"
+                "execution_time": "fast",
             },
             {
                 "id": "file_cleanup_temp",
@@ -83,29 +94,39 @@ class CoworkFeatureSearch:
                 "category": "file_management",
                 "tags": ["クリーンアップ", "cleanup", "temp", "cache", "削除"],
                 "parameters": {
-                    "target_folders": ["~/tmp", "~/Downloads/temp", "~/AppData/Local/Temp"],
+                    "target_folders": [
+                        "~/tmp",
+                        "~/Downloads/temp",
+                        "~/AppData/Local/Temp",
+                    ],
                     "exclude_patterns": ["*.log", "*.config"],
-                    "confirm_deletion": True
+                    "confirm_deletion": True,
                 },
                 "complexity": "medium",
-                "execution_time": "fast"
+                "execution_time": "fast",
             },
-
             # データ分析機能
             {
                 "id": "data_analyze_csv",
                 "name": "CSVデータ分析",
                 "description": "CSVファイルを読み込み、統計分析と可視化レポート生成",
                 "category": "data_analysis",
-                "tags": ["分析", "analyze", "csv", "statistics", "レポート", "visualization"],
+                "tags": [
+                    "分析",
+                    "analyze",
+                    "csv",
+                    "statistics",
+                    "レポート",
+                    "visualization",
+                ],
                 "parameters": {
                     "input_file": None,  # ユーザー指定
                     "analysis_types": ["descriptive_stats", "correlation", "outliers"],
                     "output_formats": ["html", "png", "json"],
-                    "generate_charts": True
+                    "generate_charts": True,
                 },
                 "complexity": "medium",
-                "execution_time": "medium"
+                "execution_time": "medium",
             },
             {
                 "id": "data_analyze_excel",
@@ -117,27 +138,32 @@ class CoworkFeatureSearch:
                     "input_file": None,
                     "sheets": ["all"],
                     "analysis_types": ["summary", "trends", "forecasting"],
-                    "pivot_tables": True
+                    "pivot_tables": True,
                 },
                 "complexity": "high",
-                "execution_time": "medium"
+                "execution_time": "medium",
             },
             {
                 "id": "data_create_dashboard",
                 "name": "データダッシュボード作成",
                 "description": "複数データソースから統合ダッシュボードを自動生成",
                 "category": "data_analysis",
-                "tags": ["ダッシュボード", "dashboard", "統合", "visualization", "レポート"],
+                "tags": [
+                    "ダッシュボード",
+                    "dashboard",
+                    "統合",
+                    "visualization",
+                    "レポート",
+                ],
                 "parameters": {
                     "data_sources": [],  # 複数ファイル指定
                     "dashboard_type": "executive",
                     "charts": ["bar", "line", "pie", "heatmap"],
-                    "auto_refresh": True
+                    "auto_refresh": True,
                 },
                 "complexity": "high",
-                "execution_time": "slow"
+                "execution_time": "slow",
             },
-
             # Web操作機能
             {
                 "id": "web_scrape_news",
@@ -150,10 +176,10 @@ class CoworkFeatureSearch:
                     "sources": ["google_news", "bing_news", "yahoo_news"],
                     "max_articles": 50,
                     "date_range": "1_week",
-                    "summarize": True
+                    "summarize": True,
                 },
                 "complexity": "medium",
-                "execution_time": "medium"
+                "execution_time": "medium",
             },
             {
                 "id": "web_monitor_price",
@@ -165,10 +191,10 @@ class CoworkFeatureSearch:
                     "products": [],  # 商品URLリスト
                     "check_interval": "1_hour",
                     "alert_threshold": 0.05,  # 5%変動でアラート
-                    "generate_report": True
+                    "generate_report": True,
                 },
                 "complexity": "medium",
-                 "execution_time": "continuous"
+                "execution_time": "continuous",
             },
             {
                 "id": "web_research_topic",
@@ -181,12 +207,11 @@ class CoworkFeatureSearch:
                     "search_engines": ["google", "bing", "duckduckgo"],
                     "depth": "comprehensive",
                     "include_sources": True,
-                    "generate_timeline": True
+                    "generate_timeline": True,
                 },
                 "complexity": "high",
-                "execution_time": "slow"
+                "execution_time": "slow",
             },
-
             # 文書処理機能
             {
                 "id": "document_extract_pdf",
@@ -198,10 +223,10 @@ class CoworkFeatureSearch:
                     "input_files": [],  # PDFファイルリスト
                     "output_format": "json",
                     "preserve_layout": True,
-                    "ocr_fallback": True
+                    "ocr_fallback": True,
                 },
                 "complexity": "medium",
-                "execution_time": "medium"
+                "execution_time": "medium",
             },
             {
                 "id": "document_summarize_batch",
@@ -210,15 +235,14 @@ class CoworkFeatureSearch:
                 "category": "document_processing",
                 "tags": ["要約", "summarize", "batch", "統合", "レポート"],
                 "parameters": {
-                 "input_files": [],
-                 "summary_length": "medium",
-                 "include_keywords": True,
-                 "generate_index": True
+                    "input_files": [],
+                    "summary_length": "medium",
+                    "include_keywords": True,
+                    "generate_index": True,
                 },
                 "complexity": "high",
-                "execution_time": "slow"
+                "execution_time": "slow",
             },
-
             # 画像処理機能
             {
                 "id": "image_ocr_batch",
@@ -230,10 +254,10 @@ class CoworkFeatureSearch:
                     "input_images": [],
                     "languages": ["jpn", "eng"],
                     "output_format": "txt",
-                    "create_index": True
+                    "create_index": True,
                 },
                 "complexity": "medium",
-                "execution_time": "medium"
+                "execution_time": "medium",
             },
             {
                 "id": "image_organize_photos",
@@ -245,12 +269,11 @@ class CoworkFeatureSearch:
                     "input_folder": "~/Pictures",
                     "organize_by": ["date", "location", "people"],
                     "create_albums": True,
-                    "face_recognition": True
+                    "face_recognition": True,
                 },
                 "complexity": "high",
-                "execution_time": "slow"
+                "execution_time": "slow",
             },
-
             # レポート生成機能
             {
                 "id": "report_weekly_sales",
@@ -263,10 +286,10 @@ class CoworkFeatureSearch:
                     "period": "last_week",
                     "metrics": ["revenue", "units", "growth", "trends"],
                     "format": "pdf",
-                    "include_charts": True
+                    "include_charts": True,
                 },
                 "complexity": "medium",
-                "execution_time": "medium"
+                "execution_time": "medium",
             },
             {
                 "id": "report_expense_analysis",
@@ -279,12 +302,11 @@ class CoworkFeatureSearch:
                     "categories": ["all"],
                     "time_period": "monthly",
                     "include_recommendations": True,
-                    "budget_comparison": True
+                    "budget_comparison": True,
                 },
                 "complexity": "medium",
-                "execution_time": "medium"
+                "execution_time": "medium",
             },
-
             # ワークフロー自動化機能
             {
                 "id": "workflow_email_processing",
@@ -296,10 +318,10 @@ class CoworkFeatureSearch:
                     "email_source": "imap",
                     "rules": ["categorize", "prioritize", "flag_important"],
                     "auto_responses": True,
-                    "create_tasks": True
+                    "create_tasks": True,
                 },
                 "complexity": "high",
-                "execution_time": "continuous"
+                "execution_time": "continuous",
             },
             {
                 "id": "workflow_social_media",
@@ -311,12 +333,11 @@ class CoworkFeatureSearch:
                     "platforms": ["twitter", "linkedin", "facebook"],
                     "posting_schedule": "optimized",
                     "content_calendar": True,
-                    "engagement_analysis": True
+                    "engagement_analysis": True,
                 },
                 "complexity": "high",
-                "execution_time": "continuous"
+                "execution_time": "continuous",
             },
-
             # 研究支援機能
             {
                 "id": "research_literature_review",
@@ -329,10 +350,10 @@ class CoworkFeatureSearch:
                     "sources": ["google_scholar", "pubmed", "arxiv"],
                     "max_papers": 100,
                     "include_abstracts": True,
-                    "generate_bibliography": True
+                    "generate_bibliography": True,
                 },
                 "complexity": "high",
-                "execution_time": "slow"
+                "execution_time": "slow",
             },
             {
                 "id": "research_competitor_analysis",
@@ -342,14 +363,17 @@ class CoworkFeatureSearch:
                 "tags": ["競合", "competitor", "分析", "調査", "比較"],
                 "parameters": {
                     "competitors": [],  # 競合企業リスト
-                    "analysis_types": ["web_presence", "social_media", "press_coverage"],
-                 "time_period": "6_months",
-                    "generate_report": True
+                    "analysis_types": [
+                        "web_presence",
+                        "social_media",
+                        "press_coverage",
+                    ],
+                    "time_period": "6_months",
+                    "generate_report": True,
                 },
                 "complexity": "high",
-                "execution_time": "slow"
+                "execution_time": "slow",
             },
-
             # オフィス業務機能
             {
                 "id": "office_meeting_minutes",
@@ -361,14 +385,14 @@ class CoworkFeatureSearch:
                     "input_source": "audio",  # audio/text
                     "attendees": [],
                     "generate_actions": True,
-                    "sentiment_analysis": True
+                    "sentiment_analysis": True,
                 },
                 "complexity": "high",
-                "execution_time": "medium"
+                "execution_time": "medium",
             },
             {
                 "id": "office_schedule_optimization",
-                 "name": "スケジュール最適化",
+                "name": "スケジュール最適化",
                 "description": "カレンダー・タスクを分析し、最適なスケジュールを提案",
                 "category": "office_productivity",
                 "tags": ["スケジュール", "最適化", "calendar", "task", "提案"],
@@ -376,11 +400,11 @@ class CoworkFeatureSearch:
                     "calendar_source": "outlook",  # または google
                     "optimization_goals": ["productivity", "work_life_balance"],
                     "time_blocking": True,
-                    "conflict_detection": True
+                    "conflict_detection": True,
                 },
                 "complexity": "medium",
-                "execution_time": "fast"
-            }
+                "execution_time": "fast",
+            },
         ]
 
     def search_features(self, query: str, limit: int = 10) -> List[Dict[str, Any]]:
@@ -448,7 +472,9 @@ class CoworkFeatureSearch:
         # 実際の実装では使用統計に基づく
         return self.features[:limit]
 
-    def generate_task_from_feature(self, feature: Dict[str, Any], user_input: Dict[str, Any] = None) -> str:
+    def generate_task_from_feature(
+        self, feature: Dict[str, Any], user_input: Dict[str, Any] = None
+    ) -> str:
         """
         機能から実行可能なタスク文字列を生成
 
@@ -471,11 +497,21 @@ class CoworkFeatureSearch:
         # パラメータに基づいてタスクを調整
         parameters = feature.get("parameters", {})
 
-        if feature["id"] == "data_analyze_csv" and user_input and "file_path" in user_input:
+        if (
+            feature["id"] == "data_analyze_csv"
+            and user_input
+            and "file_path" in user_input
+        ):
             base_task = f"{user_input['file_path']}を分析してレポートを作成してください"
 
-        elif feature["id"] == "web_research_topic" and user_input and "topic" in user_input:
-            base_task = f"{user_input['topic']}について調査してレポートを作成してください"
+        elif (
+            feature["id"] == "web_research_topic"
+            and user_input
+            and "topic" in user_input
+        ):
+            base_task = (
+                f"{user_input['topic']}について調査してレポートを作成してください"
+            )
 
         elif feature["id"] == "file_organize_download":
             base_task = "ダウンロードフォルダを整理して分類してください"
@@ -499,7 +535,7 @@ class CoworkFeatureSearch:
         return {
             "original": query,
             "tokens": filtered_tokens,
-            "keywords": self._extract_keywords(filtered_tokens)
+            "keywords": self._extract_keywords(filtered_tokens),
         }
 
     def _extract_keywords(self, tokens: List[str]) -> List[str]:
@@ -507,9 +543,29 @@ class CoworkFeatureSearch:
         keywords = []
 
         # 日本語キーワード
-        jp_keywords = ["整理", "分析", "レポート", "検索", "抽出", "自動", "作成", "処理", "監視"]
+        jp_keywords = [
+            "整理",
+            "分析",
+            "レポート",
+            "検索",
+            "抽出",
+            "自動",
+            "作成",
+            "処理",
+            "監視",
+        ]
         # 英語キーワード
-        en_keywords = ["organize", "analyze", "report", "search", "extract", "auto", "create", "process", "monitor"]
+        en_keywords = [
+            "organize",
+            "analyze",
+            "report",
+            "search",
+            "extract",
+            "auto",
+            "create",
+            "process",
+            "monitor",
+        ]
 
         for token in tokens:
             if token in jp_keywords or token in en_keywords:
@@ -517,7 +573,9 @@ class CoworkFeatureSearch:
 
         return keywords
 
-    def _calculate_match_score(self, processed_query: Dict[str, Any], feature: Dict[str, Any]) -> float:
+    def _calculate_match_score(
+        self, processed_query: Dict[str, Any], feature: Dict[str, Any]
+    ) -> float:
         """マッチスコア計算"""
         score = 0.0
 
@@ -558,7 +616,7 @@ class CoworkFeatureSearch:
             "data_analysis": ["データ", "分析", "レポート"],
             "web_automation": ["web", "ブラウザ", "スクレイプ"],
             "document_processing": ["文書", "PDF", "抽出"],
-            "image_processing": ["画像", "OCR", "写真"]
+            "image_processing": ["画像", "OCR", "写真"],
         }
 
         feature_category = feature["category"]
@@ -573,6 +631,7 @@ class CoworkFeatureSearch:
         """文脈に基づく機能提案"""
         # 時間帯による提案
         import datetime
+
         current_hour = datetime.datetime.now().hour
 
         if 9 <= current_hour <= 12:
@@ -580,19 +639,23 @@ class CoworkFeatureSearch:
             return self.get_features_by_category("file_management")[:3]
         elif 12 <= current_hour <= 17:
             # 昼：分析・作成タスク
-            return self.get_features_by_category("data_analysis")[:3] + \
-                   self.get_features_by_category("reporting")[:2]
+            return (
+                self.get_features_by_category("data_analysis")[:3]
+                + self.get_features_by_category("reporting")[:2]
+            )
         else:
             # 夕方以降：自動化・監視タスク
             return self.get_features_by_category("workflow_automation")[:3]
 
-    def validate_feature_execution(self, feature: Dict[str, Any], user_input: Dict[str, Any] = None) -> Dict[str, Any]:
+    def validate_feature_execution(
+        self, feature: Dict[str, Any], user_input: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
         """機能実行の妥当性チェック"""
         validation = {
             "can_execute": True,
             "warnings": [],
             "errors": [],
-            "suggestions": []
+            "suggestions": [],
         }
 
         # パラメータチェック
@@ -603,12 +666,16 @@ class CoworkFeatureSearch:
 
         if required_params:
             validation["can_execute"] = False
-            validation["errors"].append(f"必須パラメータが指定されていません: {', '.join(required_params)}")
+            validation["errors"].append(
+                f"必須パラメータが指定されていません: {', '.join(required_params)}"
+            )
 
         # 複雑さチェック
         complexity = feature.get("complexity", "medium")
         if complexity == "high":
-            validation["warnings"].append("この機能は実行に時間がかかる可能性があります")
+            validation["warnings"].append(
+                "この機能は実行に時間がかかる可能性があります"
+            )
 
         # リソースチェック
         if feature.get("execution_time") == "continuous":
@@ -619,6 +686,7 @@ class CoworkFeatureSearch:
 
 # グローバルインスタンス
 _feature_search_instance = None
+
 
 def get_feature_search() -> CoworkFeatureSearch:
     """シングルトンインスタンス取得"""
@@ -639,7 +707,7 @@ async def main():
         "ニュースを収集",
         "PDFからテキストを抽出",
         "写真を整理",
-        "売上レポート作成"
+        "売上レポート作成",
     ]
 
     for query in test_queries:

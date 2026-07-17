@@ -176,13 +176,13 @@ rust_argument_comment_lint_aspect = aspect(
         [rust_common.crate_info],
         [rust_common.test_crate_info],
     ],
-    doc = """\
-Runs argument-comment-lint on Rust targets using Bazel's Rust dependency graph.
-
-Example:
-
-```output
-$ bazel build --config=argument-comment-lint //codex-rs/...
-```
+    doc = """\\\r
+Runs argument-comment-lint on Rust targets using Bazel's Rust dependency graph.\r
+\r
+Example:\r
+\r
+```output\r
+$ bazel build --config=argument-comment-lint //codex-rs/...\r
+```\r
 """,
 )

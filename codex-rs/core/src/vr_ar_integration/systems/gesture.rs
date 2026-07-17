@@ -1,7 +1,14 @@
-use crate::vr_ar_integration::types::{HandGesture, HandPose};
+use crate::vr_ar_integration::types::HandGesture;
+use crate::vr_ar_integration::types::HandPose;
 
 /// Gesture recognition system
 pub struct GestureRecognizer;
+
+impl Default for GestureRecognizer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl GestureRecognizer {
     pub fn new() -> Self {

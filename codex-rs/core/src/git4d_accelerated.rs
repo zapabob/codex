@@ -1,18 +1,33 @@
 #[cfg(all(feature = "custom-features", feature = "cuda"))]
 use crate::cuda_accelerator::CudaGit4DAccelerator;
-use crate::cuda_accelerator::{GitCommitVertex, RenderParameters, TransformationMatrix};
-use crate::vr_ar_integration::{VRARIntegration, VREvent, VRInteraction, XRPlatform};
+use crate::cuda_accelerator::GitCommitVertex;
+use crate::cuda_accelerator::RenderParameters;
+use crate::cuda_accelerator::TransformationMatrix;
+use crate::vr_ar_integration::VRARIntegration;
+use crate::vr_ar_integration::VREvent;
+use crate::vr_ar_integration::VRInteraction;
+use crate::vr_ar_integration::XRPlatform;
 use anyhow::Context;
-use git2::{Commit, Oid, Repository};
+use git2::Commit;
+use git2::Oid;
+use git2::Repository;
 use once_cell::sync::Lazy;
-use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet, VecDeque};
-use std::path::{Path, PathBuf};
+use serde::Deserialize;
+use serde::Serialize;
+use std::collections::HashMap;
+use std::collections::HashSet;
+use std::collections::VecDeque;
+use std::path::Path;
+use std::path::PathBuf;
 use std::str::FromStr;
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::Arc;
+use std::sync::Mutex;
+use std::sync::RwLock;
 use std::time::Instant;
-use tokio::sync::{broadcast, mpsc};
-use tokio::time::{self, Duration};
+use tokio::sync::broadcast;
+use tokio::sync::mpsc;
+use tokio::time::Duration;
+use tokio::time::{self};
 
 const SESSION_EVENT_REPLAY_LIMIT: usize = 64;
 
@@ -363,7 +378,7 @@ pub async fn check_vr_ar_device_availability(mode: &str) -> anyhow::Result<Devic
                 Err(e) => {
                     tracing::warn!("VR/AR device not available: {}", e);
                     Ok(DeviceAvailability::NotAvailable {
-                        reason: format!("Failed to initialize {:?}: {}", platform, e),
+                        reason: format!("Failed to initialize {platform:?}: {e}"),
                     })
                 }
             }
@@ -371,7 +386,7 @@ pub async fn check_vr_ar_device_availability(mode: &str) -> anyhow::Result<Devic
         Err(e) => {
             tracing::warn!("VR/AR integration not available: {}", e);
             Ok(DeviceAvailability::NotAvailable {
-                reason: format!("VR/AR integration failed: {}", e),
+                reason: format!("VR/AR integration failed: {e}"),
             })
         }
     }
@@ -399,7 +414,10 @@ impl Git4DAcceleratedVisualizer {
             match CudaGit4DAccelerator::new() {
                 Ok(acc) => Some(acc),
                 Err(e) => {
-                    eprintln!("CUDA not available, falling back to CPU rendering: {}", e);
+                    tracing::warn!(
+                        error = %e,
+                        "CUDA is unavailable; falling back to CPU rendering"
+                    );
                     None
                 }
             }
@@ -412,7 +430,7 @@ impl Git4DAcceleratedVisualizer {
             match VRARIntegration::new() {
                 Ok(vr) => Some(vr),
                 Err(e) => {
-                    eprintln!("VR/AR not available: {}", e);
+                    tracing::warn!(error = %e, "VR/AR integration is unavailable");
                     None
                 }
             }
@@ -460,7 +478,7 @@ impl Git4DAcceleratedVisualizer {
     ) -> Git4DSequencedEvent {
         let sequenced_event = Git4DSequencedEvent {
             sequence: session.next_event_sequence,
-            event: event.clone(),
+            event,
         };
         session.next_event_sequence += 1;
         session.last_activity = Instant::now();
@@ -546,12 +564,12 @@ impl Git4DAcceleratedVisualizer {
 
         {
             let mut sessions = SESSIONS.write().map_err(|e| {
-                anyhow::anyhow!("Failed to acquire write lock for session storage: {}", e)
+                anyhow::anyhow!("Failed to acquire write lock for session storage: {e}")
             })?;
             sessions.insert(session_id.clone(), session);
             let session = sessions
                 .get_mut(&session_id)
-                .expect("session should exist immediately after insert");
+                .ok_or_else(|| anyhow::anyhow!("Git4D session disappeared after insertion"))?;
             Self::record_event_locked(
                 session,
                 Git4DEvent::SessionStatusChanged {
@@ -646,19 +664,19 @@ impl Git4DAcceleratedVisualizer {
         event: Git4DEvent,
     ) -> anyhow::Result<Git4DSequencedEvent> {
         let mut sessions = SESSIONS.write().map_err(|e| {
-            anyhow::anyhow!("Failed to acquire write lock for session storage: {}", e)
+            anyhow::anyhow!("Failed to acquire write lock for session storage: {e}")
         })?;
         if let Some(session) = sessions.get_mut(session_id) {
             Ok(Self::record_event_locked(session, event))
         } else {
-            Err(anyhow::anyhow!("Session not found: {}", session_id))
+            Err(anyhow::anyhow!("Session not found: {session_id}"))
         }
     }
 
     /// Update session status
     pub fn update_session_status(session_id: &str, status: SessionStatus) -> anyhow::Result<()> {
         let mut sessions = SESSIONS.write().map_err(|e| {
-            anyhow::anyhow!("Failed to acquire write lock for session storage: {}", e)
+            anyhow::anyhow!("Failed to acquire write lock for session storage: {e}")
         })?;
         if let Some(session) = sessions.get_mut(session_id) {
             session.status = status;
@@ -670,7 +688,7 @@ impl Git4DAcceleratedVisualizer {
             );
             Ok(())
         } else {
-            Err(anyhow::anyhow!("Session not found: {}", session_id))
+            Err(anyhow::anyhow!("Session not found: {session_id}"))
         }
     }
 
@@ -714,11 +732,11 @@ impl Git4DAcceleratedVisualizer {
         let mut commit_cache = self
             .commit_cache
             .lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock commit_cache: {}", e))?;
+            .map_err(|e| anyhow::anyhow!("Failed to lock commit_cache: {e}"))?;
         let mut branch_cache = self
             .branch_cache
             .lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock branch_cache: {}", e))?;
+            .map_err(|e| anyhow::anyhow!("Failed to lock branch_cache: {e}"))?;
 
         // Clear existing data
         commit_cache.clear();
@@ -766,7 +784,7 @@ impl Git4DAcceleratedVisualizer {
         let mut all_commits = Vec::new();
         let mut time_min = f64::INFINITY;
         let mut time_max = f64::NEG_INFINITY;
-        let total_commits: usize = branch_cache.values().map(|ids| ids.len()).sum();
+        let total_commits: usize = branch_cache.values().map(std::vec::Vec::len).sum();
 
         for (branch_name, commit_ids) in branch_cache.iter() {
             let branch_id = *branch_ids.get(branch_name).unwrap_or(&0);
@@ -775,7 +793,7 @@ impl Git4DAcceleratedVisualizer {
                 if let Ok(commit) = self
                     .repository
                     .find_commit(commit_id)
-                    .with_context(|| format!("Failed to find commit: {}", commit_id))
+                    .with_context(|| format!("Failed to find commit: {commit_id}"))
                 {
                     let time = commit.time().seconds() as f64;
                     time_min = time_min.min(time);
@@ -790,13 +808,13 @@ impl Git4DAcceleratedVisualizer {
                         position: [branch_offset, time_pos, 0.0],
                         time: time as f32,
                         color: self.get_commit_color(&commit, branch_id),
-                        branch_id: branch_id as u32,
+                        branch_id,
                         commit_hash: commit_id.as_bytes()[0..8]
                             .iter()
                             .fold(0u64, |acc, &b| (acc << 8) | b as u64),
                     };
 
-                    commit_cache.insert(commit_id, vertex.clone());
+                    commit_cache.insert(commit_id, vertex);
                     all_commits.push(vertex);
                 }
             }
@@ -812,7 +830,7 @@ impl Git4DAcceleratedVisualizer {
         *self
             .time_range
             .lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock time_range: {}", e))? = time_range;
+            .map_err(|e| anyhow::anyhow!("Failed to lock time_range: {e}"))? = time_range;
 
         // Send loaded event
         let commits_count = all_commits.len();
@@ -824,7 +842,8 @@ impl Git4DAcceleratedVisualizer {
         let branches_string: HashMap<String, Vec<String>> = branch_cache
             .iter()
             .map(|(name, oids)| {
-                let oid_strings: Vec<String> = oids.iter().map(|oid| oid.to_string()).collect();
+                let oid_strings: Vec<String> =
+                    oids.iter().map(std::string::ToString::to_string).collect();
                 (name.clone(), oid_strings)
             })
             .collect();
@@ -854,15 +873,15 @@ impl Git4DAcceleratedVisualizer {
         let commit_cache = self
             .commit_cache
             .lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock commit_cache: {}", e))?;
+            .map_err(|e| anyhow::anyhow!("Failed to lock commit_cache: {e}"))?;
         let time_range = *self
             .time_range
             .lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock time_range: {}", e))?;
+            .map_err(|e| anyhow::anyhow!("Failed to lock time_range: {e}"))?;
         let visible_branches = self
             .visible_branches
             .lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock visible_branches: {}", e))?;
+            .map_err(|e| anyhow::anyhow!("Failed to lock visible_branches: {e}"))?;
 
         // Filter visible commits
         let mut vertices: Vec<GitCommitVertex> = commit_cache
@@ -1048,7 +1067,7 @@ impl Git4DAcceleratedVisualizer {
                     // Borrow vr_ar temporarily to get events
                     let events = {
                         if let Some(vr_ar) = &mut self.vr_ar_integration {
-                            vr_ar.update().await.map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?
+                            vr_ar.update().await.map_err(|e| std::io::Error::other(e.to_string()))?
                         } else {
                             Vec::new()
                         }
@@ -1081,13 +1100,11 @@ impl Git4DAcceleratedVisualizer {
                     if let Some(interaction) = vr_ar
                         .handle_gesture_interaction(gesture, hand, position)
                         .await
-                        .map_err(|e| {
-                            std::io::Error::new(std::io::ErrorKind::Other, e.to_string())
-                        })?
+                        .map_err(|e| std::io::Error::other(e.to_string()))?
                     {
                         let _ = self.interaction_sender.send(interaction.clone()).await;
                         let _ = self.event_sender.send(Git4DEvent::InteractionProcessed {
-                            interaction: format!("{:?}", interaction),
+                            interaction: format!("{interaction:?}"),
                         });
                     }
                 }
@@ -1125,18 +1142,19 @@ impl Git4DAcceleratedVisualizer {
                 let mut visible_branches = self
                     .visible_branches
                     .lock()
-                    .map_err(|e| anyhow::anyhow!("Failed to lock visible_branches: {}", e))?;
+                    .map_err(|e| anyhow::anyhow!("Failed to lock visible_branches: {e}"))?;
                 if visible_branches.is_empty() {
                     // Show all branches
                     let branch_cache = self
                         .branch_cache
                         .lock()
-                        .map_err(|e| anyhow::anyhow!("Failed to lock branch_cache: {}", e))?;
+                        .map_err(|e| anyhow::anyhow!("Failed to lock branch_cache: {e}"))?;
                     for (_branch_name, commits) in branch_cache.iter() {
                         if let Some(first_commit) = commits.first() {
-                            let commit_cache = self.commit_cache.lock().map_err(|e| {
-                                anyhow::anyhow!("Failed to lock commit_cache: {}", e)
-                            })?;
+                            let commit_cache = self
+                                .commit_cache
+                                .lock()
+                                .map_err(|e| anyhow::anyhow!("Failed to lock commit_cache: {e}"))?;
                             if let Some(vertex) = commit_cache.get(first_commit) {
                                 visible_branches.insert(vertex.branch_id);
                             }
@@ -1188,7 +1206,7 @@ impl Git4DAcceleratedVisualizer {
             if let Ok(commit) = self
                 .repository
                 .find_commit(commit_id)
-                .with_context(|| format!("Failed to find commit during traversal: {}", commit_id))
+                .with_context(|| format!("Failed to find commit during traversal: {commit_id}"))
             {
                 for parent in commit.parents() {
                     if !visited.contains(&parent.id()) {
@@ -1282,7 +1300,7 @@ impl Git4DAcceleratedVisualizer {
         vertices
             .iter()
             .map(|vertex| {
-                let mut transformed = vertex.clone();
+                let mut transformed = *vertex;
 
                 // Apply time filtering
                 if vertex.time < params.time_filter.0 || vertex.time > params.time_filter.1 {

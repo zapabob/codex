@@ -4,10 +4,10 @@
   "fork_version": "3.4.0",
   "upstream_base": "rust-v0.144.5",
   "upstream_release": "0.144.5",
-  "upstream_main_commit": "cbc83d961e8132bfff4d340ab8342d181b79e95e",
+  "upstream_main_commit": "71448a29e7343b9613eaea620fcdbd196aed2af0",
   "upstream_release_published_at": "2026-07-16T02:54:48Z",
-  "upstream_main_observed_at": "2026-07-16T00:00:00Z",
-  "release_date": "2026-07-16",
+  "upstream_main_observed_at": "2026-07-16T20:05:04Z",
+  "release_date": "2026-07-17",
   "current_release_line": "3.x",
   "legacy_release_line": "2.x",
   "sync_targets": {

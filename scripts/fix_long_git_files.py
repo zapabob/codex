@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Remove files with names > 255 bytes from git index and tree."""
+
 import subprocess
 import sys
 import os
@@ -11,7 +12,8 @@ def get_long_files():
     """Find files with names > 255 bytes in HEAD tree."""
     result = subprocess.run(
         ["git", "ls-tree", "-r", "--name-only", "-z", "HEAD"],
-        capture_output=True, cwd=REPO,
+        capture_output=True,
+        cwd=REPO,
     )
     files = result.stdout.split(b"\x00")
     return [f for f in files if f and len(f.split(b"/")[-1]) > 255]
@@ -22,7 +24,8 @@ def remove_from_index(fpath_bytes):
     # Try git update-index --remove (lower level, handles binary paths better)
     result = subprocess.run(
         ["git", "update-index", "--remove", "--", fpath_bytes],
-        capture_output=True, cwd=REPO,
+        capture_output=True,
+        cwd=REPO,
     )
     if result.returncode == 0:
         return True, "update-index --remove"
@@ -30,7 +33,8 @@ def remove_from_index(fpath_bytes):
     # Try git rm --cached
     result2 = subprocess.run(
         ["git", "rm", "--cached", "--", fpath_bytes],
-        capture_output=True, cwd=REPO,
+        capture_output=True,
+        cwd=REPO,
     )
     if result2.returncode == 0:
         return True, "rm --cached"

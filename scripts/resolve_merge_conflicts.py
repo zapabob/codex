@@ -44,9 +44,13 @@ CONFLICT_RE = re.compile(
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Resolve merge conflicts with upstream-first reinjection rules")
+    parser = argparse.ArgumentParser(
+        description="Resolve merge conflicts with upstream-first reinjection rules"
+    )
     parser.add_argument("paths", nargs="+", help="Conflicted paths to resolve")
-    parser.add_argument("--rule", action="append", default=[], help="Extra rule in glob=strategy form")
+    parser.add_argument(
+        "--rule", action="append", default=[], help="Extra rule in glob=strategy form"
+    )
     parser.add_argument(
         "--repo-root",
         type=Path,

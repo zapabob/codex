@@ -5,11 +5,11 @@ Codex release line while keeping the local extensions that matter for long-runni
 agent work: goals, skills, plugin mentions, Git4D/VR-AR workflows, app-server
 helpers, Python SDK goal APIs, and fast local build/install scripts.
 
-> Current release line: `v3.4.0` (2026-07-16)
-> Official base: `rust-v0.144.5` plus upstream main `cbc83d961e8132bfff4d340ab8342d181b79e95e`
+> Current release line: `v3.4.0` (2026-07-17)
+> Official base: `rust-v0.144.5` plus upstream main `71448a29e7343b9613eaea620fcdbd196aed2af0`
 
 <!-- version-sync:start -->
-> **Current release:** v3.4.0 (2026-07-16) · canonical source `VERSION` · fork/upstream mapping in `version-metadata.json`.
+> **Current release:** v3.4.0 (2026-07-17) · canonical source `VERSION` · fork/upstream mapping in `version-metadata.json`.
 > Legacy v2.x release notes are archived under `releases/legacy/v2.x/RELEASE_NOTES.md`.
 <!-- version-sync:end -->
 
@@ -24,8 +24,8 @@ the current official API shape.
 - Bumps the fork semantic version to `3.4.0` because this line adds official upstream capabilities while keeping backward-compatible zapabob extension behavior.
 - latest official release: `rust-v0.144.5`
 - release publication time: 2026-07-16T02:54:48Z
-- latest observed upstream main commit: `cbc83d961e8132bfff4d340ab8342d181b79e95e`
-- latest observed upstream main commit time: 2026-07-16T00:00:00Z
+- latest observed upstream main commit: `71448a29e7343b9613eaea620fcdbd196aed2af0`
+- latest observed upstream main commit time: 2026-07-16T20:05:04Z
 
 ## Zapabob Extensions
 

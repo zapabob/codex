@@ -4,6 +4,17 @@ import asyncio
 from dataclasses import dataclass
 from typing import AsyncIterator, Iterator
 
+from ._inputs import (
+    Input,
+    RunInput,
+    _normalize_run_input,
+    _to_wire_input,
+)
+from ._run import (
+    RunResult,
+    _collect_async_run_result,
+    _collect_run_result,
+)
 from .async_client import AsyncAppServerClient
 from .client import AppServerClient, AppServerConfig
 from .generated.v2_all import (
@@ -34,23 +45,6 @@ from .generated.v2_all import (
     TurnSteerResponse,
 )
 from .models import InitializeResponse, JsonObject, Notification, ServerInfo
-from ._inputs import (
-    ImageInput,
-    Input,
-    InputItem,
-    LocalImageInput,
-    MentionInput,
-    RunInput,
-    SkillInput,
-    TextInput,
-    _normalize_run_input,
-    _to_wire_input,
-)
-from ._run import (
-    RunResult,
-    _collect_async_run_result,
-    _collect_run_result,
-)
 
 
 def _split_user_agent(user_agent: str) -> tuple[str | None, str | None]:
@@ -261,6 +255,7 @@ class Codex:
     def thread_unarchive(self, thread_id: str) -> Thread:
         unarchived = self._client.thread_unarchive(thread_id)
         return Thread(self._client, unarchived.thread.id)
+
     # END GENERATED: Codex.flat_methods
 
     def models(self, *, include_hidden: bool = False) -> ModelListResponse:
@@ -457,6 +452,7 @@ class AsyncCodex:
         await self._ensure_initialized()
         unarchived = await self._client.thread_unarchive(thread_id)
         return AsyncThread(self, unarchived.thread.id)
+
     # END GENERATED: AsyncCodex.flat_methods
 
     async def models(self, *, include_hidden: bool = False) -> ModelListResponse:
@@ -536,6 +532,7 @@ class Thread:
         )
         turn = self._client.turn_start(self.id, wire_input, params=params)
         return TurnHandle(self._client, self.id, turn.turn.id)
+
     # END GENERATED: Thread.flat_methods
 
     def read(self, *, include_turns: bool = False) -> ThreadReadResponse:
@@ -625,6 +622,7 @@ class AsyncThread:
             params=params,
         )
         return AsyncTurnHandle(self._codex, self.id, turn.turn.id)
+
     # END GENERATED: AsyncThread.flat_methods
 
     async def read(self, *, include_turns: bool = False) -> ThreadReadResponse:
