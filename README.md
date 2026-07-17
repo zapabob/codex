@@ -1,9 +1,10 @@
 # Codex Zapabob
 
-Codex Zapabob is a Windows-ready fork of OpenAI Codex CLI. It tracks the official
-Codex release line while keeping the local extensions that matter for long-running
-agent work: goals, skills, plugin mentions, Git4D/VR-AR workflows, app-server
-helpers, Python SDK goal APIs, and fast local build/install scripts.
+Codex Zapabob is a Windows-ready fork of OpenAI Codex CLI built around three
+practical advantages: GPT-5.6-family model and API support, local execution with
+Ollama, and Git4D spatial code workflows for VR/AR through WebXR. It tracks the
+official Codex release line while preserving goals, skills, plugin mentions,
+app-server helpers, Python SDK goal APIs, and guarded Windows installation.
 
 > Current release line: `v3.4.0` (2026-07-17)
 > Official base: `rust-v0.144.5` plus upstream main `71448a29e7343b9613eaea620fcdbd196aed2af0`
@@ -29,11 +30,16 @@ the current official API shape.
 
 ## Zapabob Extensions
 
-The fork keeps the additions that are useful for serious local operation:
-thread goals and goal status UI, skill discovery and skill mention popups,
-plugin catalog and plugin mention UX, Git4D and VR/AR helper skills, Python SDK
-goal operations, app-server protocol helpers, release metadata sync, and
-Windows-first build/install automation.
+The fork keeps the additions that are useful for serious local operation. Its
+model surfaces and migration guidance understand the GPT-5.6 family while
+following the current official API contract. The `codex-ollama` provider keeps
+private and offline-capable local model workflows available. Git4D combines
+repository time, author, branch, and path data with desktop, VR, and AR sessions
+through the app-server bridge and WebXR-compatible clients.
+
+Those capabilities sit alongside thread goals and goal status UI, skill and
+plugin discovery, Python SDK goal operations, release metadata synchronization,
+and guarded Windows build/install automation.
 
 The extension rule is simple: keep official Codex behavior as the base, keep
 custom behavior only where it adds durable local value, and expose custom APIs
@@ -41,7 +47,7 @@ through the closest current official surface.
 
 ## Build And Install Locally
 
-For a fast 4-core Windows release build:
+One reproducible Windows release build command is:
 
 ```powershell
 cd codex-rs
