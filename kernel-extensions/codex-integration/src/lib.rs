@@ -1,5 +1,5 @@
 //! Codex AI-Native OS Integration
-//! 
+//!
 //! User-space library for interacting with AI kernel extensions
 
 use std::fs;
@@ -61,17 +61,17 @@ impl KernelModuleStats {
             gpu: Self::read_gpu().ok(),
         })
     }
-    
+
     fn read_scheduler() -> io::Result<SchedulerStats> {
         let content = fs::read_to_string("/proc/ai_scheduler")?;
-        
+
         // Parse simple format
         let mut stats = SchedulerStats {
             gpu_utilization_percent: 0,
             gpu_available: false,
             ai_task_count: 0,
         };
-        
+
         for line in content.lines() {
             if line.contains("GPU Utilization:") {
                 if let Some(val) = Self::extract_number(line) {
@@ -79,26 +79,26 @@ impl KernelModuleStats {
                 }
             } else if line.contains("GPU Available:") {
                 stats.gpu_available = line.contains("Yes");
-            } else if line.contains("AI Tasks:") {
-                if let Some(val) = Self::extract_number(line) {
-                    stats.ai_task_count = val as u32;
-                }
+            } else if line.contains("AI Tasks:")
+                && let Some(val) = Self::extract_number(line)
+            {
+                stats.ai_task_count = val as u32;
             }
         }
-        
+
         Ok(stats)
     }
-    
+
     fn read_memory() -> io::Result<MemoryStats> {
         let content = fs::read_to_string("/proc/ai_memory")?;
-        
+
         let mut stats = MemoryStats {
             total_pool_mb: 0,
             block_size_kb: 0,
             total_blocks: 0,
             allocated_bytes: 0,
         };
-        
+
         for line in content.lines() {
             if line.contains("Total Pool Size:") {
                 if let Some(val) = Self::extract_number(line) {
@@ -112,19 +112,19 @@ impl KernelModuleStats {
                 if let Some(val) = Self::extract_number(line) {
                     stats.total_blocks = val as u32;
                 }
-            } else if line.contains("Allocated:") {
-                if let Some(val) = Self::extract_number(line) {
-                    stats.allocated_bytes = val;
-                }
+            } else if line.contains("Allocated:")
+                && let Some(val) = Self::extract_number(line)
+            {
+                stats.allocated_bytes = val;
             }
         }
-        
+
         Ok(stats)
     }
-    
+
     fn read_gpu() -> io::Result<GpuStats> {
         let content = fs::read_to_string("/proc/ai_gpu")?;
-        
+
         let mut stats = GpuStats {
             device_vendor: 0,
             device_id: 0,
@@ -135,7 +135,7 @@ impl KernelModuleStats {
             bytes_from_gpu_mb: 0,
             kernel_launches: 0,
         };
-        
+
         for line in content.lines() {
             if line.contains("DMA Buffer:") {
                 if let Some(val) = Self::extract_number(line) {
@@ -149,35 +149,34 @@ impl KernelModuleStats {
                 if let Some(val) = Self::extract_number(line) {
                     stats.transfers_from_gpu = val;
                 }
-            } else if line.contains("Kernel launches:") {
-                if let Some(val) = Self::extract_number(line) {
-                    stats.kernel_launches = val;
-                }
+            } else if line.contains("Kernel launches:")
+                && let Some(val) = Self::extract_number(line)
+            {
+                stats.kernel_launches = val;
             }
         }
-        
+
         Ok(stats)
     }
-    
+
     fn extract_number(line: &str) -> Option<u64> {
-        line.split_whitespace()
-            .find_map(|s| {
-                // Remove trailing % if present
-                let cleaned = s.trim_end_matches('%');
-                cleaned.parse::<u64>().ok()
-            })
+        line.split_whitespace().find_map(|s| {
+            // Remove trailing % if present
+            let cleaned = s.trim_end_matches('%');
+            cleaned.parse::<u64>().ok()
+        })
     }
-    
+
     /// Check if any kernel module is loaded
     #[must_use]
     pub fn is_available(&self) -> bool {
         self.scheduler.is_some() || self.memory.is_some() || self.gpu.is_some()
     }
-    
+
     /// Print formatted statistics
     pub fn print(&self) {
         println!("🔧 AI Kernel Module Statistics\n");
-        
+
         if let Some(ref sched) = self.scheduler {
             println!("📊 AI Scheduler:");
             println!("  GPU Utilization: {}%", sched.gpu_utilization_percent);
@@ -185,7 +184,7 @@ impl KernelModuleStats {
             println!("  AI Tasks: {}", sched.ai_task_count);
             println!();
         }
-        
+
         if let Some(ref mem) = self.memory {
             println!("💾 AI Memory:");
             println!("  Total Pool: {} MB", mem.total_pool_mb);
@@ -194,7 +193,7 @@ impl KernelModuleStats {
             println!("  Allocated: {} MB", mem.allocated_bytes / 1024 / 1024);
             println!();
         }
-        
+
         if let Some(ref gpu) = self.gpu {
             println!("⚡ GPU Direct:");
             println!("  Device: {:04x}:{:04x}", gpu.device_vendor, gpu.device_id);
@@ -204,7 +203,7 @@ impl KernelModuleStats {
             println!("  Kernel Launches: {}", gpu.kernel_launches);
             println!();
         }
-        
+
         if !self.is_available() {
             println!("⚠️  No AI kernel modules loaded");
             println!("   Load with: sudo insmod ai_scheduler.ko");
@@ -228,4 +227,3 @@ mod tests {
         );
     }
 }
-
