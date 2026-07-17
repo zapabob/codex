@@ -1,9 +1,10 @@
 //! GPU Bindings for Rust
-//! 
+//!
 //! Type-safe Rust bindings for GPU operations
 
 #![deny(warnings)]
 #![deny(clippy::all)]
+#![allow(clippy::must_use_candidate, clippy::return_self_not_must_use)]
 
 /// GPU device handle
 #[repr(transparent)]
@@ -15,7 +16,7 @@ impl GpuDevice {
     pub const fn new(id: u32) -> Self {
         Self(id)
     }
-    
+
     /// Get device ID
     pub const fn id(&self) -> u32 {
         self.0
@@ -32,15 +33,15 @@ impl GpuMemoryAddress {
     pub const fn new(addr: u64) -> Self {
         Self(addr)
     }
-    
+
     /// Get raw address
     pub const fn as_u64(&self) -> u64 {
         self.0
     }
-    
+
     /// Check if address is aligned
     pub const fn is_aligned(&self, align: u64) -> bool {
-        self.0 % align == 0
+        self.0.is_multiple_of(align)
     }
 }
 
@@ -63,12 +64,12 @@ impl GpuAllocFlags {
     pub const PINNED: Self = Self(1 << 0);
     pub const ZERO_COPY: Self = Self(1 << 1);
     pub const WRITE_COMBINED: Self = Self(1 << 2);
-    
+
     /// Check if flags contain specific flag
     pub const fn contains(&self, other: Self) -> bool {
         (self.0 & other.0) == other.0
     }
-    
+
     /// Combine flags
     pub const fn with(self, other: Self) -> Self {
         Self(self.0 | other.0)
@@ -77,7 +78,7 @@ impl GpuAllocFlags {
 
 /// GPU statistics
 #[repr(C)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct GpuStats {
     pub utilization_percent: u32,
     pub memory_used_bytes: u64,
@@ -86,29 +87,17 @@ pub struct GpuStats {
     pub compute_units_active: u32,
 }
 
-impl Default for GpuStats {
-    fn default() -> Self {
-        Self {
-            utilization_percent: 0,
-            memory_used_bytes: 0,
-            temperature_celsius: 0,
-            power_draw_watts: 0,
-            compute_units_active: 0,
-        }
-    }
-}
-
 impl GpuStats {
     /// Check if GPU is idle (< 10% utilization)
     pub const fn is_idle(&self) -> bool {
         self.utilization_percent < 10
     }
-    
+
     /// Check if GPU is busy (> 80% utilization)
     pub const fn is_busy(&self) -> bool {
         self.utilization_percent > 80
     }
-    
+
     /// Check if temperature is critical (> 85°C)
     pub const fn is_temperature_critical(&self) -> bool {
         self.temperature_celsius > 85
@@ -128,12 +117,7 @@ pub struct InferenceRequest {
 
 impl InferenceRequest {
     /// Create new inference request
-    pub const fn new(
-        model_id: u32,
-        batch_size: u32,
-        input_size: u64,
-        output_size: u64,
-    ) -> Self {
+    pub const fn new(model_id: u32, batch_size: u32, input_size: u64, output_size: u64) -> Self {
         Self {
             model_id,
             batch_size,
@@ -142,19 +126,16 @@ impl InferenceRequest {
             timeout_ms: 5000, // Default 5 seconds
         }
     }
-    
+
     /// Set timeout
     pub const fn with_timeout(mut self, timeout_ms: u32) -> Self {
         self.timeout_ms = timeout_ms;
         self
     }
-    
+
     /// Validate request parameters
     pub const fn is_valid(&self) -> bool {
-        self.batch_size > 0 &&
-        self.input_size > 0 &&
-        self.output_size > 0 &&
-        self.timeout_ms > 0
+        self.batch_size > 0 && self.input_size > 0 && self.output_size > 0 && self.timeout_ms > 0
     }
 }
 
@@ -179,7 +160,7 @@ impl GpuError {
     pub const fn code(&self) -> u32 {
         *self as u32
     }
-    
+
     /// Get error message
     pub const fn message(&self) -> &'static str {
         match self {
@@ -210,7 +191,7 @@ mod tests {
         assert!(addr.is_aligned(256));
         assert!(addr.is_aligned(512));
         assert!(addr.is_aligned(0x1000));
-        
+
         let addr2 = GpuMemoryAddress::new(0x1234);
         assert!(addr2.is_aligned(4));
         assert!(!addr2.is_aligned(256));
@@ -231,7 +212,7 @@ mod tests {
             temperature_celsius: 90,
             ..Default::default()
         };
-        
+
         assert!(stats.is_idle());
         assert!(!stats.is_busy());
         assert!(stats.is_temperature_critical());
@@ -239,13 +220,11 @@ mod tests {
 
     #[test]
     fn test_inference_request() {
-        let req = InferenceRequest::new(1, 32, 1024, 2048)
-            .with_timeout(10000);
-        
+        let req = InferenceRequest::new(1, 32, 1024, 2048).with_timeout(10000);
+
         assert_eq!(req.model_id, 1);
         assert_eq!(req.batch_size, 32);
         assert_eq!(req.timeout_ms, 10000);
         assert!(req.is_valid());
     }
 }
-
