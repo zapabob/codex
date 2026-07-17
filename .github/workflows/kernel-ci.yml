@@ -75,8 +75,10 @@ jobs:
       
       - name: Run cargo audit
         run: |
-          cargo install cargo-audit
-          cargo audit
+          cargo install cargo-audit --locked
+          cargo audit --file kernel-extensions/rust/ai_scheduler_rs/Cargo.lock
+          cargo audit --file kernel-extensions/rust/gpu_bindings/Cargo.lock
+          cargo audit --file kernel-extensions/codex-integration/Cargo.lock
 
   security-audit:
     name: Security Audit
@@ -130,4 +132,3 @@ jobs:
           path: |
             *.deb
             *.rpm
-
