@@ -87,6 +87,8 @@ jobs:
       # 5. Security audit (cargo-deny)
       - name: Run cargo-deny
         uses: EmbarkStudios/cargo-deny-action@v2
+        env:
+          RUSTC_WRAPPER: ""
         with:
           rust-version: stable
           manifest-path: ./codex-rs/Cargo.toml
