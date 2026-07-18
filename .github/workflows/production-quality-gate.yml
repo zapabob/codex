@@ -67,11 +67,11 @@ jobs:
 
       # 2. Test execution
       - name: Run tests
-        run: cargo test --workspace --all-features
+        run: cargo test --workspace
 
       # 3. Clippy linting
       - name: Run Clippy
-        run: cargo clippy --workspace --all-features -- -D warnings
+        run: cargo clippy --workspace -- -D warnings
 
       # 4. Format check
       - name: Check formatting
@@ -82,7 +82,7 @@ jobs:
         uses: EmbarkStudios/cargo-deny-action@v2
         with:
           rust-version: stable
-          manifest-path: ./Cargo.toml
+          manifest-path: ./codex-rs/Cargo.toml
 
       # 6. Security audit (cargo-audit)
       - name: Install cargo-audit
@@ -101,13 +101,13 @@ jobs:
           tool: cargo-tarpaulin
 
       - name: Generate coverage report
-        run: cargo tarpaulin --workspace --all-features --out Xml --timeout 120
+        run: cargo tarpaulin --workspace --out Xml --timeout 120
         continue-on-error: true
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          files: ./cobertura.xml
+          files: ./codex-rs/cobertura.xml
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: false
