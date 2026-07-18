@@ -199,5 +199,3 @@ describe("CodexExec", () => {
     expect(env).toEqual({ Path: `${pathDir}${path.delimiter}C\\Windows` });
   });
 });
-      expect(spawnEnv.OPENAI_BASE_URL).toBeUndefined();
-

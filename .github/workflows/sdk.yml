@@ -5,9 +5,7 @@ on:
 
 jobs:
   python-sdk:
-    runs-on:
-      group: ${{ github.event.repository.name }}-runners
-      labels: ${{ github.event.repository.name }}-linux-x64
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - name: Checkout repository
@@ -44,9 +42,7 @@ jobs:
         uses: ./.github/actions/check-clean-worktree
 
   sdks:
-    runs-on:
-      group: ${{ github.event.repository.name }}-runners
-      labels: ${{ github.event.repository.name }}-linux-x64
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     environment:
       name: bazel
@@ -156,7 +152,7 @@ jobs:
         run: pnpm -r --filter ./sdk/typescript run test
 
       - name: Save bazel repository cache
-        if: always() && !cancelled() && steps.setup_bazel.outputs.cache-hit != 'true'
+        if: always() && !cancelled()
         continue-on-error: true
         uses: actions/cache/save@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
         with:

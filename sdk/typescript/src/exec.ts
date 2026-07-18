@@ -53,7 +53,10 @@ const PLATFORM_PACKAGE_BY_TARGET: Record<string, string> = {
   "aarch64-pc-windows-msvc": "@openai/codex-win32-arm64",
 };
 
-const moduleRequire = createRequire(import.meta.url);
+const moduleUrl = import.meta.url;
+const moduleRequire = createRequire(
+  /^file:\/\/[A-Za-z]:\\/.test(moduleUrl) ? moduleUrl.slice("file://".length) : moduleUrl,
+);
 
 type CodexPathResolution = {
   executablePath: string;

@@ -91,7 +91,7 @@ jobs:
 
   argument_comment_lint_prebuilt:
     name: Argument comment lint - ${{ matrix.name }}
-    runs-on: ${{ matrix.runs_on || matrix.runner }}
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
     environment:
       name: bazel
@@ -103,12 +103,9 @@ jobs:
           - name: Linux
             runner: ubuntu-24.04
           - name: macOS
-            runner: macos-15-xlarge
+            runner: macos-15
           - name: Windows
-            runner: windows-x64
-            runs_on:
-              group: ${{ github.event.repository.name }}-runners
-              labels: ${{ github.event.repository.name }}-windows-x64
+            runner: windows-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -152,7 +149,7 @@ jobs:
   # --- CI to validate on different os/targets --------------------------------
   lint_build:
     name: Lint/Build — ${{ matrix.runner }} - ${{ matrix.target }}${{ matrix.profile == 'release' && ' (release)' || '' }}
-    runs-on: ${{ matrix.runs_on || matrix.runner }}
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
     defaults:
       run:
@@ -161,7 +158,7 @@ jobs:
       # Speed up repeated builds across CI runs by caching compiled objects, except on
       # arm64 macOS runners cross-targeting x86_64 where ring/cc-rs can produce
       # mixed-architecture archives under sccache.
-      USE_SCCACHE: ${{ (startsWith(matrix.runner, 'windows') || (matrix.runner == 'macos-15-xlarge' && matrix.target == 'x86_64-apple-darwin')) && 'false' || 'true' }}
+      USE_SCCACHE: ${{ (startsWith(matrix.runner, 'windows') || (matrix.runner == 'macos-15' && matrix.target == 'x86_64-apple-darwin')) && 'false' || 'true' }}
       CARGO_INCREMENTAL: "0"
       SCCACHE_CACHE_SIZE: 10G
 
@@ -169,80 +166,50 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner: macos-15-xlarge
+          - runner: macos-15
             target: aarch64-apple-darwin
             profile: dev
-          - runner: macos-15-xlarge
+          - runner: macos-15
             target: x86_64-apple-darwin
             profile: dev
           - runner: ubuntu-24.04
             target: x86_64-unknown-linux-musl
             profile: dev
-            runs_on:
-              group: ${{ github.event.repository.name }}-runners
-              labels: ${{ github.event.repository.name }}-linux-x64
           - runner: ubuntu-24.04
             target: x86_64-unknown-linux-gnu
             profile: dev
-            runs_on:
-              group: ${{ github.event.repository.name }}-runners
-              labels: ${{ github.event.repository.name }}-linux-x64
           - runner: ubuntu-24.04-arm
             target: aarch64-unknown-linux-musl
             profile: dev
-            runs_on:
-              group: ${{ github.event.repository.name }}-runners
-              labels: ${{ github.event.repository.name }}-linux-arm64
           - runner: ubuntu-24.04-arm
             target: aarch64-unknown-linux-gnu
             profile: dev
-            runs_on:
-              group: ${{ github.event.repository.name }}-runners
-              labels: ${{ github.event.repository.name }}-linux-arm64
-          - runner: windows-x64
+          - runner: windows-latest
             target: x86_64-pc-windows-msvc
             profile: dev
-            runs_on:
-              group: ${{ github.event.repository.name }}-runners
-              labels: ${{ github.event.repository.name }}-windows-x64
-          - runner: windows-arm64
+          - runner: windows-11-arm
             target: aarch64-pc-windows-msvc
             profile: dev
-            runs_on:
-              group: ${{ github.event.repository.name }}-runners
-              labels: ${{ github.event.repository.name }}-windows-arm64
 
           # Also run representative release builds on Mac and Linux because
           # there could be release-only build errors we want to catch.
           # Hopefully this also pre-populates the build cache to speed up
           # releases.
-          - runner: macos-15-xlarge
+          - runner: macos-15
             target: aarch64-apple-darwin
             profile: release
           - runner: ubuntu-24.04
             target: x86_64-unknown-linux-musl
             profile: release
-            runs_on:
-              group: ${{ github.event.repository.name }}-runners
-              labels: ${{ github.event.repository.name }}-linux-x64
           - runner: ubuntu-24.04-arm
             target: aarch64-unknown-linux-musl
             profile: release
-            runs_on:
-              group: ${{ github.event.repository.name }}-runners
-              labels: ${{ github.event.repository.name }}-linux-arm64
-          - runner: windows-x64
+          - runner: windows-latest
             target: x86_64-pc-windows-msvc
             profile: release
-            runs_on:
-              group: ${{ github.event.repository.name }}-runners
-              labels: ${{ github.event.repository.name }}-windows-x64
-          - runner: windows-arm64
+          - runner: windows-11-arm
             target: aarch64-pc-windows-msvc
             profile: release
-            runs_on:
-              group: ${{ github.event.repository.name }}-runners
-              labels: ${{ github.event.repository.name }}-windows-arm64
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -459,10 +426,10 @@ jobs:
           key: apt-${{ matrix.runner }}-${{ matrix.target }}-v1
 
   tests_macos_aarch64:
-    name: Tests — macos-15-xlarge - aarch64-apple-darwin
+    name: Tests — macos-15 - aarch64-apple-darwin
     uses: ./.github/workflows/rust-ci-full-nextest-platform.yml
     with:
-      runner: macos-15-xlarge
+      runner: macos-15
       target: aarch64-apple-darwin
       profile: ci-test
       artifact_id: macos-aarch64
@@ -474,8 +441,6 @@ jobs:
     uses: ./.github/workflows/rust-ci-full-nextest-platform.yml
     with:
       runner: ubuntu-24.04
-      runner_group: ${{ github.event.repository.name }}-runners
-      runner_labels: ${{ github.event.repository.name }}-linux-x64
       target: x86_64-unknown-linux-gnu
       profile: ci-test
       artifact_id: linux-x64-remote
@@ -488,8 +453,6 @@ jobs:
     uses: ./.github/workflows/rust-ci-full-nextest-platform.yml
     with:
       runner: ubuntu-24.04-arm
-      runner_group: ${{ github.event.repository.name }}-runners
-      runner_labels: ${{ github.event.repository.name }}-linux-arm64
       target: aarch64-unknown-linux-gnu
       profile: ci-test
       artifact_id: linux-arm64
@@ -500,9 +463,7 @@ jobs:
     name: Tests — windows-x64 - x86_64-pc-windows-msvc
     uses: ./.github/workflows/rust-ci-full-nextest-platform.yml
     with:
-      runner: windows-x64
-      runner_group: ${{ github.event.repository.name }}-runners
-      runner_labels: ${{ github.event.repository.name }}-windows-x64
+      runner: windows-latest
       target: x86_64-pc-windows-msvc
       profile: ci-test
       artifact_id: windows-x64
@@ -513,12 +474,8 @@ jobs:
     name: Tests — windows-arm64 - aarch64-pc-windows-msvc
     uses: ./.github/workflows/rust-ci-full-nextest-platform.yml
     with:
-      runner: windows-arm64
-      runner_group: ${{ github.event.repository.name }}-runners
-      runner_labels: ${{ github.event.repository.name }}-windows-arm64
-      archive_runner: windows-x64
-      archive_runner_group: ${{ github.event.repository.name }}-runners
-      archive_runner_labels: ${{ github.event.repository.name }}-windows-x64
+      runner: windows-11-arm
+      archive_runner: windows-latest
       target: aarch64-pc-windows-msvc
       profile: ci-test
       artifact_id: windows-arm64

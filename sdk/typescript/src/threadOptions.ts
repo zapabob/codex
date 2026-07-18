@@ -16,4 +16,5 @@ export type ThreadOptions = {
   webSearchMode?: WebSearchMode;
   webSearchEnabled?: boolean;
   approvalPolicy?: ApprovalMode;
+  additionalDirectories?: string[];
 };

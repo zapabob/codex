@@ -167,7 +167,7 @@ jobs:
 
   argument_comment_lint_prebuilt:
     name: Argument comment lint - ${{ matrix.name }}
-    runs-on: ${{ matrix.runs_on || matrix.runner }}
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: ${{ matrix.timeout_minutes }}
     needs: changed
     environment:
@@ -181,14 +181,11 @@ jobs:
             runner: ubuntu-24.04
             timeout_minutes: 30
           - name: macOS
-            runner: macos-15-xlarge
+            runner: macos-15
             timeout_minutes: 30
           - name: Windows
-            runner: windows-x64
+            runner: windows-latest
             timeout_minutes: 30
-            runs_on:
-              group: ${{ github.event.repository.name }}-runners
-              labels: ${{ github.event.repository.name }}-windows-x64
     steps:
       - name: Check whether argument comment lint should run
         id: argument_comment_lint_gate

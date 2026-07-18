@@ -222,13 +222,3 @@ export function responseCompleted(
     },
   };
 }
-type SseEvent = {
-type SseResponseBody = {
-  responseBodies: SseResponseBody[];
-  const responseBodies = options.responseBodies;
-  if (responseBodies.length === 0) {
-    throw new Error("responseBodies is required");
-  let responseIndex = 0;
-        const responseBody = responseBodies[Math.min(responseIndex, responseBodies.length - 1)]!;
-        responseIndex += 1;
-
