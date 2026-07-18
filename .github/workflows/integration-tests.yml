@@ -47,41 +47,14 @@ jobs:
 
       - name: Test Plan Mode workflow
         run: |
-          cd /tmp/integration-test
+          CODEX_BIN="$GITHUB_WORKSPACE/codex-rs/target/debug/codex"
+          test -x "$CODEX_BIN"
+          "$CODEX_BIN" --version
 
-          # Enable plan mode
-          echo "Testing Plan Mode enable..."
-          timeout 30s node ../../../codex-cli/codex /Plan on || echo "Plan mode enabled"
-
-          # Create simple plan
-          echo "Testing plan creation..."
-          PLAN_OUTPUT=$(timeout 60s node ../../../codex-cli/codex /Plan "Add error handling to calc.js" 2>&1)
-          echo "Plan creation output: $PLAN_OUTPUT"
-
-          # Get plan ID
-          PLAN_ID=$(echo "$PLAN_OUTPUT" | grep -o 'bp-[^ ]*' | head -1)
-          if [ -z "$PLAN_ID" ]; then
-            echo "No plan ID found, trying alternative..."
-            PLAN_ID="bp-test-123"
-          fi
-          echo "Using plan ID: $PLAN_ID"
-
-          # Approve plan
-          echo "Testing plan approval..."
-          timeout 30s node ../../../codex-cli/codex /approve "$PLAN_ID" || echo "Approval completed"
-
-          # Execute plan
-          echo "Testing plan execution..."
-          timeout 120s node ../../../codex-cli/codex execute "$PLAN_ID" || echo "Execution completed"
-
-          # Verify results
-          echo "Verifying results..."
-          if grep -q "try\|catch\|error" calc.js; then
-            echo "[OK] Error handling added successfully"
-          else
-            echo "[WARN] Error handling not found"
-            cat calc.js
-          fi
+          FEATURES=$("$CODEX_BIN" features list 2>&1)
+          echo "$FEATURES"
+          echo "$FEATURES" | grep -Eq '^collaboration_modes[[:space:]]+removed[[:space:]]+true$'
+          echo "$FEATURES" | grep -Eq '^multi_agent[[:space:]]+stable[[:space:]]+true$'
 
   subagent-integration:
     name: Sub-Agent Integration Tests
@@ -136,41 +109,14 @@ jobs:
 
       - name: Test Sub-Agent orchestration
         run: |
-          cd /tmp/subagent-test
+          CODEX_BIN="$GITHUB_WORKSPACE/codex-rs/target/debug/codex"
+          test -x "$CODEX_BIN"
 
-          # Enable plan mode
-          timeout 30s node ../../../codex-cli/codex /Plan on || echo "Plan mode enabled"
-
-          # Create orchestrated plan
-          echo "Testing orchestrated plan creation..."
-          PLAN_OUTPUT=$(timeout 60s node ../../../codex-cli/codex /Plan "Add authentication middleware and error handling" --mode=orchestrated 2>&1)
-          echo "Plan creation output: $PLAN_OUTPUT"
-
-          # Get plan ID
-          PLAN_ID=$(echo "$PLAN_OUTPUT" | grep -o 'bp-[^ ]*' | head -1)
-          if [ -z "$PLAN_ID" ]; then
-            PLAN_ID="bp-subagent-test-123"
-          fi
-          echo "Using plan ID: $PLAN_ID"
-
-          # Approve and execute
-          timeout 30s node ../../../codex-cli/codex /approve "$PLAN_ID" || echo "Approved"
-          timeout 180s node ../../../codex-cli/codex execute "$PLAN_ID" || echo "Executed"
-
-          # Verify multiple agents worked
-          echo "Checking for authentication middleware..."
-          if grep -q "auth\|jwt\|middleware" server.js; then
-            echo "[OK] Authentication middleware added"
-          else
-            echo "[WARN] Authentication middleware not found (may be expected)"
-          fi
-
-          echo "Checking for error handling..."
-          if grep -q "try\|catch\|error" server.js; then
-            echo "[OK] Error handling added"
-          else
-            echo "[WARN] Error handling not found"
-          fi
+          FEATURES=$(CODEX_HOME=$(mktemp -d) "$CODEX_BIN" \
+            -c features.multi_agent=true features list 2>&1)
+          echo "$FEATURES"
+          echo "$FEATURES" | grep -Eq '^multi_agent[[:space:]]+stable[[:space:]]+true$'
+          "$CODEX_BIN" exec --help | grep -q 'Run Codex non-interactively'
 
   benchmark-integration:
     name: Benchmark Integration Tests
@@ -207,10 +153,12 @@ jobs:
 
           # Simple benchmark test
           echo "Testing benchmark functionality..."
+          CODEX_BIN="$GITHUB_WORKSPACE/codex-rs/target/debug/codex"
+          test -x "$CODEX_BIN"
 
           # Test 1: Basic performance measurement
           START_TIME=$(date +%s.%3N)
-          timeout 30s node ../../codex-cli/codex --version >/dev/null 2>&1
+          timeout 30s "$CODEX_BIN" --version >/dev/null 2>&1
           END_TIME=$(date +%s.%3N)
 
           EXECUTION_TIME=$(echo "$END_TIME - $START_TIME" | bc 2>/dev/null || echo "0")
@@ -224,15 +172,8 @@ jobs:
 
           # Test 2: Memory usage check
           echo "Testing memory usage..."
-          MEM_USAGE=$(timeout 30s node -e "
-          const { execSync } = require('child_process');
-          const startMem = process.memoryUsage().heapUsed;
-          execSync('node ../../codex-cli/codex --help >/dev/null 2>&1');
-          const endMem = process.memoryUsage().heapUsed;
-          console.log(Math.abs(endMem - startMem));
-          " 2>/dev/null || echo "1000000")
-
-          MEM_MB=$(echo "scale=2; $MEM_USAGE / 1024 / 1024" | bc 2>/dev/null || echo "10")
+          MEM_KB=$({ /usr/bin/time -f '%M' "$CODEX_BIN" --help >/dev/null; } 2>&1 || echo "10240")
+          MEM_MB=$(echo "scale=2; $MEM_KB / 1024" | bc 2>/dev/null || echo "10")
           echo "Memory usage: ${MEM_MB}MB"
 
           if (( $(echo "$MEM_MB < 100" | bc -l 2>/dev/null || echo "0") )); then
@@ -321,23 +262,5 @@ jobs:
             echo "Benchmark: ${{ needs.benchmark-integration.result }}"
             echo "Examples: ${{ needs.example-projects-test.result }}"
             exit 1
-          fi
-          echo "Using plan ID: $PLAN_ID"
-
-          # Approve plan
-          echo "Testing plan approval..."
-          timeout 30s node ../../../codex-cli/codex /approve "$PLAN_ID" || echo "Approval completed"
-
-          # Execute plan
-          echo "Testing plan execution..."
-          timeout 120s node ../../../codex-cli/codex execute "$PLAN_ID" || echo "Execution completed"
-
-          # Verify results
-          echo "Verifying results..."
-          if grep -q "try\|catch\|error" calc.js; then
-            echo "Error handling added successfully"
-          else
-            echo "Error handling not found"
-            cat calc.js
           fi
 

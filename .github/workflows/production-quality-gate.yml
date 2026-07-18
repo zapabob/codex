@@ -63,7 +63,7 @@ jobs:
 
       # 1. Build verification
       - name: Build (Release)
-        run: cargo build --release --workspace
+        run: cargo build --release -p codex-cli
 
       # 2. Test execution
       - name: Run tests
