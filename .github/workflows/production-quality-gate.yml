@@ -113,6 +113,10 @@ jobs:
         run: cargo tarpaulin --workspace --out Xml --timeout 120
         continue-on-error: true
 
+      - name: Reclaim disk for Codecov uploader
+        if: always()
+        run: rm -rf target
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
