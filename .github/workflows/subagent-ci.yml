@@ -4,6 +4,8 @@ name: Sub-Agent & Deep Research CI
 
 on:
 
+  workflow_dispatch:
+
   pull_request:
 
     paths:
@@ -23,6 +25,8 @@ on:
       - "codex-rs/**"
 
       - ".codex/agents/**"
+
+      - ".github/workflows/subagent-ci.yml"
 
 
 
