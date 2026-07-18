@@ -550,13 +550,13 @@ jobs:
 
         run: |
 
-          test -f _docs/2025-10-11_Phasemd
+          test -f README.md
 
-          test -f _docs/2025-10-11_CodexMCP.md
+          test -f AGENTS.md
 
-          test -f _docs/2025-10-11_Phase3md
+          test -f codex-rs/README.md
 
-          test -f _docs/2025-10-11_.md
+          test -f codex-rs/app-server/README.md
 
           echo "All documentation files exist"
 
@@ -566,7 +566,11 @@ jobs:
 
         run: |
 
-          grep -q "Sub-Agent System" README.md || (echo "README missing sub-agent section" && exit 1)
+          grep -q "GPT-5.6" README.md
+
+          grep -q "Ollama" README.md
+
+          grep -q "VR/AR" README.md
 
           echo "README is up to date"
 
