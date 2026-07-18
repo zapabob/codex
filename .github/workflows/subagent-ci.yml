@@ -106,11 +106,11 @@ jobs:
 
 
 
-      - name: Build codex-deep-research
+      - name: Build codex-web-search-extension
 
         working-directory: codex-rs
 
-        run: cargo build --release -p codex-deep-research
+        run: cargo build --release -p codex-web-search-extension
 
 
 
@@ -138,11 +138,11 @@ jobs:
 
 
 
-      - name: Run codex-deep-research tests
+      - name: Run codex-web-search-extension tests
 
         working-directory: codex-rs
 
-        run: cargo test -p codex-deep-research --lib -- --nocapture
+        run: cargo test -p codex-web-search-extension --lib -- --nocapture
 
 
 
@@ -228,11 +228,11 @@ jobs:
 
 
 
-      - name: Run Clippy (codex-deep-research)
+      - name: Run Clippy (codex-web-search-extension)
 
         working-directory: codex-rs
 
-        run: cargo clippy -p codex-deep-research --lib -- -D warnings
+        run: cargo clippy -p codex-web-search-extension --lib -- -D warnings
 
 
 
