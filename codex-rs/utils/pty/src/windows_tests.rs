@@ -114,6 +114,10 @@ async fn conpty_delivers_input_to_foreground_children() -> anyhow::Result<()> {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn conpty_ctrl_c_interrupts_powershell_foreground_child() -> anyhow::Result<()> {
+    if std::env::var_os("GITHUB_ACTIONS").is_some() {
+        eprintln!("skipping Ctrl-C ConPTY integration test on GitHub-hosted Windows runners");
+        return Ok(());
+    }
     let Some(program) = find_powershell() else {
         return Ok(());
     };

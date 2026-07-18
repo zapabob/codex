@@ -37,6 +37,12 @@ filter = 'test(rmcp_client) | test(humanlike_typing_1000_chars_appears_live_no_p
 slow-timeout = { period = "1m", terminate-after = 4 }
 
 [[profile.default.overrides]]
+# Large PNG encoding and resize work can exceed the default one-minute ceiling
+# when Windows full-CI runs thousands of tests concurrently.
+filter = 'package(codex-core) & test(detail_policies_apply_the_expected_budgets)'
+slow-timeout = { period = "1m", terminate-after = 3 }
+
+[[profile.default.overrides]]
 filter = 'test(approval_matrix_covers_all_modes)'
 slow-timeout = { period = "30s", terminate-after = 2 }
 

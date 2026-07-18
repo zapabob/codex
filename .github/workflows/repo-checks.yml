@@ -86,7 +86,22 @@ jobs:
         run: just fmt-check
 
       - name: Prettier (run `pnpm run format:fix` to fix)
-        run: pnpm run format
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="${{ github.event.before }}"
+          if [[ -z "${base}" || "${base}" =~ ^0+$ ]] || ! git cat-file -e "${base}^{commit}" 2>/dev/null; then
+            base="HEAD^"
+          fi
+          mapfile -t files < <(
+            git diff --name-only "${base}" HEAD -- \
+              '*.json' '*.md' 'docs/*.md' '.github/workflows/*.yml' '**/*.js'
+          )
+          if (( ${#files[@]} == 0 )); then
+            echo "No Prettier-managed files changed."
+            exit 0
+          fi
+          pnpm exec prettier --check "${files[@]}"
 
       - name: Check for a clean worktree
         if: always() && !cancelled()

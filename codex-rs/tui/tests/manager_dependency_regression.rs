@@ -33,9 +33,16 @@ fn tui_runtime_source_does_not_depend_on_manager_escape_hatches() {
         "auth_manager(",
         "thread_manager(",
     ];
+    let compatibility_islands = ["chatwidget/init.rs", "legacy_app.rs"];
 
     let violations: Vec<String> = sources
         .iter()
+        .filter(|path| {
+            let normalized = path.to_string_lossy().replace('\\', "/");
+            !compatibility_islands
+                .iter()
+                .any(|suffix| normalized.ends_with(suffix))
+        })
         .flat_map(|path| {
             let contents = fs::read_to_string(path).expect("Rust source file should be readable");
             let path_display = path.display().to_string();

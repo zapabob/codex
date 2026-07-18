@@ -175,6 +175,7 @@ fn render_lines(lines: &[Line<'static>]) -> Vec<String> {
 }
 
 fn sanitize_directory(lines: Vec<String>) -> Vec<String> {
+    let version = format!("(v{})", crate::version::CODEX_CLI_VERSION);
     let frame_width = lines
         .iter()
         .find(|line| line.starts_with('╭'))
@@ -182,6 +183,7 @@ fn sanitize_directory(lines: Vec<String>) -> Vec<String> {
     lines
         .into_iter()
         .map(|line| {
+            let line = line.replace(&version, "(v0.0.0)");
             if let (Some(frame_width), Some(dir_pos), Some(pipe_idx)) =
                 (frame_width, line.find("Directory: "), line.rfind('│'))
             {

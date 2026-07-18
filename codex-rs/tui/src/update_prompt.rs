@@ -265,7 +265,15 @@ mod tests {
         terminal
             .draw(|frame| frame.render_widget_ref(&screen, frame.area()))
             .expect("render update prompt");
-        insta::assert_snapshot!("update_prompt_modal", terminal.backend());
+        let cli_version_regex = regex::escape(crate::version::CODEX_CLI_VERSION);
+        insta::with_settings!({
+            filters => vec![(
+                &cli_version_regex,
+                "0.0.0",
+            )]
+        }, {
+            insta::assert_snapshot!("update_prompt_modal", terminal.backend());
+        });
     }
 
     #[test]

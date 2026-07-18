@@ -47,6 +47,10 @@ fn test_cwd() -> PathBuf {
     std::env::temp_dir()
 }
 
+fn sanitize_cli_version(rendered: String) -> String {
+    rendered.replace(crate::version::CODEX_CLI_VERSION, "0.0.0")
+}
+
 #[test]
 fn streaming_agent_tail_blank_line_uses_one_viewport_row() {
     let cell = StreamingAgentTailCell::new(
@@ -647,7 +651,7 @@ async fn session_info_availability_nux_tooltip_snapshot() {
         /*show_fast_status*/ false,
     );
 
-    let rendered = render_transcript(&cell).join("\n");
+    let rendered = sanitize_cli_version(render_transcript(&cell).join("\n"));
     insta::assert_snapshot!(rendered);
 }
 
@@ -1134,7 +1138,8 @@ fn web_search_history_cell_snapshot() {
 fn standalone_unix_update_available_history_cell_snapshot() {
     let cell =
         UpdateAvailableHistoryCell::new("9.9.9".to_string(), Some(UpdateAction::StandaloneUnix));
-    let rendered = render_lines(&cell.display_lines(/*width*/ 110)).join("\n");
+    let rendered =
+        sanitize_cli_version(render_lines(&cell.display_lines(/*width*/ 110)).join("\n"));
 
     insta::assert_snapshot!(rendered);
 }
@@ -1143,7 +1148,8 @@ fn standalone_unix_update_available_history_cell_snapshot() {
 fn standalone_windows_update_available_history_cell_snapshot() {
     let cell =
         UpdateAvailableHistoryCell::new("9.9.9".to_string(), Some(UpdateAction::StandaloneWindows));
-    let rendered = render_lines(&cell.display_lines(/*width*/ 110)).join("\n");
+    let rendered =
+        sanitize_cli_version(render_lines(&cell.display_lines(/*width*/ 110)).join("\n"));
 
     insta::assert_snapshot!(rendered);
 }
@@ -1152,7 +1158,8 @@ fn standalone_windows_update_available_history_cell_snapshot() {
 fn pnpm_update_available_history_cell_snapshot() {
     let cell =
         UpdateAvailableHistoryCell::new("9.9.9".to_string(), Some(UpdateAction::PnpmGlobalLatest));
-    let rendered = render_lines(&cell.display_lines(/*width*/ 110)).join("\n");
+    let rendered =
+        sanitize_cli_version(render_lines(&cell.display_lines(/*width*/ 110)).join("\n"));
 
     insta::assert_snapshot!(rendered);
 }

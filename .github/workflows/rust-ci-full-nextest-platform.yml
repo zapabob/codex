@@ -71,6 +71,14 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Free disk space for Linux test archives
+        if: ${{ runner.os == 'Linux' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup
+          df -h /
+
       - uses: ./.github/actions/setup-ci
 
       - name: Install Linux build dependencies
@@ -405,6 +413,7 @@ jobs:
 
           "${test_command[@]}"
         env:
+          INSTA_WORKSPACE_ROOT: ${{ github.workspace }}/codex-rs
           RUST_BACKTRACE: 1
           RUST_MIN_STACK: "8388608" # 8 MiB
           NEXTEST_STATUS_LEVEL: leak

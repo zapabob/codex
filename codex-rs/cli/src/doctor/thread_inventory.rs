@@ -779,11 +779,15 @@ mod tests {
                 .as_deref()
                 .is_some_and(|remedy| remedy.starts_with("Restart Codex"))
         }));
+        let missing_file_name = missing_path
+            .file_name()
+            .expect("missing rollout path should have a filename")
+            .to_string_lossy();
         assert!(
             check
                 .details
                 .iter()
-                .any(|detail| detail.contains(missing_path.to_string_lossy().as_ref()))
+                .any(|detail| detail.contains(missing_file_name.as_ref()))
         );
     }
 

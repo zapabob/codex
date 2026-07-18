@@ -1,5 +1,5 @@
 set working-directory := "codex-rs"
-set positional-arguments
+set positional-arguments := true
 
 export JUST_SHELL := justfile_directory() / "scripts/just-shell.py"
 

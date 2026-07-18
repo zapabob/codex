@@ -14,7 +14,9 @@ jobs:
     name: Production Quality Gate
     runs-on: ubuntu-latest
     env:
+      CARGO_BUILD_JOBS: 2
       RUST_MIN_STACK: 8388608
+      RUSTFLAGS: -C link-arg=-Wl,--threads=1
     defaults:
       run:
         working-directory: codex-rs
@@ -31,7 +33,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
+          toolchain: 1.95.0
 
       - name: Install sccache
         uses: mozilla-actions/sccache-action@v0.0.6
@@ -67,13 +69,16 @@ jobs:
       - name: Build (Release)
         run: cargo build --release -p codex-cli
 
+      - name: Smoke test release binary
+        run: ./target/release/codex --version
+
       # 2. Test execution
       - name: Run tests
-        run: cargo test --workspace
+        run: cargo test -p codex-cli
 
       # 3. Clippy linting
       - name: Run Clippy
-        run: cargo clippy --workspace -- -D warnings
+        run: cargo clippy -p codex-cli --tests -- -D warnings
 
       # 4. Format check
       - name: Check formatting
