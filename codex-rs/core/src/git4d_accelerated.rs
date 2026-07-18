@@ -1497,11 +1497,11 @@ mod tests {
                 Some("HEAD"),
                 &sig,
                 &sig,
-                &format!("Commit {}", i),
+                &format!("Commit {i}"),
                 &tree,
                 &parents,
             )
-            .expect(&format!("Failed to create commit {}", i));
+            .unwrap_or_else(|_| panic!("Failed to create commit {i}"));
         }
 
         let config = Git4DVisualizationConfig {
