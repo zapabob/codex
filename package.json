@@ -10,7 +10,7 @@
     "version:check": "node scripts/sync-version.mjs --check"
   },
   "devDependencies": {
-    "prettier": "^3.9.5"
+    "prettier": "^3.9.6"
   },
   "resolutions": {
     "@modelcontextprotocol/sdk": "1.26.0",
